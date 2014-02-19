@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="tables.Transfers" table="transfers">
+      <meta attribute="class-description">
+         This class contains the trabsfers detail. 
+      </meta>
+      <id name="hibernateId" type="integer" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+      
+      <property name="fromStopId" column="from_stop_id" type="string"/>
+      <property name="toStopId" column="to_stop_id" type="string"/>
+      <property name="transferType" column="transfer_type" type="integer"/>
+      <property name="minTransferTime" column="min_transfer_type" type="integer"/>
+   </class>
+</hibernate-mapping>
