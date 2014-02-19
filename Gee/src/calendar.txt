@@ -1,0 +1,9 @@
+service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+every_day,1,1,1,1,1,1,1,20000101,20300101
+not_monday,0,1,1,1,1,1,1,20000101,20300101
+not_tuesday,1,0,1,1,1,1,1,20000101,20300101
+not_wednesday,1,1,0,1,1,1,1,20000101,20300101
+not_thursday,1,1,1,0,1,1,1,20000101,20300101
+not_friday,1,1,1,1,0,1,1,20000101,20300101
+not_saturday,1,1,1,1,1,0,1,20000101,20300101
+not_sunday,1,1,1,1,1,1,0,20000101,20300101
