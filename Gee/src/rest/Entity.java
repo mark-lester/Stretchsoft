@@ -91,6 +91,7 @@ public class Entity extends HttpServlet {
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
 		
 		String className = record.get("entity");
+		className = "tables."+className;
 		System.err.print("In POST className "+className+" action="+record.get("action")+"\n"); 
 		int recordId=0;
 		String action=record.get("action");

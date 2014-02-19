@@ -304,19 +304,6 @@ function init_create_values(tableName){
 		    });
 }
 
-function make_validation_rules(tableName){
-	var $inputs = $('#dialog-edit-'+tableName+'-form :input');
-	$inputs.each(function() {
-		var validation_type this.attr('data-validation');
-		if (validation_type==null){
-			validation_type="";
-		}
-		switch (validation_type){
-			case 'date':
-				
-		}
-	});
-}
 
 
 function postEditHandler(tableName,record){

@@ -35,7 +35,7 @@ public class GtfsLoader {
 			System.err.println("Failed to create sessionFactory object." + ex);
 			throw new ExceptionInInitializerError(ex); 
 		}	
-		HibernateConfig hibernateConfig = ReadConfig();
+		hibernateConfig = ReadConfig();
 	}
 
 public static void runLoader() {
@@ -84,7 +84,7 @@ public static boolean LoadTable(String resourceFile){
 }
 
 public static int createRecord(String className,Hashtable <String,String> record){
-	className = "tables."+className;
+//	className = "tables."+className;
 	Session session = factory.openSession();
     Transaction tx = null;
     Integer recordId = null;
@@ -108,7 +108,7 @@ public static int createRecord(String className,Hashtable <String,String> record
 }
 
 public static int updateRecord(String entityName,Hashtable <String,String> inputRecord){
-	entityName = "tables."+entityName;
+//	entityName = "tables."+entityName;
 	int hibernateId = Integer.parseInt(inputRecord.get("hibernateId"));
 	Session session = factory.openSession();
     Integer recordId = -1;
@@ -135,7 +135,7 @@ public static int updateRecord(String entityName,Hashtable <String,String> input
 
 /* Method to DELETE an employee from the records */
 public static int deleteRecord(String className,Hashtable <String,String> record){
-	className = "tables."+className;
+//	className = "tables."+className;
 	int hibernateId = Integer.parseInt(record.get("hibernateId"));
 	Session session = factory.openSession();
 	Transaction tx = null;
