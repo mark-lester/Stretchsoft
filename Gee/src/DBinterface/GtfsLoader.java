@@ -27,6 +27,10 @@ public class GtfsLoader {
 	private static SessionFactory sessionFactory;
 	private static ServiceRegistry serviceRegistry;
 	public static HibernateConfig hibernateConfig;
+	public static String dataDirectory="gtfs/";
+	public static String hibernateConfigDirectory="config/";
+	
+	
 	
 	public GtfsLoader(){
 		try{
@@ -62,7 +66,7 @@ public static boolean LoadTable(String resourceFile){
 	String tableName=tableMap.tableName;
 	
 	try {
-		CsvReader csvReader = new CsvReader(tableName+".txt");
+		CsvReader csvReader = new CsvReader(dataDirectory+tableName+".txt");
 		csvReader.readHeaders();
 		while (csvReader.readRecord()) {
 			Hashtable<String,String> record = new Hashtable<String,String>();
@@ -167,7 +171,7 @@ private static TableMap ReadTableMap(String resourceFile)
 		SAXParser saxParser = spf.newSAXParser();
 		XMLReader xmlReader = saxParser.getXMLReader();
 	    xmlReader.setContentHandler(tableMap);
-	    xmlReader.parse("bin/"+resourceFile);
+	    xmlReader.parse(hibernateConfigDirectory+resourceFile);
 	} catch (SAXException ex) {
 		System.err.println(ex);		
 	} catch (IOException ex) {
@@ -190,7 +194,7 @@ private static HibernateConfig ReadConfig()
 		SAXParser saxParser = spf.newSAXParser();
 		XMLReader xmlReader = saxParser.getXMLReader();
 	    xmlReader.setContentHandler(hibernateConfig);
-	    xmlReader.parse("bin/hibernate.cfg.xml");
+	    xmlReader.parse(hibernateConfigDirectory+"hibernate.cfg.xml");
 	} catch (SAXException ex) {
 		System.err.println(ex);		
 	} catch (IOException ex) {
@@ -209,7 +213,7 @@ private static HibernateConfig ReadConfig()
    
 public static SessionFactory configureSessionFactory() throws HibernateException {
 	Configuration configuration = new Configuration();    
-	configuration.configure();
+	configuration.configure(hibernateConfigDirectory+"hibernate.cfg.xml");
 	serviceRegistry = new ServiceRegistryBuilder().
 			applySettings(configuration.getProperties()).
 			buildServiceRegistry();        
