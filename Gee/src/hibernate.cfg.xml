@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration SYSTEM 
+"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+   <session-factory>
+   <property name="hibernate.dialect">
+      org.hibernate.dialect.MySQLDialect
+   </property>
+   <property name="hibernate.connection.driver_class">
+      com.mysql.jdbc.Driver
+   </property>
+
+   <!-- Assume gtfs is the database name -->
+   <property name="hibernate.connection.url">
+      jdbc:mysql://localhost/gtfs
+   </property>
+   <property name="hibernate.connection.username">
+      root
+   </property>
+   <property name="hibernate.connection.password">
+      root
+   </property>
+
+   <!-- List of XML mapping files -->
+   <mapping resource="agency.hbm.xml"/>
+   <mapping resource="routes.hbm.xml"/>
+   <mapping resource="stops.hbm.xml"/>
+   <mapping resource="trips.hbm.xml"/>
+   <mapping resource="stop_times.hbm.xml"/>
+   <mapping resource="calendar.hbm.xml"/>
+   <mapping resource="calendar_dates.hbm.xml"/>
+   <mapping resource="fare_attributes.hbm.xml"/>
+   <mapping resource="shapes.hbm.xml"/>
+   <mapping resource="frequencies.hbm.xml"/>
+   <mapping resource="transfers.hbm.xml"/>
+
+</session-factory>
+</hibernate-configuration>

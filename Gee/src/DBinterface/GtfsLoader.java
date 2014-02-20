@@ -27,8 +27,8 @@ public class GtfsLoader {
 	private static SessionFactory sessionFactory;
 	private static ServiceRegistry serviceRegistry;
 	public static HibernateConfig hibernateConfig;
-	public static String dataDirectory="gtfs/";
-	public static String hibernateConfigDirectory="config/";
+	public static String dataDirectory="/home/Gee/gtfs/";
+	public static String hibernateConfigDirectory="";//"/home/Gee/config/";
 	
 	
 	
@@ -213,7 +213,7 @@ private static HibernateConfig ReadConfig()
    
 public static SessionFactory configureSessionFactory() throws HibernateException {
 	Configuration configuration = new Configuration();    
-	configuration.configure(hibernateConfigDirectory+"hibernate.cfg.xml");
+ 	configuration.configure(/* "/home/Gee/config/hibernate.cfg.xml" */);
 	serviceRegistry = new ServiceRegistryBuilder().
 			applySettings(configuration.getProperties()).
 			buildServiceRegistry();        
