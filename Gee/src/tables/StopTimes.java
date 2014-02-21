@@ -90,6 +90,23 @@ public void update(Hashtable <String,String> record){
 		}
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("tripId",this.tripId);
+    SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");  
+    
+	record.put("arrivalTime",df.format(this.arrivalTime));
+	record.put("departureTime",df.format(this.departureTime));
+	record.put("stopId",this.stopId);
+	record.put("stopSequence",Integer.toString(this.stopSequence));
+	record.put("stopHeadsign",this.stopHeadsign);
+	record.put("pickUpType",Integer.toString(this.pickUpType));
+	record.put("dropOffType",Integer.toString(this.dropOffType));
+	record.put("shapeDistTraveled",Double.toString(this.shapeDistTraveled));
+	return record;
+}
+
+
 public void settripId(String tripId){
 		this.tripId = tripId;
 	}

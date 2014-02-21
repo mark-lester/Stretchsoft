@@ -80,6 +80,20 @@ public void update(Hashtable <String,String> record){
 		this.parentStation=record.get("parentStation");
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("stopId",this.stopId);
+	record.put("stopCode",this.stopCode);
+	record.put("stopName",this.stopName);
+	record.put("stopDesc",this.stopDesc);
+	record.put("zoneId",this.zoneId);
+	record.put("stopUrl",this.stopUrl);
+	record.put("locationType",Integer.toString(this.locationType));
+	record.put("stopLat",Float.toString(this.stopLat));
+	record.put("stopLon",Float.toString(this.stopLon));
+	return record;
+}
+
 public void setstopId(String stopId){
 		this.stopId = stopId;
 	}

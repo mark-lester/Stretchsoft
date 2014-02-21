@@ -58,6 +58,21 @@ public void update(Hashtable <String,String> record){
 		this.routeTextColor=record.get("routeTextColor");
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("routeId",this.routeId);
+	record.put("agencyId",this.agencyId);
+	record.put("routeShortName",this.routeShortName);
+	record.put("routeLongName",this.routeLongName);
+	record.put("routeDesc",this.routeDesc);
+	record.put("routeType",Integer.toString(this.routeType));
+	record.put("routeUrl",this.routeUrl);
+	record.put("routeColor",this.routeColor);
+	record.put("routeTextColor",this.routeTextColor);
+	return record;
+}
+
+
 public void setrouteId(String routeId){
 		this.routeId = routeId;
 	}

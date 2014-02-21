@@ -46,6 +46,20 @@ public void update(Hashtable <String,String> record){
 		this.headwaySecs=Integer.parseInt(record.get("headwaySecs"));
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("tripId",this.tripId);
+    SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");  
+    
+	record.put("startTime",df.format(this.startTime));
+	record.put("endTime",df.format(this.endTime));
+	
+	record.put("headwaySecs",Integer.toString(this.headwaySecs));
+
+	return record;
+}
+
+
 public void settripId(String tripId){
 		this.tripId = tripId;
 	}

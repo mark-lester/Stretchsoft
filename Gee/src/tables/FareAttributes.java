@@ -45,6 +45,18 @@ public void update(Hashtable <String,String> record){
 		this.transferDuration=Integer.parseInt(record.get("transferDuration"));
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("fareId",this.fareId);
+	record.put("pricE",this.pricE);
+	record.put("currencyType",this.currencyType);
+	record.put("transferS",Integer.toString(this.transferS));
+	record.put("transferDuration",Integer.toString(this.transferDuration));
+
+	return record;
+}
+
+
 public void setfareId(String fareId){
 		this.fareId = fareId;
 	}

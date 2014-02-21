@@ -102,16 +102,34 @@ public void update(Hashtable <String,String> record){
 	}
 
 	try {
-		this.startDate=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("startDate"));
+		this.startDate=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("startDate"));
 	} catch (ParseException ex){
 		System.err.println(ex);		
 	}
 	
 	try {
-		this.endDate=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("endDate"));
+		this.endDate=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("endDate"));
 	} catch (ParseException ex){
 		System.err.println(ex);		
 	}
+}
+
+public Hashtable <String,String>  hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+
+	record.put("serviceId",this.serviceId);
+    record.put("monDay",Integer.toString(this.monDay));
+    record.put("tuesDay",Integer.toString(this.tuesDay));
+    record.put("wednesDay",Integer.toString(this.wednesDay));
+    record.put("thursDay",Integer.toString(this.thursDay));
+    record.put("friDay",Integer.toString(this.friDay));
+    record.put("saturDay",Integer.toString(this.saturDay));
+    record.put("sunDay",Integer.toString(this.sunDay));
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");  
+    
+	record.put("startDate",df.format(this.startDate));
+	record.put("endDate",df.format(this.endDate));
+	return record;
 }
 
 public void setserviceId(String serviceId){

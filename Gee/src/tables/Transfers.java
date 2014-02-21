@@ -38,6 +38,17 @@ public void update(Hashtable <String,String> record){
 		this.minTransferTime=Integer.parseInt(record.get("minTransferTime"));
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("fromStopId",this.fromStopId);
+	record.put("toStopId",this.toStopId);
+	record.put("transferType",Integer.toString(this.transferType));
+	record.put("minTransferTime",Integer.toString(this.minTransferTime));
+	return record;
+}
+
+
+
 public void setfromStopId(String fromStopId){
 		this.fromStopId = fromStopId;
 	}

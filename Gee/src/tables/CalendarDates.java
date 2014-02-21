@@ -30,13 +30,31 @@ public CalendarDates(Hashtable <String,String> record){
 
 public void update(Hashtable <String,String> record){
 
-		this.serviceId=record.get("serviceId");
-		try {
-			this.date=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("date"));
-		} catch (ParseException ex){
-					System.err.println(ex);		
-		}
+	this.serviceId=record.get("serviceId");
+	try {
+		this.date=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("date"));
+	} catch (ParseException ex){
+				System.err.println(ex);		
 	}
+
+	try {
+		this.exceptionType=Integer.parseInt(record.get("exceptionType"));
+	} catch (NumberFormatException ex){
+		System.err.println(ex);		
+		this.exceptionType=0;
+	}
+}
+
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+
+	this.serviceId=record.put("serviceId",this.serviceId);
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");  
+    
+	record.put("date",df.format(this.date));
+	record.put("exceptionType",Integer.toString(this.exceptionType));
+	return record;
+}
 
 public void setserviceId(String serviceId){
 		this.serviceId = serviceId;

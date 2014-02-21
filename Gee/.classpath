@@ -10,5 +10,6 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="/usr/share/java/servlet-api-3.0.jar"/>
 	<classpathentry kind="lib" path="/usr/share/java/jaxp-1.4.jar"/>
+	<classpathentry kind="lib" path="/home/mark/git/Stretchsoft/Gee/WebContent/WEB-INF/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

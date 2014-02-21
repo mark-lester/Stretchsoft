@@ -42,6 +42,16 @@ public void update(Hashtable <String,String> record){
 		this.shapeDistTraveled=Double.parseDouble(record.get("shapeDistTraveled"));
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("shapeId",this.shapeId);
+	record.put("shapePtLat",Double.toString(this.shapePtLat));
+	record.put("shapePtLon",Double.toString(this.shapePtLon));
+	record.put("shapePtSequence",Integer.toString(this.shapePtSequence));
+	record.put("shapeDistTraveled",Double.toString(this.shapeDistTraveled));
+	return record;
+}
+
 public void setshapeId(String shapeId){
 		this.shapeId = shapeId;
 	}

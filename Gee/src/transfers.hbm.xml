@@ -15,6 +15,6 @@
       <property name="fromStopId" column="from_stop_id" type="string"/>
       <property name="toStopId" column="to_stop_id" type="string"/>
       <property name="transferType" column="transfer_type" type="integer"/>
-      <property name="minTransferTime" column="min_transfer_type" type="integer"/>
+      <property name="minTransferTime" column="min_transfer_time" type="integer"/>
    </class>
 </hibernate-mapping>

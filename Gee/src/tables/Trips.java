@@ -68,6 +68,21 @@ public void update(Hashtable <String,String> record){
 		}
 	}
 
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("tripId",this.tripId);
+	record.put("routeId",this.routeId);
+	record.put("serviceId",this.serviceId);
+	record.put("tripHeadsign",this.tripHeadsign);
+	record.put("tripShortName",this.tripShortName);
+	record.put("directionId",Integer.toString(this.directionId));
+	record.put("blockId",this.blockId);
+	record.put("shapeId",this.shapeId);
+	record.put("wheelchairAccessible",Integer.toString(this.wheelchairAccessible));
+	return record;
+}
+
+
 public void settripId(String tripId){
 		this.tripId = tripId;
 	}

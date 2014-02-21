@@ -8,7 +8,7 @@ public class TableMap extends DefaultHandler {
 	   public Hashtable <String,String> map=new Hashtable<String,String> ();
 	   public String className=null;
 	   public String tableName=null;
-	   
+	   public ArrayList <String> cvsFieldOrder = new ArrayList <String>();
 	   public void startElement(
 			   				String namespaceURI,
 			   				String localName,
@@ -16,6 +16,7 @@ public class TableMap extends DefaultHandler {
 			   				Attributes atts)
                 	throws SAXException {
 	    	if (localName.matches("property")){
+	    		cvsFieldOrder.add(atts.getValue("column"));
 	    		map.put(atts.getValue("column"), atts.getValue("name"));
 	    	}
 	    	if (localName.matches("class")){

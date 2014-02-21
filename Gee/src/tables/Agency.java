@@ -38,12 +38,21 @@ public Agency(Hashtable <String,String> record){
 public void update(Hashtable <String,String> record){
 	this.agencyId=record.get("agencyId");
 	this.agencyName=record.get("agencyName");
-	System.err.println("updated agencyname to "+this.agencyName);
-
 	this.agencyUrl=record.get("agencyUrl");
 	this.agencyTimezone=record.get("agencyTimezone");
 	this.agencyLang=record.get("agencyLang");
 	this.agencyPhone=record.get("agencyPhone");
+}
+
+public Hashtable <String,String> hash(){
+	Hashtable <String,String> record=new Hashtable<String,String> ();
+	record.put("agencyId",this.agencyId);
+	record.put("agencyName",this.agencyName);
+	record.put("agencyUrl",this.agencyUrl);
+	record.put("agencyTimezone",this.agencyTimezone);
+	record.put("agencyLang",this.agencyLang);
+	record.put("agencyPhone",this.agencyPhone);
+	return record;
 }
 
 public void setagencyId(String agencyId){

@@ -20,6 +20,8 @@ import org.xml.sax.helpers.*;
 import sax.*;
 
 import com.csvreader.CsvReader;
+import com.csvreader.CsvWriter;
+
 
 
 public class GtfsLoader {
@@ -42,50 +44,127 @@ public class GtfsLoader {
 		hibernateConfig = ReadConfig();
 	}
 
-public static void runLoader() {
-	// get the tables out of the hibernate.cfg.xml. 
-	// you can presumably do that via hibernate itself but I couldn't work out how to do that
+	public static void runLoader() {
+		// get the tables out of the hibernate.cfg.xml. 
+		// you can presumably do that via hibernate itself but I couldn't work out how to do that
 
-	for (String resourceFile : hibernateConfig.resources) {
-		// load the specific table
-		System.out.println("Loading "+resourceFile+"...\n");		
-		LoadTable(resourceFile);
-		System.out.println("Done "+resourceFile+"\n");		
-	}	
-}
-// TODO refactor this to use the classNames from the keys of tableMaps
-public static boolean LoadTable(String resourceFile){
-// the resource file is the <table>.hbm.xml
-// read it to get the field names, for which we can make up a hashtable
-// all the table handlers have a constructor which takes a hash of <string,string>
-// and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be 
-	TableMap tableMap = ReadTableMap(resourceFile);
-	Enumeration ekeys = tableMap.map.keys();
-	Set <String> keys = tableMap.map.keySet();
-	String className=tableMap.className;
-	String tableName=tableMap.tableName;
-	
-	try {
-		CsvReader csvReader = new CsvReader(dataDirectory+tableName+".txt");
-		csvReader.readHeaders();
-		while (csvReader.readRecord()) {
-			Hashtable<String,String> record = new Hashtable<String,String>();
-			
-			for (String databaseFieldName : keys) {
-				String hibernateFieldName=tableMap.map.get(databaseFieldName);
-				record.put(hibernateFieldName, csvReader.get(databaseFieldName));
-			}
-			createRecord(className,record);
-		}
-		
-	} catch ( FileNotFoundException ex) {
-		System.err.println("Failed to get csv file for "+tableName+" :" + ex);		
-	}  catch ( IOException ex) {
-		System.err.println("Failed reading csv file for "+tableName+" :" + ex);		
+		for (String resourceFile : hibernateConfig.resources) {
+			// load the specific table
+			System.out.println("Loading "+resourceFile+"...\n");		
+			LoadTable(resourceFile);
+			System.out.println("Done "+resourceFile+"\n");		
+		}	
 	}
-	
-	return true;
-}
+
+	public static void runDumper() {
+		// get the tables out of the hibernate.cfg.xml. 
+		// you can presumably do that via hibernate itself but I couldn't work out how to do that
+
+		for (String resourceFile : hibernateConfig.resources) {
+			// load the specific table
+			System.out.println("Dumping "+resourceFile+"...\n");		
+			DumpTable(resourceFile);
+			System.out.println("Done "+resourceFile+"\n");		
+		}	
+	}
+// TODO refactor this to use the classNames from the keys of tableMaps
+	public static boolean LoadTable(String resourceFile){
+		// the resource file is the <table>.hbm.xml
+		// read it to get the field names, for which we can make up a hashtable
+		// all the table handlers have a constructor which takes a hash of <string,string>
+		// and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be 
+			TableMap tableMap = ReadTableMap(resourceFile);
+			Enumeration ekeys = tableMap.map.keys();
+			Set <String> keys = tableMap.map.keySet();
+			String className=tableMap.className;
+			String tableName=tableMap.tableName;
+			
+			try {
+				CsvReader csvReader = new CsvReader(dataDirectory+tableName+".txt");
+				csvReader.readHeaders();
+				while (csvReader.readRecord()) {
+					Hashtable<String,String> record = new Hashtable<String,String>();
+					
+					for (String databaseFieldName : keys) {
+						String hibernateFieldName=tableMap.map.get(databaseFieldName);
+						record.put(hibernateFieldName, csvReader.get(databaseFieldName));
+					}
+					createRecord(className,record);
+				}
+				
+			} catch ( FileNotFoundException ex) {
+				System.err.println("Failed to get csv file for "+tableName+" :" + ex);		
+			}  catch ( IOException ex) {
+				System.err.println("Failed reading csv file for "+tableName+" :" + ex);		
+			}
+			
+			return true;
+		}
+
+	public static boolean DumpTable(String resourceFile){
+		// the resource file is the <table>.hbm.xml
+		// read it to get the field names, for which we can make up a hashtable
+		// all the table handlers have a constructor which takes a hash of <string,string>
+		// and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be 
+			TableMap tableMap = ReadTableMap(resourceFile);
+			Enumeration ekeys = tableMap.map.keys();
+			Set <String> keys = tableMap.map.keySet();
+//			String[] keyArray = keys.toArray(new String[0]);
+			String[] fieldOrder = tableMap.cvsFieldOrder.toArray(new String[0]);
+			
+			String className=tableMap.className;
+			String tableName=tableMap.tableName;
+			Session session = factory.openSession();
+			try {
+				Object entities[]=session.createCriteria(className).list().toArray();
+				
+				CsvWriter csvWriter = new CsvWriter(dataDirectory+tableName+".txt");
+				csvWriter.writeRecord(fieldOrder);
+				for (Object record : entities) {
+					ArrayList <String> outrec = new ArrayList <String> ();
+			    	Class<?> cls = Class.forName(className);
+
+					Method m = cls.getMethod("hash");
+					try{
+						Hashtable <String,String> hashrecord=(Hashtable <String,String>)m.invoke(record);
+					
+						for (String cvsFieldName : fieldOrder) {
+							outrec.add(hashrecord.get(tableMap.map.get(cvsFieldName)));
+						}
+						String[] fieldArray = outrec.toArray(new String[0]);
+
+						csvWriter.writeRecord(fieldArray);
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} finally{}
+
+				}
+				csvWriter.close();
+				
+			} catch ( FileNotFoundException ex) {
+				System.err.println("Failed to get csv file for "+tableName+" :" + ex);		
+			}  catch ( IOException ex) {
+				System.err.println("Failed reading csv file for "+tableName+" :" + ex);		
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return true;
+		}
 
 public static int createRecord(String className,Hashtable <String,String> record){
 //	className = "tables."+className;
