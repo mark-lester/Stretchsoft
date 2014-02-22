@@ -8,8 +8,8 @@ TODO
    Pattern support (not by hacking the base tables) 
 */
 
-CREATE DATABASE IF NOT EXISTS test;
-use test;
+CREATE DATABASE IF NOT EXISTS gtfs;
+use gtfs;
 
 /* Required GTFS tables */
 
@@ -41,7 +41,7 @@ CREATE TABLE `stops` (
 	stop_lon DECIMAL(12,8) NOT NULL,
 	zone_id VARCHAR(255),
 	stop_url VARCHAR(255),
-	location_type ENUM ('0','1',''),
+	location_type INTEGER,
 	parent_station VARCHAR(255),
 	KEY `zone_id` (zone_id),
 	KEY `stop_lat` (stop_lat),
@@ -59,7 +59,7 @@ CREATE TABLE `routes` (
 	route_short_name VARCHAR(255),
 	route_long_name VARCHAR(255),
 	route_desc VARCHAR(255),
-	route_type ENUM ('0','1','2','3','4','5','6','7') NOT NULL,
+	route_type INTEGER,
 	route_url VARCHAR(255),
 	route_color VARCHAR(255),
 	route_text_color VARCHAR(255)
@@ -76,9 +76,10 @@ CREATE TABLE `trips` (
 	service_id VARCHAR(255) NOT NULL,
 	trip_headsign VARCHAR(255),
 	trip_short_name VARCHAR(255),
-	direction_id ENUM ('0','1',''),
+	direction_id INTEGER,
 	block_id VARCHAR(255),
 	shape_id VARCHAR(255),
+	wheelchair_accessible INTEGER,
 	KEY `route_id` (route_id),
 	KEY `service_id` (service_id),
 	KEY `direction_id` (direction_id),
@@ -97,8 +98,8 @@ CREATE TABLE `stop_times` (
 	stop_id VARCHAR(255) NOT NULL,
 	stop_sequence SMALLINT UNSIGNED NOT NULL,
 	stop_headsign VARCHAR(255),
-	pickup_type ENUM ('0','1','2','3',''),
-	drop_off_type ENUM ('0','1','2','3',''),
+	pickup_type INTEGER,
+	drop_off_type INTEGER,
 	shape_dist_traveled DECIMAL(10,4) DEFAULT 0,
 	KEY `trip_id` (trip_id),
 	KEY `stop_id` (stop_id),
@@ -114,15 +115,15 @@ DROP TABLE IF EXISTS calendar;
 CREATE TABLE `calendar` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	service_id VARCHAR(255) NOT NULL UNIQUE KEY,
-	monday ENUM ('0','1') NOT NULL,
-	tuesday ENUM ('0','1') NOT NULL,
-	wednesday ENUM ('0','1') NOT NULL,
-	thursday ENUM ('0','1') NOT NULL,
-	friday ENUM ('0','1') NOT NULL,
-	saturday ENUM ('0','1') NOT NULL,
-	sunday ENUM ('0','1') NOT NULL,
-	start_date DATE NOT NULL,	
-	end_date DATE NOT NULL
+	monday INTEGER,
+	tuesday INTEGER,
+	wednesday INTEGER,
+	thursday INTEGER,
+	friday INTEGER,
+	saturday INTEGER,
+	sunday INTEGER,
+	start_date DATE ,	
+	end_date DATE 
 );
 /*==========================================*/
 
@@ -133,8 +134,8 @@ DROP TABLE IF EXISTS calendar_dates;
 CREATE TABLE `calendar_dates` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	service_id VARCHAR(255) NOT NULL,
-	`date` DATE NOT NULL,
-	exception_type ENUM ('1','2') NOT NULL,
+	`date` DATE ,
+	exception_type INTEGER,
 	KEY `service_id` (service_id),
 	KEY `exception_type` (exception_type)    
 );
@@ -148,8 +149,8 @@ CREATE TABLE fare_attributes (
 	fare_id VARCHAR(255) NOT NULL,
 	price VARCHAR(255) NOT NULL,
 	currency_type VARCHAR(255) NOT NULL,
-	payment_method ENUM ('0','1') NOT NULL,
-	transfers ENUM ('0','1','2',''),
+	payment_method INTEGER,
+	transfers INTEGER,
 	transfer_duration MEDIUMINT UNSIGNED
 );
 
@@ -199,7 +200,7 @@ CREATE TABLE transfers (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	from_stop_id VARCHAR(255) NOT NULL,
 	to_stop_id VARCHAR(255) NOT NULL,
-	transfer_type ENUM ('0','1','2','3') NOT NULL,
+	transfer_type INTEGER,
 	min_transfer_time MEDIUMINT NOT NULL
 );
 

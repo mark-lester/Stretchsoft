@@ -43,19 +43,16 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
     		$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
 
 			//class="pure-button  pure-button-primary"
+    		bootstart_button_stuff='type="button" class="btn btn-primary btn-xs"';
 			$('<button>',{
 				id:"opener-add-"+tableName,
-				
-				html:"Add"
-				}).appendTo("#form-"+tableName);
-			$("<button>",{
+				}).text('Add').appendTo("#form-"+tableName);
+			$('<button>',{
 				id:"opener-edit-"+tableName,
-				html:"Edit"
-				}).appendTo("#form-"+tableName);
-			$("<button>",{
+				}).text('Edit').appendTo("#form-"+tableName);
+			$('<button>',{
 				id:"opener-delete-"+tableName,
-				html:"Delete"
-				}).appendTo("#form-"+tableName);
+				}).text('Delete').appendTo("#form-"+tableName);
 			
 			$( "#dialog-edit-"+tableName ).dialog({ 
 				open : function (event,ui){
@@ -314,7 +311,9 @@ function postEditHandler(tableName,record){
 			$.ajax({
 				  url: url,
 				  dataType: 'json',
-					  async: false
+						success: function(response){
+							drawTrip(record['tripId']);
+							}
 				  }
 			);
 	}
@@ -481,7 +480,6 @@ function MapSetUp(){
 
 		  }
 	});
-	cloudmade_tiles='http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png';
 	osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	L.tileLayer(osm_tiles, {
 		maxZoom: 18,
@@ -515,12 +513,12 @@ function drawStops(){
 						fillColor: '#f03',
 						fillOpacity: 0.5
 					}).addTo(map)
-//					.bindPopup("I am a station.");
 					.on("click",function(e) {
 					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#dialog-edit-StopTimes").data("edit_flag",false);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
+					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					allStopsArr.push(mapobject);
 				});
 			}
