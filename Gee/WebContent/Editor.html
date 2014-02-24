@@ -23,6 +23,9 @@
 <script src="http://leafletjs.com/dist/leaflet.js"></script>
 
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+<link rel="stylesheet" href="css/jquery.timepicker.css">
+
+<script src="js/jquery.timepicker.min.js"></script>
 
 
         
@@ -105,8 +108,8 @@
       Friday <input id="friDay" type=checkbox><br>
       Saturday <input id="saturDay" type=checkbox><br>
       Sunday <input id="sunDay" type=checkbox><br>
-      Start <input id="startDate" type=date><br>
-      End <input id="endDate" type=date><br>
+      Start <input id="startDate" type=text picker="date"><br>
+      End <input id="endDate" type=text picker="date"><br>
  </form>
  </div>
 <div id="dialog-delete-Calendar" title="Delete Calendar">
@@ -121,7 +124,7 @@
 	<input id="parentTable" value="Calendar" type=hidden>
 	<input id="parentKey" value="serviceId" type=hidden>
       Calendar ID<input id="serviceId" size=20 maxlength=20><br>
-      Date <input id="date" data-validation="date" data-validation-format="dd/mm/yyyy" type="text"><br>
+      Date <input id="date"  type=text picker="date"><br>
       Exception Type <input id="exceptionType" size=2 maxlength=2><br>
  </form>
  </div>
@@ -200,8 +203,8 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="parentKey" value="tripId" type=hidden>
       Trip ID <input id="tripId" size=10 maxlength=10><br>
 	
-      Start Time <input id="startTime" size=30 maxlength=30><br>
-      End Time <input id="endTime" size=10 maxlength=10><br>
+      Start Time <input id="startTime" type=text picker=time><br>
+      End Time <input id="endTime" type=text picker=time><br>
       Headway Seconds<input id="headwaySecs" size=30 maxlength=100><br>
   </form>
  </div>
@@ -224,8 +227,8 @@ you will lose all the routes, trips and stoptimes if you do
 	
       Trip ID <input id="tripId" size=10 maxlength=10><br>
       Stop ID <input id="stopId" size=10 maxlength=10><br>
-      Arrival Time  <input id="arrivalTime" size=30 maxlength=30><br>
-      Departure Time  <input id="departureTime" size=30 maxlength=30><br>
+      Arrival Time  <input id="arrivalTime"  type=text picker=time><br>
+      Departure Time  <input id="departureTime"  type=text picker=time><br>
       Stop Sequence <input id="stopSequence" size=3 maxlength=3><br>
       Stop head sign<input id="stopHeadsign" size=30 maxlength=100><br>
   </form>
@@ -238,7 +241,6 @@ you will lose all the routes, trips and stoptimes if you do
 </form>
 </div>
  
-</div>
 </body>
 <script>
 	SetUp();

@@ -54,6 +54,28 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				id:"opener-delete-"+tableName,
 				}).text('Delete').appendTo("#form-"+tableName);
 			
+			// set the pickers
+			var $inputs = $('#dialog-edit-'+tableName+'-form :input');
+		    var values = {};
+		    
+		    $inputs.each(function() {
+		    	switch ($(this).attr('picker')){
+		    		case 'date':
+		    		$(this).datepicker({
+		    		    showAnim: 'slideDown',
+		    		    dateFormat: 'yy-mm-dd'
+		    		});
+		    		break;
+		    		
+		    		case 'time':
+			    	$(this).timepicker({
+			    	    timeFormat: 'H:i:s',
+			    	    step:1
+			   		});
+			    }		
+
+		
+		    	});
 			$( "#dialog-edit-"+tableName ).dialog({ 
 				open : function (event,ui){
 					if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
@@ -69,37 +91,17 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				dragable : true,
 				buttons : {
 					"Update": function() {
-						$('#dialog-edit-'+tableName+'-form').validate({
-							  form: '#dialog-edit-'+tableName+'-form',
-							  modules : 'date',
-							  onModulesLoaded : function() {
-							    alert('All modules is loaded!');
-							  },
-							  onError : function() {
-							      alert('Validation failed');
-							    },
-							  onSuccess : function() {
-							      alert('The form is valid!');
-							      return false; // Will stop the submission of the form
-							    },
-							  onValidate : function() {
-							      return {
-							        element : $('#some-input'),
-							        message : 'This input has an invalid value for some reason'
-							      }
-							    }
-							});
-						
 						var $inputs = $('#dialog-edit-'+tableName+'-form :input');
 					    var values = {};
 					    $inputs.each(function() {
-					    	switch (this.type){
+					    	switch ($(this).attr('type')){
 					    		case 'checkbox':
-					    			if ($(this).attr('checked')){
-					    				values[this.id]=1;
+					    			if ($(this).is(':checked')){
+					    				values[this.id]="1";
 					    			} else {
-					    				values[this.id]=0;
+					    				values[this.id]="0";
 					    			}
+					    		break;
 					    		default:
 							        values[this.id] = $(this).val();
 					    	}

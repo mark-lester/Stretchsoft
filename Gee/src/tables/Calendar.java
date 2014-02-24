@@ -1,5 +1,6 @@
 package tables;
 import javax.persistence.*;
+
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -51,7 +52,6 @@ public Calendar(Hashtable <String,String> record){
 
 public void update(Hashtable <String,String> record){
 	this.serviceId=record.get("serviceId");
-
 	try {
 		this.monDay=Integer.parseInt(record.get("monDay"));
 	} catch (NumberFormatException ex){

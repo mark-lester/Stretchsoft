@@ -200,6 +200,8 @@ public static int updateRecord(String entityName,Hashtable <String,String> input
     	Class<?> cls = Class.forName(entityName);
 		Method m = cls.getMethod("update", inputRecord.getClass());
 		Transaction tx = session.beginTransaction();
+		System.err.println("In update record for class="+entityName);		
+
 		Object hibernateRecord = (Object)session.get(cls,hibernateId);
 		m.invoke(hibernateRecord,inputRecord);
 		System.err.println("just called update");
