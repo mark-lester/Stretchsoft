@@ -467,8 +467,33 @@ var tripStopsArr = [];
 var tripStopsLineArr = [];
 var mapobjectToValue={};
 
+var allStationsLayer=L.featureGroup();
+var tripStationsLayer=L.featureGroup();
+var baseMaps = {};
+
+
+var overlayMaps = {
+	    "AllStations": allStationsLayer,
+	    "TripStations": allStationsLayer
+	};
+
 
 function MapSetUp(){
+	map = L.map('map');
+	osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	baselayer = L.tileLayer(osm_tiles, {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
+	});
+
+	baseMaps={
+		    "OSM": baselayer
+		};
+	baselayer.addTo(map);
+	allStationsLayer.addTo(map);
+	tripStationsLayer.addTo(map);
+
+//	L.control.layers(baseMaps,overlayMaps).addTo(map);
 	url="/Gee/Mapdata";
 	$.ajax({
 		  url: url,
@@ -477,16 +502,10 @@ function MapSetUp(){
 		  success: function(val) {
 			  centreLat = val['minLat'] + (val['maxLat']-val['minLat'])/2;
 			  centreLon = val['minLon'] + (val['maxLon']-val['minLon'])/2;
-			  map = L.map('map'
-			  ).setView([centreLat, centreLon], 7);
+			  map.setView([centreLat, centreLon], 7);
 
 		  }
 	});
-	osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-	L.tileLayer(osm_tiles, {
-		maxZoom: 18,
-		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
-	}).addTo(map);
 	map.on('click',function(e) {
 	    $( "#dialog-edit-Stops").data("edit_flag",false);
 	    $( "#dialog-edit-Stops-form").data("stopLat",e.latlng.lat);
@@ -499,14 +518,12 @@ function MapSetUp(){
 
 function drawStops(){
 	var i=0;
-	for (i= 0;i < allStopsArr.length;i++){
-		map.removeLayer(allStopsArr[i]);
-	}
-	allStopsArr=[];
+	allStationsLayer.clearLayers();
 
 	mapurl= "/Gee/Entity?entity=Stops";
 	$.getJSON(mapurl, 
 			function( data ) {
+				allStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
 	//				alert("want to stick a circle at "+val['stopLat']+" : "+val['stopLon']);
 					
@@ -514,15 +531,16 @@ function drawStops(){
 						color: 'red',
 						fillColor: '#f03',
 						fillOpacity: 0.5
-					}).addTo(map)
+					})
 					.on("click",function(e) {
 					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#dialog-edit-StopTimes").data("edit_flag",false);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
-					allStopsArr.push(mapobject);
+					allStationsLayer.addLayer(mapobject);
 				});
+				allStationsLayer.bringToBack();
 			}
 	);
 }
@@ -530,49 +548,45 @@ function drawStops(){
 function drawTrip(tripId){
 	var latlngs=[];
 	var i=0;
-	for (i= 0;i < tripStopsArr.length;i++){
-		map.removeLayer(tripStopsArr[i]);
-	}
-	tripStopsArr=[];
-	tripStopsLineArr=[];
 	
 	// TODO fix Mapdata?action=stops to retyurn a labelled record, and not have to go val[0,1,...]
 	stopTimesUrl= "/Gee/Mapdata?action=stops&tripId="+tripId;
 	$.getJSON(stopTimesUrl, 
 			function( data ) {
+				tripStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
 					mapobject=L.circle([val[0],val[1]], 1000, {
 						color: 'green',
 						fillColor: 'green',
 						fillOpacity: 1,
-					}).addTo(map)
+					})
 					.on("click",function(e) {
 					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
+					tripStationsLayer.addLayer(mapobject);
 					mapobjectToValue[L.stamp(mapobject)]=val[2];
 
 					// this is an array of the leaflet objects so we can zap them next time
-					tripStopsArr.push(mapobject);
 					var myIcon = L.divIcon({ 
 					    iconSize: new L.Point(80,15), 
 					    html: val[2] +":" +val[4]
 					});
 					mapobject = L.marker([val[0]+0.02,val[1]],{icon:myIcon}).addTo(map);
-					tripStopsArr.push(mapobject);
 					// this is just an array for the polyline function
-					tripStopsLineArr.push([val[0],val[1]]);
 					latlngs.push([val[0],val[1]]);
+					tripStationsLayer.addLayer(mapobject);
 				});
-				mapobject=L.polyline(tripStopsLineArr, 1000, {
+				mapobject=L.polyline(latlngs, 1000, {
 					color: 'green',
 					fillColor: 'green',
 					fillOpacity: 1
-				}).addTo(map);
-				tripStopsArr.push(mapobject);	
+				});
 				map.fitBounds(latlngs);
+				tripStationsLayer.addLayer(mapobject);
+				tripStationsLayer.bringToFront();
 	}
 	);
 }
