@@ -76,7 +76,7 @@
 </div> <!--  end row  -->
 	
 
-<div id="dialog-edit-Stops" title="Add/Edit Stop">
+<div id="dialog-edit-Stops" title="Add/Edit Stop" class="edit-dialog">
 <form id="dialog-edit-Stops-form">
 	<input id="hibernateId" type=hidden><br>
       Stop ID<input id="stopId" size=10 maxlength=10><br>
@@ -90,13 +90,14 @@
  </div>
 <div id="dialog-delete-Stops" title="Delete Stops">
 <form id="dialog-delete-Stops-form">
-     Are you sure you want to delete  Stop ID,  <input readonly name="stopId" size=10 maxlength=10><br>
+
+     Are you sure you want to delete  Stop <input readonly name="display" size=20 maxlength=20><br>
      You will lose any Stop times from any trips that use then if you do.
 </form>
 </div>
  
 
-<div id="dialog-edit-Calendar" title="Add/Edit Calendar">
+<div id="dialog-edit-Calendar" title="Add/Edit Calendar" class="edit-dialog">
 <form id="dialog-edit-Calendar-form">
 	<input id="hibernateId" type=hidden><br>
       ID<input id="serviceId" size=20 maxlength=20><br>
@@ -117,7 +118,7 @@
 </form>
 </div>
 
-<div id="dialog-edit-CalendarDates" title="Add/Edit Calendar Date">
+<div id="dialog-edit-CalendarDates" title="Add/Edit Calendar Date" class="primary">
 <form id="dialog-edit-CalendarDates-form">
 	<input id="hibernateId" type=hidden><br>
 	<input id="parentTable" value="Calendar" type=hidden>
@@ -129,7 +130,7 @@
  </div>
 <div id="dialog-delete-CalendarDates" title="Delete Calendar Date">
 <form id="dialog-delete-CalendarDates-form">
-     Are you sure you want to delete Calendar Date,  <input readonly name="calendarId" size=10 maxlength=10><br>
+     Are you sure you want to delete Calendar Date,  <input readonly name="date" size=10 maxlength=10><br>
 </form>
 </div>
 

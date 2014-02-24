@@ -43,20 +43,22 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
     		$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
 
 			//class="pure-button  pure-button-primary"
-    		bootstart_button_stuff='type="button" class="btn btn-primary btn-xs"';
-			$('<button>',{
-				id:"opener-add-"+tableName,
-				}).text('Add').appendTo("#form-"+tableName);
-			$('<button>',{
-				id:"opener-edit-"+tableName,
-				}).text('Edit').appendTo("#form-"+tableName);
-			$('<button>',{
-				id:"opener-delete-"+tableName,
-				}).text('Delete').appendTo("#form-"+tableName);
+    		bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
+			$('<button type="button" class="btn btn-primary btn-xs">')
+				.attr('id',"opener-add-"+tableName)
+				.text('Add')
+				.appendTo("#form-"+tableName);
+			$('<button type="button" class="btn btn-success btn-xs">')
+				.attr('id',"opener-edit-"+tableName)
+				.text('Edit')
+				.appendTo("#form-"+tableName);
+			$('<button type="button" class="btn btn-danger btn-xs">')
+				.attr('id',"opener-delete-"+tableName)
+				.text('Delete')
+				.appendTo("#form-"+tableName);
 			
 			// set the pickers
 			var $inputs = $('#dialog-edit-'+tableName+'-form :input');
-		    var values = {};
 		    
 		    $inputs.each(function() {
 		    	switch ($(this).attr('picker')){
@@ -79,16 +81,24 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 			$( "#dialog-edit-"+tableName ).dialog({ 
 				open : function (event,ui){
 					if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
+//						$(".edit-dialog .ui-widget-content").css("background-color", "green");
+//						$(".ui-corner-all").css("background-color", "green");
+						$(".edit-dialog .ui-widget-header").css("background-color", "green");
 						init_edit_values(tableName,keyName);
 					} else {
+//						$(".ui-corner-all").css("background-color", "blue");
+						$(".edit-dialog .ui-widget-header").css("background-color", "blue");
+//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
 						init_create_values(tableName);
 					}
+
 				},
 				autoOpen: false, 
 				modal :true,
 				width : 800,
 				resizable : true,
 				dragable : true,
+				dialogClass: "edit-dialog",
 				buttons : {
 					"Update": function() {
 						var $inputs = $('#dialog-edit-'+tableName+'-form :input');
@@ -140,11 +150,11 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 			});
 			$( "#dialog-delete-"+tableName ).dialog({ 
 				open : function (event,ui){
-				    var $inputs = $('#dialog-delete-'+tableName+'-form :input');
-//there should only be one
-				    $inputs.each(function() {
-				    	$(this).val($('#select-'+tableName).val());
-				    });
+					// there should only by one "do you wanna delete this field
+					// set it to whatever the select text is
+					$('#dialog-delete-'+tableName+'-form :input')
+						.val($('#select-'+tableName+' option:selected').text());
+					
 				},
 				autoOpen: false, 
 				modal :true,
@@ -157,16 +167,11 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 					// the children first else you wont even be able to see them after the parent is gone
 					// so we need a recursive delete children function.
 					"Delete": function() {
-						var $inputs = $('#dialog-delete-'+tableName+'-form :input');
-
-					    var values = {};
-					    $inputs.each(function() {
-					        values[this.name] = $(this).val();
-					    });
 					    // only the GTFS id (e.g agencyId) is stored as the value in the select list
 					    // this horrid global nested hash was the only way I could map 
 					    // from tableName + gtfs-id value to hibernateId
-			    		values['hibernateId']=hid_lookup[tableName][values[keyName]].toString();
+						values={};
+			    		values['hibernateId']=hid_lookup[tableName][$('#select-'+tableName).val()].toString();
 					    values['entity']=tableName;
 					    values['action']='delete';
 					    var datastring = JSON.stringify(values);
@@ -179,6 +184,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 							url: "/Gee/Entity",
 							success: function(response){
 //								alert("Record Deleted = "+response);
+								postEditHandler(tableName,values);
 								SetUp(tableName);
 								}
 						});
@@ -193,6 +199,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 
 			$( "#opener-add-"+tableName ).click(function(e) {
 			    e.preventDefault();
+	
 			    $( "#dialog-edit-"+tableName ).data("edit_flag",false);
 			    $( "#dialog-edit-"+tableName ).dialog( "open" );
 			});
@@ -303,6 +310,10 @@ function init_create_values(tableName){
 		    });
 }
 
+function init_delete_values(tableName,keyName){
+	
+}
+
 
 
 function postEditHandler(tableName,record){
@@ -312,6 +323,7 @@ function postEditHandler(tableName,record){
 			
 			$.ajax({
 				  url: url,
+				  async: false,			  
 				  dataType: 'json',
 						success: function(response){
 							drawTrip(record['tripId']);
@@ -319,6 +331,7 @@ function postEditHandler(tableName,record){
 				  }
 			);
 	}
+	SetUp(tableName);
 }
 
 
@@ -336,6 +349,7 @@ function createRecord(this_dialog,tableName) {
 	$.ajax({
 		method:"POST",
 		dataType: 'JSON',
+		async: false,			  
 		data: {values: datastring},
 		url: "/Gee/Entity",
 		success: function(response){
