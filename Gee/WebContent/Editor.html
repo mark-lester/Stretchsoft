@@ -2,10 +2,12 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="css/uniform.default.css" media="screen" />
 <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
 <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+<script src="js/jquery.uniform.js"></script>
 
 <!-- Bootstrap UI stuff -->
 <!-- Latest compiled and minified CSS -->
@@ -23,7 +25,12 @@
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
 <link rel="stylesheet" href="css/jquery.timepicker.css">
 
+  
+<script src='js/spectrum.js'></script>
+<link rel='stylesheet' href='css/spectrum.css' />
+
 <script src="js/jquery.timepicker.min.js"></script>
+<script src="js/jquery.validate.js"></script>
 
 <script type="text/javascript" src="Editor.js"></script>
 
@@ -78,14 +85,23 @@
 
 <div id="dialog-edit-Stops" title="Add/Edit Stop" class="edit-dialog">
 <form id="dialog-edit-Stops-form">
-	<input id="hibernateId" type=hidden><br>
-      Stop ID<input id="stopId" size=10 maxlength=10><br>
-      Code <input id="stopCode" size=30 maxlength=30><br>
-      Name <input id="stopName" size=30 maxlength=30><br>
-      Description<input id="stopDesc" size=30 maxlength=30><br>
-      URL <input id="stopUrl" size=30 maxlength=100><br>
-      Latitude <input id="stopLat" size=30 maxlength=100><br>
-      Longitude <input id="stopLon" size=30 maxlength=100><br>
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<label for="stopId">Stop ID (required)</label>
+    <input id="stopId" name="stopId" size=10 maxlength=10 required><br>
+	<label for="stopCode">Code (required)</label>
+    <input id="stopCode" name="stopCode" size=30 maxlength=30 required><br>
+	<label for="stopName">Name (required)</label>
+    <input id="stopName" name="stopName" size=30 maxlength=30 required><br>
+	<label for="stopDesc">Description</label>
+    <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
+	<label for="stopUrl">URL</label>
+    <input id="stopUrl" name="stopUrl" size=30 maxlength=100><br>
+	<label for="stoplAT">Latitude (required)</label>
+    <input id="stopLat" name="stopLat" size=30 maxlength=100 required><br>
+	<label for="stopLon">Longitude (required)</label>
+    <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
+</fieldset>
  </form>
  </div>
 <div id="dialog-delete-Stops" title="Delete Stops">
@@ -99,17 +115,29 @@
 
 <div id="dialog-edit-Calendar" title="Add/Edit Calendar" class="edit-dialog">
 <form id="dialog-edit-Calendar-form">
+<fieldset>
 	<input id="hibernateId" type=hidden><br>
-      ID<input id="serviceId" size=20 maxlength=20><br>
-      Monday <input id="monDay" type=checkbox><br>
-      Tuesday <input id="tuesDay" type=checkbox><br>
-      Wednesday <input id="wednesDay" type=checkbox><br>
-      Thursday <input id="thursDay" type=checkbox><br>
-      Friday <input id="friDay" type=checkbox><br>
-      Saturday <input id="saturDay" type=checkbox><br>
-      Sunday <input id="sunDay" type=checkbox><br>
-      Start <input id="startDate" type=text picker="date"><br>
-      End <input id="endDate" type=text picker="date"><br>
+	<label for="servceId">ID</label>
+    <input id="serviceId"  name="serviceId" size=20 maxlength=20><br>
+	<label for="monDay">Monday</label>
+    <input id="monDay"  name="monDay" type=checkbox><br>
+	<label for="tuesDay">Tuesday</label>
+    <input id="tuesDay" name="tuesDay" type=checkbox><br>
+	<label for="wednesdDay">Wednseday</label>
+    <input id="wednesDay" name="wednesDay" type=checkbox><br>
+	<label for="thursDay">Thursday</label>
+    <input id="thursDay" type=checkbox><br>
+	<label for="friDay">Friday</label>End required
+    <input id="friDay" type=checkbox><br>
+	<label for="saturDay">Saturday</label>
+    <input id="saturDay" name="saturDay" type=checkbox><br>
+	<label for="sunDay">Sunday</label>
+    <input id="sunDay" type=checkbox><br>
+	<label for="startDate">Start</label>
+    <input id="startDate" name="startDate" type=text picker="date" required><br>
+	<label for="endDate">End</label>
+    <input id="endDate" name="endDate" type=text picker="date" required><br>
+</fieldset>
  </form>
  </div>
 <div id="dialog-delete-Calendar" title="Delete Calendar">
@@ -120,12 +148,17 @@
 
 <div id="dialog-edit-CalendarDates" title="Add/Edit Calendar Date" class="primary">
 <form id="dialog-edit-CalendarDates-form">
+<fieldset>
 	<input id="hibernateId" type=hidden><br>
 	<input id="parentTable" value="Calendar" type=hidden>
 	<input id="parentKey" value="serviceId" type=hidden>
-      Calendar ID<input id="serviceId" size=20 maxlength=20><br>
-      Date <input id="date"  type=text picker="date"><br>
-      Exception Type <input id="exceptionType" size=2 maxlength=2><br>
+	<label for="serviceId">Calendar ID</label>
+    <input id="serviceId" size=20 maxlength=20 required><br>
+	<label for="date">Date</label>
+    <input id="date" name="date"  type=text picker="date" required><br>
+	<label for="exceptionType">Exception Type</label>
+    <input id="exceptionType" size=2 maxlength=2><br>
+</fieldset>
  </form>
  </div>
 <div id="dialog-delete-CalendarDates" title="Delete Calendar Date">
@@ -136,13 +169,28 @@
 
 <div id="dialog-edit-Agency" title="Add/Edit Agency">
 <form id="dialog-edit-Agency-form">
+<fieldset>
 	<input id="hibernateId" type=hidden><br>
-      Agency ID<input id="agencyId" size=10 maxlength=10><br>
-      Name <input id="agencyName" size=30 maxlength=30><br>
-      URL <input id="agencyUrl" size=30 maxlength=100><br>
-      TimeZone <input id="agencyTimezone" size=20 maxlength=20><br>
-      Language <input id="agencyLang" size=10 maxlength=10 ><br>
-      Phone <input id="agencyPhone" size=20 maxlength=20r>
+
+	<label for="agencyId">Agency ID</label>
+    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required><br>
+	
+	<label for="agencyName">Name</label>
+    <input id="agencyName" name="agencyName" size=30 maxlength=30  type="text" required><br>
+	
+	<label for="agencyUrl">URL</label>
+    <input id="agencyUrl" name="agencyUrl" size=30 maxlength=100><br>
+	
+	<label for="agencyTimezone">Timezone</label>
+    <input id="agencyTimezone" name="agencyTimezone" size=20 maxlength=20><br>
+	
+	<label for="agencyLang">Language</label>
+    <input id="agencyLang" name="agencyLang" size=10 maxlength=10 ><br>
+	
+	<label for="agencyPhone">Phone</label>
+    <input id="agencyPhone" name="agencyPhone" size=20 maxlength=20r>
+</fieldset>
+
  </form>
  </div>
 <div id="dialog-delete-Agency" title="Delete Agency">
@@ -157,15 +205,25 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Agency" type=hidden>
 	<input id="parentKey" value="agencyId" type=hidden>
+<fieldset>
 	
-      Agency ID<input id="agencyId" size=10 maxlength=10><br>
-      Route ID <input id="routeId" size=30 maxlength=30><br>
-      Short Name <input id="routeShortName" size=30 maxlength=100><br>
-      Long Name <input id="routeLongName" size=60 maxlength=60><br>
-      Description <input id="routeDesc" size=60 maxlength=60 ><br>
-      Route Type  <input id="routeType" size=1 maxlength=1><br>
-      Route Colour  <input id="routeColor" size=1 maxlength=1><br>
-      Route Text Colour  <input id="routeTextColor" size=1 maxlength=1><br>
+	<label for="agencyId">Agency</label>
+    <input id="agencyId" size=10 maxlength=10 required><br>
+	<label for="routeId">Route ID</label>
+    <input id="routeId" name="routeId" size=30 maxlength=30 required><br>
+	<label for="routeShortName">Short Name</label>
+    <input id="routeShortName" name="routeShortName" size=30 maxlength=100 required><br>
+	<label for="routeLongName">Long Name</label>
+    <input id="routeLongName" name="routeLongName" size=60 maxlength=60 required><br>
+	<label for="routeDesc">Description</label>
+    <input id="routeDesc" name="routeDesc" size=60 maxlength=60 ><br>
+	<label for="routeType">Type</label>
+    <input id="routeType" name="routeType" size=10 type=text><br>
+	<label for="routeColor">Colour</label>
+    <input id="routeColor"name="routeColor" picker="colour" size=10 type="colour" name="routeColor"><br>
+	<label for="routeTextColor">Text Colour</label>
+    <input id="routeTextColor" name="routeTextColor" picker="colour" size=10 type="colour" name="routetextColour"><br>
+ </fieldset>
   </form>
  </div>
 <div id="dialog-delete-Routes" title="Delete Route">
@@ -182,12 +240,19 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="parentTable" value="Routes" type=hidden>
 	<input id="parentKey" value="routeId" type=hidden>
 	
-      Route ID<input id="routeId" size=30 maxlength=30><br>
-      Trip ID<input id="tripId" size=10 maxlength=10><br>
-      Service ID <select id="serviceId"></select> <br>
-      Head sign<input id="tripHeadsign" size=30 maxlength=100><br>
-      Short Name <input id="tripShortName" size=60 maxlength=60><br>
-  </form>
+  <fieldset>
+	<label for="routeId">Route</label>
+    <input id="routeId" size=30 maxlength=30 required><br>
+	<label for="tripId">Trip ID</label>
+    <input id="tripId" size=10 maxlength=10 required><br>
+	<label for="serviceId">Service ID</label>
+    <select id="serviceId" name="serviceId"></select> <br>
+	<label for="tripHeadsign">Head sign</label>
+    <input id="tripHeadsign" size=30 maxlength=100 required><br>
+	<label for="tripShortName">Short Name</label>
+    <input id="tripShortName" name="tripShortName" size=60 maxlength=60 required><br>
+  </fieldset>
+   </form>
  </div>
 <div id="dialog-delete-Trips" title="Delete Trip">
 <form id="dialog-delete-Trips-form">
@@ -198,14 +263,19 @@ you will lose all the routes, trips and stoptimes if you do
 
 <div id="dialog-edit-Frequencies" title="Add/Edit Frequencies">
 <form id="dialog-edit-Frequencies-form">
+<fieldset>
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Trips" type=hidden>
 	<input id="parentKey" value="tripId" type=hidden>
-      Trip ID <input id="tripId" size=10 maxlength=10><br>
-	
-      Start Time <input id="startTime" type=text picker=time><br>
-      End Time <input id="endTime" type=text picker=time><br>
-      Headway Seconds<input id="headwaySecs" size=30 maxlength=100><br>
+  	<label for="tripId">Trip ID </label>
+    <input id="tripId" size=10 maxlength=10 required><br>
+ 	<label for="tripId">Start</label>
+ 	<input id="startTime" name="startTime" type=text picker=time required><br>
+ 	<label for="endTime">End Time</label>
+    <input id="endTime" name="endTime" type=text picker=time required><br>
+ 	<label for="headwaySecs">Headway Seconds</label>
+    <input id="headwaySecs" name="headwaySecs" size=30 maxlength=100 required><br>
+</fieldset>
   </form>
  </div>
 <div id="dialog-delete-Frequencies" title="Delete Frequencies">
@@ -218,6 +288,7 @@ you will lose all the routes, trips and stoptimes if you do
  
 <div id="dialog-edit-StopTimes" title="Add/Edit Stop Time">
 <form id="dialog-edit-StopTimes-form">
+<fieldset>
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Trips" type=hidden>
 	<input id="parentKey" value="tripId" type=hidden>
@@ -225,12 +296,19 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="secondParentKey" value="stopId" type=hidden>
 	<input id="shapeDistTraveled" value="0" type=hidden>
 	
-      Trip ID <input id="tripId" size=10 maxlength=10><br>
-      Stop ID <input id="stopId" size=10 maxlength=10><br>
-      Arrival Time  <input id="arrivalTime"  type=text picker=time><br>
-      Departure Time  <input id="departureTime"  type=text picker=time><br>
-      Stop Sequence <input id="stopSequence" size=3 maxlength=3><br>
-      Stop head sign<input id="stopHeadsign" size=30 maxlength=100><br>
+  	<label for="tripId">Trip ID</label>
+    <input id="tripId" name="tripId" size=10 maxlength=10 required><br>
+  	<label for="stopId">Stop ID </label>
+    <input id="stopId" name="stopId" size=10 maxlength=10 required><br>
+  	<label for="arrivalTime">Arrival Time</label>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required><br>
+  	<label for="departureTime">Departure Time</label>
+    <input id="departureTime" name="departureTime" type=text picker=time required><br>
+  	<label for="stopSequence">Stop Sequence</label>
+    <input id="stopSequence" name="stopSequence" size=3 maxlength=3><br>
+  	<label for="stopHeadsign">Headsign</label>
+    <input id="stopHeadsign" name="stopHeadsign" size=30 maxlength=100><br>
+</fieldset>
   </form>
  </div>
 <div id="dialog-delete-StopTimes" title="Delete Stop Time">
@@ -243,8 +321,7 @@ you will lose all the routes, trips and stoptimes if you do
  
 </body>
 <script>
-	SetUp();
-	MapSetUp();
+Startup();
 </script>
 
 </html>

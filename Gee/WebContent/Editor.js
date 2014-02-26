@@ -1,3 +1,9 @@
+function Startup(){
+	SetUp();
+	MapSetUp();
+//	$("select, input").uniform();
+}
+
 var hid_lookup;
 function getTable(tableName,keyName,displayField,matchField,matchValue,orderField){
 	if (orderField==null){
@@ -28,6 +34,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				$option.data(val['hibernateId']);
 				$option.appendTo($select_list);
 				hid_lookup[tableName][val[keyName]]=val['hibernateId'];
+				
 			});
 
 			$select_list.appendTo("#form-"+tableName);
@@ -56,7 +63,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				.attr('id',"opener-delete-"+tableName)
 				.text('Delete')
 				.appendTo("#form-"+tableName);
-			
+			$('#dialog-edit-'+tableName+'-form').validate();
 			// set the pickers
 			var $inputs = $('#dialog-edit-'+tableName+'-form :input');
 		    
@@ -74,21 +81,26 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 			    	    timeFormat: 'H:i:s',
 			    	    step:1
 			   		});
+			    	break;
+
+		    		case 'colour':
+				    	$(this).spectrum({
+				    	    showInput: true,
+				    	    preferredFormat: "hex6"
+				    	});
+				    break;
 			    }		
 
 		
 		    	});
 			$( "#dialog-edit-"+tableName ).dialog({ 
 				open : function (event,ui){
+					$('#dialog-edit-'+tableName+'-form').validate().form();
 					if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
-//						$(".edit-dialog .ui-widget-content").css("background-color", "green");
-//						$(".ui-corner-all").css("background-color", "green");
 						$(".edit-dialog .ui-widget-header").css("background-color", "green");
 						init_edit_values(tableName,keyName);
 					} else {
-//						$(".ui-corner-all").css("background-color", "blue");
-						$(".edit-dialog .ui-widget-header").css("background-color", "blue");
-//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
+						$(".edit-dialog .ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
 						init_create_values(tableName);
 					}
 
@@ -100,18 +112,27 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				dragable : true,
 				dialogClass: "edit-dialog",
 				buttons : {
-					"Update": function() {
+					"Update": function() {                     
+                        if (!$('#dialog-edit-'+tableName+'-form').validate().form()) {
+                        	return;
+                        }
+                        
 						var $inputs = $('#dialog-edit-'+tableName+'-form :input');
 					    var values = {};
 					    $inputs.each(function() {
 					    	switch ($(this).attr('type')){
-					    		case 'checkbox':
-					    			if ($(this).is(':checked')){
-					    				values[this.id]="1";
-					    			} else {
-					    				values[this.id]="0";
-					    			}
-					    		break;
+				    		case 'checkbox':
+				    			if ($(this).is(':checked')){
+				    				values[this.id]="1";
+				    			} else {
+				    				values[this.id]="0";
+				    			}
+				    		break;
+				    		case 'color':
+				    				values[this.id]=$(this).spectrum("get").toHex();
+	
+				    		break;
+					    		
 					    		default:
 							        values[this.id] = $(this).val();
 					    	}
@@ -132,11 +153,11 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 						$.ajax({
 							method:"POST",
 							dataType: 'JSON',
-							data: {values: datastring},
+							  async: false,
+						data: {values: datastring},
 							url: "/Gee/Entity",
 							success: function(response){
 								postEditHandler(tableName,values);
-								SetUp(tableName);
 								}
 						});
 						
@@ -171,6 +192,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 					    // this horrid global nested hash was the only way I could map 
 					    // from tableName + gtfs-id value to hibernateId
 						values={};
+//						alert("Want to delete "+$('#select-'+tableName).val()+ "in table "+tableName);
 			    		values['hibernateId']=hid_lookup[tableName][$('#select-'+tableName).val()].toString();
 					    values['entity']=tableName;
 					    values['action']='delete';
@@ -181,11 +203,12 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 							method:"POST",
 							dataType: 'JSON',
 							data: {values: datastring},
+							  async: false,
 							url: "/Gee/Entity",
 							success: function(response){
 //								alert("Record Deleted = "+response);
 								postEditHandler(tableName,values);
-								SetUp(tableName);
+//								SetUp(tableName);
 								}
 						});
 						$( this ).dialog( "close" );
@@ -260,16 +283,22 @@ function init_edit_values(tableName,keyName){
 		        } else if (this.id == 'parentKey' || this.id == 'parentTable' || this.id == 'secondParentTable' || this.id == 'secondParentKey') {
 		    		// leave these alone
 		    	} else {
-		    		switch (this.type){
-		    			case 'checkbox':
-					        if (record[this.id] == 1){
-					        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").prop('checked',true);
-					        } else {
-					        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").prop('checked',false);
-					        }
-					    break;
-		    			default:
-					        $("#"+this.id,"#dialog-edit-"+tableName+"-form").val(record[this.id]);
+		    		switch ($(this).attr('type')){
+	    			case 'checkbox':
+				        if (record[this.id] == 1){
+				        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").prop('checked',true);
+				        } else {
+				        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").prop('checked',false);
+				        }
+				    break;
+				    
+	    			case 'colour':
+				        $("#"+this.id,"#dialog-edit-"+tableName+"-form").val(record[this.id]);
+	    				$(this).spectrum("set",record[this.id]);
+				    break;
+				    
+		   			default:
+				        $("#"+this.id,"#dialog-edit-"+tableName+"-form").val(record[this.id]);
 		    		}
 		        }
 		    });
@@ -332,39 +361,17 @@ function postEditHandler(tableName,record){
 			);
 	}
 	SetUp(tableName);
+	
 }
 
 
-function createRecord(this_dialog,tableName) {
-	var $inputs = $('#dialog-add-'+tableName+'-form :input');
-
-    var values = {};
-    $inputs.each(function() {
-        values[this_dialog.name] = $(this_dialog).val();
-    });
-    values['entity']=tableName;
-    var datastring = JSON.stringify(values);
-    
-	$url= "/Gee/Entity";
-	$.ajax({
-		method:"POST",
-		dataType: 'JSON',
-		async: false,			  
-		data: {values: datastring},
-		url: "/Gee/Entity",
-		success: function(response){
-			SetUp(tableName);
-			}
-	});
-	$(this_dialog).dialog( "close" );
-    
-}
 
 function SetUp(tableName){
 	hid_lookup = {};
 	if (tableName === null){
 		tabkeName="";
 	}
+//	alert("I am trying to set table "+tableName+"\n this is all very much still in development, but thanks for coming");
 	switch (tableName){
 	  default:
 	  case "Agency":
@@ -372,7 +379,7 @@ function SetUp(tableName){
 	  case "Calendar":
 			getTable("Calendar","serviceId","serviceId");
 	  case "CalendarDates":
-			getTable("CalendarDates","serviceId","date","serviceId",$('#select-Calendar').val());
+			getTable("CalendarDates","date","date","serviceId",$('#select-Calendar').val());
 
 	  case "Stops":
 			getTable("Stops","stopId","stopName");
@@ -387,7 +394,7 @@ function SetUp(tableName){
 			getTable("Trips","tripId","tripId","routeId",$('#select-Routes').val());
 		
 	  case 'Frequencies':
-			getTable("Frequencies","tripId","tripId","startTime",$('#select-Trips').val());
+			getTable("Frequencies","startTime","startTime","tripId",$('#select-Trips').val(),"startTime");
 		  
 	  case "StopTimes":
 			getTable("StopTimes","stopId","stopId","tripId",$('#select-Trips').val(),"stopSequence");
@@ -425,7 +432,7 @@ function configureSubSelects(tableName){
 			getTable("Routes","routeId","routeId","agencyId",$('#select-Agency').val());
 			break;
 		case 'Calendar': 
-			getTable("CalendarDates","serviceId","date","serviceId",$('#select-Calendar').val());
+			getTable("CalendarDates","date","date","serviceId",$('#select-Calendar').val());
 			break;
 		case 'Routes': 
 			getTable("Trips","tripId","tripId","routeId",$('#select-Routes').val());
