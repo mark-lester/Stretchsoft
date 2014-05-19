@@ -34,6 +34,7 @@
    <mapping resource="shapes.hbm.xml"/>
    <mapping resource="frequencies.hbm.xml"/>
    <mapping resource="transfers.hbm.xml"/>
+   <mapping resource="imported_stops.hbm.xml"/>
 
 </session-factory>
 </hibernate-configuration>
