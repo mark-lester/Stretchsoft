@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/httpcore-4.3.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/csvjdbc-1.0-18.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/restfb-1.6.9.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

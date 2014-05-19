@@ -90,6 +90,25 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				    	});
 				    break;
 			    }		
+			    
+		    	if ($(this).attr('greaterthan')){
+		    		$(this).change(function(){
+		    			if (!$('#'+$(this).attr('greaterthan')).val() || $(this).val() < $('#'+$(this).attr('greaterthan')).val()){
+		    				$('#'+$(this).attr('greaterthan')).val(
+		    					$(this).val()
+		    				);
+		    		}
+		    		});
+		    	}
+		    	if ($(this).attr('lessthan')){
+		    		$(this).change(function(){
+		    			if (!$('#'+$(this).attr('lessthan')).val() || $(this).val() > $('#'+$(this).attr('lessthan')).val()){
+		    				$('#'+$(this).attr('lessthan')).val(
+		    					$(this).val()
+		    				);
+		    			}
+		    		});
+		    	}
 
 		
 		    	});
@@ -558,8 +577,16 @@ function drawStops(){
 					    $( "#dialog-edit-StopTimes").data("edit_flag",false);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
+					
+
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					allStationsLayer.addLayer(mapobject);
+					/*
+					var mapobject = L.marker(val['stopLat']+0.0001,val['stopLon']).bindLabel(val['stopName'], { noHide: true })
+					.addTo(map)
+					.showLabel();
+					allStationsLayer.addLayer(mapobject);
+					*/
 				});
 				allStationsLayer.bringToBack();
 			}
@@ -579,7 +606,7 @@ function drawTrip(tripId){
 					mapobject=L.circle([val[0],val[1]], 1000, {
 						color: 'green',
 						fillColor: 'green',
-						fillOpacity: 1,
+						fillOpacity: 0.3,
 					})
 					.on("click",function(e) {
 					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
@@ -612,6 +639,129 @@ function drawTrip(tripId){
 	);
 }
 
+function SetupMenu(){
+	
+$( "#getstops" ).click(function(e) {
+    e.preventDefault();
+    $( "#dialog-getstops" ).dialog( "open" );
+    
+});
 
+$("#dialog-getstops" ).dialog({ 
+	open : function (event,ui){
+		// there should only by one "do you wanna delete this field
+		// set it to whatever the select text is
+	},
+	autoOpen: false, 
+	modal :true,
+	width : 600,
+	resizable : true,
+	dragable : true,
+	buttons : {
+		// TODO **IMPORTANT** 
+		// this will leave all the children to this record orphaned. right now you have to manually delete 
+		// the children first else you wont even be able to see them after the parent is gone
+		// so we need a recursive delete children function.
+		"Upload": function() {
+		    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+		    // this horrid global nested hash was the only way I could map 
+		    // from tableName + gtfs-id value to hibernateId
+			values={};
+		    
+			$url= "/Gee/ImportStops?"+
+			"n="+map.getBounds().getNorth()+
+			"&s="+map.getBounds().getSouth()+
+			"&e="+map.getBounds().getEast()+
+			"&w="+map.getBounds().getWest()+
+			"&t="+$( "#stop_type").val()
+			;
+			$.ajax({
+				method:"GET",
+				dataType: 'JSON',
+				  async: false,
+				url: $url,
+				success: function(response){
+					SetUp();
+					}
+			});
+			$( this ).dialog( "close" );
+		    
+		},
+		Cancel: function() {
+			 $( this ).dialog( "close" );
+		}
+	}
+});
+}
+
+function MainSetup(){
+	FBSetup();
+	SetupMenu();
+	Startup();
+}
+
+function FBSetup(){
+window.fbAsyncInit = function() {
+	  FB.init({
+	    appId      : '287612631394075',
+	    status     : true, // check login status
+	    cookie     : true, // enable cookies to allow the server to access the session
+	    xfbml      : true  // parse XFBML
+	  });
+
+	  // Here we subscribe to the auth.authResponseChange JavaScript event. This event is fired
+	  // for any authentication related change, such as login, logout or session refresh. This means that
+	  // whenever someone who was previously logged out tries to log in again, the correct case below 
+	  // will be handled. 
+	  FB.Event.subscribe('auth.authResponseChange', function(response) {
+	    // Here we specify what we do with the response anytime this event occurs. 
+	    if (response.status === 'connected') {
+	      // The response object is returned with a status field that lets the app know the current
+	      // login status of the person. In this case, we're handling the situation where they 
+	      // have logged in to the app.
+	      testAPI();
+	    } else if (response.status === 'not_authorized') {
+	      // In this case, the person is logged into Facebook, but not into the app, so we call
+	      // FB.login() to prompt them to do so. 
+	      // In real-life usage, you wouldn't want to immediately prompt someone to login 
+	      // like this, for two reasons:
+	      // (1) JavaScript created popup windows are blocked by most browsers unless they 
+	      // result from direct interaction from people using the app (such as a mouse click)
+	      // (2) it is a bad experience to be continually prompted to login upon page load.
+	      FB.login();
+	    } else {
+	      // In this case, the person is not logged into Facebook, so we call the login() 
+	      // function to prompt them to do so. Note that at this stage there is no indication
+	      // of whether they are logged into the app. If they aren't then they'll see the Login
+	      // dialog right after they log in to Facebook. 
+	      // The same caveats as above apply to the FB.login() call here.
+	      FB.login();
+	    }
+	  });
+	  };
+
+	  // Load the SDK asynchronously
+	  (function(d){
+	   var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+	   if (d.getElementById(id)) {return;}
+	   js = d.createElement('script'); js.id = id; js.async = true;
+	   js.src = "//connect.facebook.net/en_US/all.js";
+	   ref.parentNode.insertBefore(js, ref);
+	  }(document));
+
+	  // Here we run a very simple test of the Graph API after login is successful. 
+	  // This testAPI() function is only called in those cases. 
+	  function testAPI() {
+	    console.log('Welcome!  Fetching your information.... ');
+	    FB.api('/me', function(response) {
+	      console.log('Good to see you, ' + response.name + '.');
+	    });
+       	var access_token =   FB.getAuthResponse()['accessToken'];
+     	document.cookie ="gee_fbat="+access_token;
+	    console.log('access_token='+access_token);
+     	
+
+	  }
+}
 
 

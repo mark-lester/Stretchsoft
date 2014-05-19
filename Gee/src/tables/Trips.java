@@ -4,6 +4,7 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
+
 @Entity
 @Table(name = "trips")
 

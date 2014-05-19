@@ -3,26 +3,28 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/uniform.default.css" media="screen" />
-<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
-<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
-<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+<script src="js/jquery-1.10.2.js"></script>
+<script src="js/jquery-ui.js"></script>
+<link rel="stylesheet" href="css/leaflet.css" />
+<script src="js/leaflet.js"></script>
 <script src="js/jquery.uniform.js"></script>
+
+
 
 <!-- Bootstrap UI stuff -->
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/bootstrap.min.css">
 
 <!-- Optional theme -->
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="css/bootstrap-theme.min.css">
 
 <!-- Latest compiled and minified JavaScript -->
-<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
 
-<link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-<script src="http://leafletjs.com/dist/leaflet.js"></script>
+<link rel="stylesheet" href="css/smoothness/jquery-ui.css">
+<script src="js/leaflet.js"></script>
 
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+<script src="js/jquery.validate.js"></script>
 <link rel="stylesheet" href="css/jquery.timepicker.css">
 
   
@@ -33,11 +35,15 @@
 <script src="js/jquery.validate.js"></script>
 
 <script type="text/javascript" src="Editor.js"></script>
-
+<script src="//connect.facebook.net/en_US/all.js"></script>
         
 <title>Welcome to Gee</title>
 </head>
 <body>
+
+<div id="fb-root"></div>
+
+   
 <nav class="navbar navbar-default" role="navigation">
   <div class="container">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -45,6 +51,19 @@
     <img class="navbar-brand" src="img/cow-icon.png" >
     <a class="navbar-brand" href="#">Welcome to Gee</a>
     </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn" name="getstops" id="getstops">Get Stops From OSM</button>
+    	  </form>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+      	 <li class="active">   
+     	   <fb:login-button show-faces="true" width="200" max-rows="1"></fb:login-button>
+     	 </li>
+      </ul>
   </div>
  </nav>  
 
@@ -81,6 +100,15 @@
 
 </div> <!-- end 9 col -->
 </div> <!--  end row  -->
+
+<div id="dialog-getstops" title="Get Stops From OSM" class="edit-dialog">
+<form id="dialog-getstops-form">
+<fieldset>
+	<label for="stop_type">Type</label>
+    <input id="stop_type" name="stop_type" size=10 maxlength=10 required><br>
+</fieldset>
+ </form>
+ </div>
 	
 
 <div id="dialog-edit-Stops" title="Add/Edit Stop" class="edit-dialog">
@@ -123,20 +151,20 @@
     <input id="monDay"  name="monDay" type=checkbox><br>
 	<label for="tuesDay">Tuesday</label>
     <input id="tuesDay" name="tuesDay" type=checkbox><br>
-	<label for="wednesdDay">Wednseday</label>
+	<label for="wednesdDay">Wednesday</label>
     <input id="wednesDay" name="wednesDay" type=checkbox><br>
 	<label for="thursDay">Thursday</label>
     <input id="thursDay" type=checkbox><br>
-	<label for="friDay">Friday</label>End required
+	<label for="friDay">Friday</label>
     <input id="friDay" type=checkbox><br>
 	<label for="saturDay">Saturday</label>
     <input id="saturDay" name="saturDay" type=checkbox><br>
 	<label for="sunDay">Sunday</label>
     <input id="sunDay" type=checkbox><br>
 	<label for="startDate">Start</label>
-    <input id="startDate" name="startDate" type=text picker="date" required><br>
+    <input id="startDate" name="startDate" type=text picker="date" required lessthan="endDate"><br>
 	<label for="endDate">End</label>
-    <input id="endDate" name="endDate" type=text picker="date" required><br>
+    <input id="endDate" name="endDate" type=text picker="date" required greaterthan="startDate"><br>
 </fieldset>
  </form>
  </div>
@@ -270,9 +298,9 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="tripId">Trip ID </label>
     <input id="tripId" size=10 maxlength=10 required><br>
  	<label for="tripId">Start</label>
- 	<input id="startTime" name="startTime" type=text picker=time required><br>
+ 	<input id="startTime" name="startTime" type=text picker=time required lessthan="endTime"><br>
  	<label for="endTime">End Time</label>
-    <input id="endTime" name="endTime" type=text picker=time required><br>
+    <input id="endTime" name="endTime" type=text picker=time required greaterthan="startTime" ><br>
  	<label for="headwaySecs">Headway Seconds</label>
     <input id="headwaySecs" name="headwaySecs" size=30 maxlength=100 required><br>
 </fieldset>
@@ -301,9 +329,9 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="stopId">Stop ID </label>
     <input id="stopId" name="stopId" size=10 maxlength=10 required><br>
   	<label for="arrivalTime">Arrival Time</label>
-    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required><br>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required lessthan="departureTime"><br>
   	<label for="departureTime">Departure Time</label>
-    <input id="departureTime" name="departureTime" type=text picker=time required><br>
+    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime"><br>
   	<label for="stopSequence">Stop Sequence</label>
     <input id="stopSequence" name="stopSequence" size=3 maxlength=3><br>
   	<label for="stopHeadsign">Headsign</label>
@@ -321,7 +349,7 @@ you will lose all the routes, trips and stoptimes if you do
  
 </body>
 <script>
-Startup();
+MainSetup();
 </script>
 
 </html>

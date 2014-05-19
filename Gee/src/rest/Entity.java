@@ -1,6 +1,7 @@
 package rest;
 
 import java.io.IOException;
+
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse; 
+import javax.servlet.http.Cookie;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -22,6 +24,10 @@ import org.hibernate.Transaction;
 import org.hibernate.SessionFactory;
 import org.hibernate.service.*;
 import org.hibernate.cfg.Configuration;
+
+import com.restfb.DefaultFacebookClient;
+
+import com.restfb.FacebookClient.*;
 
 import DBinterface.*;
 import sax.*;
@@ -48,6 +54,18 @@ public class Entity extends HttpServlet {
 		TODO - change this to use prepared statements else it's gonna blow up once apostrophe gets used
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		Cookie[] cookies = request.getCookies();
+		
+		for (Cookie cookie : cookies) {
+			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
+		}
+//		AccessToken accessToken =
+//				  new DefaultFacebookClient().obtainAppAccessToken("287612631394075", "2a20c183f3998aa8313671322990d777");
+	
+//		FacebookClient facebookClient = new DefaultFacebookClient(accessToken);
+
+//		System.err.print("My application access token: " + accessToken+"\n");
 		response.setContentType("text/html");
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity");
@@ -102,16 +120,16 @@ public class Entity extends HttpServlet {
 		}
 		switch (action){
 			case "delete":
-				recordId = GtfsLoader.deleteRecord(className,record);
+				recordId = gtfsLoader.deleteRecord(className,record);
 			break;
 		
 			case "update":
-				recordId = GtfsLoader.updateRecord(className,record);
+				recordId = gtfsLoader.updateRecord(className,record);
 			break;
 		
 			// assume "create"
 			default:
-				recordId = GtfsLoader.createRecord(className,record);
+				recordId = gtfsLoader.createRecord(className,record);
 			break;
 		}
 
