@@ -17,5 +17,10 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/csvjdbc-1.0-18.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/restfb-1.6.9.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-codec-1.7.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/gson-2.2.4.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/java-json.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-discovery-0.4.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/base64coder-2010-09-21.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

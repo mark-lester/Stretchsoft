@@ -14,6 +14,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse; 
 import javax.servlet.http.Cookie;
+import javax.servlet.GenericServlet;
+import javax.servlet.ServletConfig;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import com.google.gson.*;
+
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -25,8 +31,10 @@ import org.hibernate.SessionFactory;
 import org.hibernate.service.*;
 import org.hibernate.cfg.Configuration;
 
-import com.restfb.DefaultFacebookClient;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.discovery.tools.*;
 
+import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient.*;
 
 import DBinterface.*;
@@ -40,7 +48,18 @@ import tables.*;
 public class Entity extends HttpServlet {
 	private static GtfsLoader gtfsLoader;
 	private static final long serialVersionUID = 1L;
-       
+	private static ServletConfig servletConfig;
+	protected String FACEBOOK_SECRET;
+
+	public void init(ServletConfig config) throws ServletException
+	{
+	    super.init(config);
+	    FACEBOOK_SECRET = config.getInitParameter("FACEBOOK_SECRET");
+//		System.err.print("FACEBOOK_SECRET=" + FACEBOOK_SECRET+"\n");
+//		System.err.print("SERVLET NAME=" + getServletName()+"\n");
+		
+
+	}
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -55,17 +74,8 @@ public class Entity extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		Cookie[] cookies = request.getCookies();
+		String userId = getUserId(request);
 		
-		for (Cookie cookie : cookies) {
-			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
-		}
-//		AccessToken accessToken =
-//				  new DefaultFacebookClient().obtainAppAccessToken("287612631394075", "2a20c183f3998aa8313671322990d777");
-	
-//		FacebookClient facebookClient = new DefaultFacebookClient(accessToken);
-
-//		System.err.print("My application access token: " + accessToken+"\n");
 		response.setContentType("text/html");
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity");
@@ -146,4 +156,61 @@ public class Entity extends HttpServlet {
 			e.printStackTrace();	 
 		}
 	}
+
+
+protected String getUserId(HttpServletRequest request){
+	Cookie[] cookies = request.getCookies();
+	String signed_request = null;
+	byte[] payload=null;
+	String sig = null;
+	String access_token=null;
+	String userId=null;
+
+	Base64 codec = new Base64();
+	 
+	for (Cookie cookie : cookies) {
+		System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
+        if (cookie.getName().equals("fbsr_287612631394075")){
+        	signed_request = cookie.getValue();
+        }
+        if (cookie.getName().equals("gee_fbat")){
+        	access_token = new String(codec.decode(cookie.getValue()));
+        }
+	}
+	
+	if (signed_request != null){
+		String[] sr_parts = signed_request.split("\\.",2);
+		String encoded_sig = sr_parts[0];
+	
+	  // decode the data
+	
+		String encodedPayload = sr_parts[1];
+    
+
+        payload = codec.decode(encodedPayload);
+        String payload_string = new String(payload);
+        System.err.print("payload = " + payload_string + "\n");
+     
+        sig = new String(codec.decode(encoded_sig));
+        try {	  
+    	    SecretKeySpec secret = new SecretKeySpec(FACEBOOK_SECRET.getBytes(),"hmacSHA256");
+	   	    Mac mac = Mac.getInstance("hmacSHA256");
+    	    mac.init(secret);
+    	    String sig_comp = new String(mac.doFinal(encodedPayload.getBytes()));
+    	    if (sig.equals(sig_comp)){
+    			ObjectMapper mapper = new ObjectMapper();
+    			Hashtable<String,String> record = mapper.readValue(payload, Hashtable.class);
+
+    	    	userId = record.get("user_id");
+        		System.err.print("user_id = " + userId + "\n");
+    	    }
+//    		System.err.print("sig = " + sig+" sig_comp = "+sig_comp+" comp val = " + sig.equals(sig_comp)+ "\n");
+    	} catch (Exception e) {
+    	    System.out.println(e.getMessage());
+    	} 
+	}
+	
+	return userId;
+}
+
 }
