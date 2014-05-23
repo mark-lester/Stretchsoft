@@ -40,16 +40,14 @@ import com.restfb.FacebookClient.*;
 import DBinterface.*;
 import sax.*;
 import tables.*;
+import admin.*;
 
 /**
  * Servlet implementation class Entity
  */
-@WebServlet("/Entity")
-public class Entity extends HttpServlet {
-	private Gtfs gtfs=null;
-	private static Admin admin=null;
-	private static Hashtable <String,Gtfs> gtfsStore=null;
-	
+@WebServlet("/User")
+public class User extends HttpServlet {
+	private static Admin adminDB;
 	private static final long serialVersionUID = 1L;
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
@@ -58,38 +56,30 @@ public class Entity extends HttpServlet {
 	{
 	    super.init(config);
 	    FACEBOOK_SECRET = config.getInitParameter("FACEBOOK_SECRET");
-//		System.err.print("FACEBOOK_SECRET=" + FACEBOOK_SECRET+"\n");
-//		System.err.print("SERVLET NAME=" + getServletName()+"\n");
-		
-
 	}
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public Entity() {
+    public User() {
         super();
-        if (admin == null){
-        	admin = new Admin();
-        }
-        if (gtfsStore == null){
-            gtfsStore = new Hashtable <String,Gtfs>();        	
-        }
+        adminDB = new Admin();
     }
-    
+
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 		TODO - change this to use prepared statements else it's gonna blow up once apostrophe gets used
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		String userId = getUserId(request,response);
-		if (userId == null){
-			return; // your cookie doesnt add up
+		String userId = getUserId(request);
+		if (request.getParameter("post").equals("1")){
+			doPost(request,response);
+			return;
 		}
 		response.setContentType("text/html");
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity");
-		Session session = gtfs.factory.openSession();
+		Session session = adminDB.factory.openSession();
 
 		if (request.getParameter("field") != null){
 			query+=" WHERE "+request.getParameter("field")+"='"+request.getParameter("value")+"'";
@@ -123,10 +113,6 @@ public class Entity extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String userId = getUserId(request,response);
-		if (userId == null){
-			return; // your cookie doesnt add up
-		}
 		String json = request.getParameter("values");
 		System.err.print("In POST got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
@@ -144,16 +130,16 @@ public class Entity extends HttpServlet {
 		}
 		switch (action){
 			case "delete":
-				recordId = gtfs.deleteRecord(className,record);
+				recordId = adminDB.deleteRecord(className,record);
 			break;
 		
 			case "update":
-				recordId = gtfs.updateRecord(className,record);
+				recordId = adminDB.updateRecord(className,record);
 			break;
 		
 			// assume "create"
 			default:
-				recordId = gtfs.createRecord(className,record);
+				recordId = adminDB.createRecord(className,record);
 			break;
 		}
 
@@ -172,14 +158,13 @@ public class Entity extends HttpServlet {
 	}
 
 
-protected String getUserId(HttpServletRequest request, HttpServletResponse response){
+protected String getUserId(HttpServletRequest request){
 	Cookie[] cookies = request.getCookies();
 	String signed_request = null;
 	byte[] payload=null;
 	String sig = null;
 	String access_token=null;
 	String userId=null;
-	String databaseName=null;
 
 	Base64 codec = new Base64();
 	 
@@ -190,9 +175,6 @@ protected String getUserId(HttpServletRequest request, HttpServletResponse respo
         }
         if (cookie.getName().equals("gee_fbat")){
         	access_token = new String(codec.decode(cookie.getValue()));
-        }
-        if (cookie.getName().equals("gee_databasename")){
-        	databaseName = new String(codec.decode(cookie.getValue()));
         }
 	}
 	
@@ -221,36 +203,14 @@ protected String getUserId(HttpServletRequest request, HttpServletResponse respo
 
     	    	userId = record.get("user_id");
         		System.err.print("user_id = " + userId + "\n");
-    	    } else {
-    	    	// cookie doesnt add up
-    	    	return null;
     	    }
+//    		System.err.print("sig = " + sig+" sig_comp = "+sig_comp+" comp val = " + sig.equals(sig_comp)+ "\n");
     	} catch (Exception e) {
     	    System.out.println(e.getMessage());
     	} 
 	}
-	Hashtable <String,String> record = new Hashtable <String,String>();	
-	record.put("userId", userId);
-	// we can add email and nice name when we've worked out how to get them
-	admin.getUser(record);
-	
-	if (databaseName == null){//we dont have a database cookie set, so choose the default, "gtfs"
-		databaseName = "gtfs";
-	    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
-	    response.addCookie(cookie1); 
-	}
-	gtfs = getGtfs(databaseName);
 	
 	return userId;
-}
-
-public Gtfs getGtfs(String databaseName){
-	if (gtfsStore.get(databaseName) == null){
-		// TODO make sure it's there, or at least in the instances table.
-		gtfsStore.put(databaseName, new Gtfs("/home/Gee/config/gtfs",databaseName));
-	}
-	
-	return gtfsStore.get(databaseName);
 }
 
 }

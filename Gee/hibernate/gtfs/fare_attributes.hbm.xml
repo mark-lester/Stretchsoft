@@ -4,7 +4,7 @@
  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
 
 <hibernate-mapping>
-   <class name="tables.FareAttributes" table="fare_attibutes">
+   <class name="tables.FareAttributes" table="fare_attributes">
       <meta attribute="class-description">
          This class contains the fare_attributes detail. 
       </meta>

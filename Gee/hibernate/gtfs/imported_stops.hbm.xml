@@ -4,17 +4,15 @@
  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
 
 <hibernate-mapping>
-   <class name="tables.Transfers" table="transfers">
+   <class name="tables.ImportedStops" table="imported_stops">
       <meta attribute="class-description">
-         This class contains the trabsfers detail. 
+         This class contains the imported_stops detail. 
       </meta>
       <id name="hibernateId" type="integer" column="hibernate_id">
          <generator class="native"/>
       </id>
       
-      <property name="fromStopId" column="from_stop_id" type="string"/>
-      <property name="toStopId" column="to_stop_id" type="string"/>
-      <property name="transferType" column="transfer_type" type="integer"/>
-      <property name="minTransferTime" column="min_transfer_type" type="integer"/>
+      <property name="osmNodeId" column="osm_node_id" type="string"/>
+      <property name="stopsHibernateId" column="stops_hibernate_id" type="integer"/>
    </class>
 </hibernate-mapping>

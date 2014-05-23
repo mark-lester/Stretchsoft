@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="admin.Instance" table="instance">
+      <meta attribute="class-description">
+         This class contains the database instance detail. 
+      </meta>
+      <id name="hibernateId" type="int" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+      <property name="databaseName" column="database_name" type="string"/>
+      <property name="ownerUserId" column="owner_user_id" type="string"/>
+      <property name="publicRead" column="public_read" type="integer"/>
+      <property name="publicWrite" column="public_write" type="integer"/>
+   </class>
+</hibernate-mapping>
+
