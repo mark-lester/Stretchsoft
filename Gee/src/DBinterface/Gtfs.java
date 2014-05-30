@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
- 
+import org.hibernate.Session; 
 import javax.xml.parsers.*;
 import org.xml.sax.*;
 import sax.*;
@@ -105,7 +105,7 @@ public class Gtfs extends Generic {
    
     public boolean UpdateImportedStop(Hashtable <String,String> osmRecord){
         // should be called UpdateOrCreate..
-        session = factory.openSession();
+        Session session = factory.openSession();
         tx = session.beginTransaction();
 	
 		String query ="FROM ImportedStops WHERE osmNodeId="+osmRecord.get("node_id");

@@ -13,6 +13,8 @@ import org.xml.sax.*;
 import sax.*;
 
 import org.hibernate.HibernateException;
+import org.hibernate.Session;
+
 import admin.*;
 
 
@@ -58,6 +60,7 @@ public class Admin extends Generic {
 			// ASSERTION FAILURE
 			return null;			
 		}
+		Session session = null;
 	    session = factory.openSession();
 		String query = null;
 		Users user=null;
@@ -77,8 +80,81 @@ public class Admin extends Generic {
 		}
 	}
 	
+	public Boolean verifyAdminAccess(String databaseName,String userId){
+		Instance instance=null;
+	    Session session = factory.openSession();
+
+		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		if (instances.length == 0){
+			// non existent DB, grant access
+			return true;	
+		}
+		instance = (Instance)instances[0];
+		if (instance.getownerUserId().equals(userId)){
+			return true;
+		}
+		
+		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"' and adminFlag='1'").list().toArray();
+		if (access.length == 0){ // no access 
+			return false;	
+		}
+		// else yes, we have admin rights
+		return false;
+	}
+	
+	public Boolean verifyReadAccess(String databaseName,String userId){
+		Instance instance=null;
+	    Session session = factory.openSession();
+
+		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		if (instances.length == 0){
+			// non existent DB, grant access
+			return true;	
+		}
+		instance = (Instance)instances[0];
+		if (instance.getownerUserId().equals(userId) || instance.getpublicRead()==1){
+			return true;
+		}
+		
+		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"'").list().toArray();
+		if (access.length == 0){ // no access 
+			return false;	
+		}
+		
+		
+		// else yes, we have read rights
+		return false;
+	}
+	
+	public Boolean verifyWriteAccess(String databaseName,String userId){
+		Instance instance=null;
+	    Session session = factory.openSession();
+
+		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		if (instances.length == 0){
+			// non existent DB, grant access
+			return true;	
+		}
+		instance = (Instance)instances[0];
+		if (instance.getownerUserId().equals(userId)  || instance.getpublicWrite()==1){
+			return true;
+		}
+		
+		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"' and writeFlag='1'").list().toArray();
+		if (access.length == 0){ // no access 
+			return false;	
+		}
+		
+		
+		// else yes, we have read rights
+		return false;
+	}
+	
+
 	public String getInstance(Hashtable <String,String> record){
 		Instance instance=null;
+	    Session session = factory.openSession();
+
 		Object entities[] = session.createQuery("from Instance where ownerId ='"+record.get("userId")+
 				"' and databaseName='"+record.get("databaseName")+"'").list().toArray();
 		if (entities.length > 1){

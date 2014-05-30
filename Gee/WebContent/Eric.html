@@ -80,32 +80,32 @@
 
 <div class="row">
 <div class="col-md-3">
-<div id="Instance">
+<div id="Instance" class="Eric">
 <h5>Databases</h5>
 </div>
-<div id="Stops">
+<div id="Stops" class="Eric" parent="Instance" display_field="stopName">
 <h5>Stops</h5>
 </div>
-<div id="Calendar">
+<div id="Calendar" parent="Instance" >
 <h5>Calendar</h5>
 </div>
-<div id="CalendarDates">
+<div id="CalendarDates" class="Eric" parent="Instance" >
 <h5>Calendar Dates</h5>
 </div>
-<div id="Agency">
+<div id="Agency" class="Eric" parent="Instance" >
 <h5>Agencies</h5>
 </div>
-<div id="Routes">
+<div id="Routes" class="Eric" parent="Agency" >
 <h5>Routes</h5>
 </div>
-<div id="Trips">
+<div id="Trips" class="Eric" parent="Routes">
 <h5>Trips</h5>
 </div>
-<div id="Frequencies">
-<h5>Frequencies</h5>
-</div>
-<div id="StopTimes">
+<div id="StopTimes" class="Eric" parent="Trips">
 <h5>Stop Times</h5>
+</div>
+<div id="Frequencies" class="Eric" parent="Trips">
+<h5>Frequencies</h5>
 </div>
 </div>
 <div class="col-md-9">
@@ -130,11 +130,11 @@
 <fieldset>
 	<input id="hibernateId" type=hidden>
 	<label for="stopId">Stop ID (required)</label>
-    <input id="stopId" name="stopId" size=10 maxlength=10 required><br>
+    <input id="stopId" name="stopId" size=10 maxlength=10 required key><br>
 	<label for="stopCode">Code (required)</label>
     <input id="stopCode" name="stopCode" size=30 maxlength=30 required><br>
 	<label for="stopName">Name (required)</label>
-    <input id="stopName" name="stopName" size=30 maxlength=30 required><br>
+    <input id="stopName" name="stopName" size=30 maxlength=30 required display><br>
 	<label for="stopDesc">Description</label>
     <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
 	<label for="stopUrl">URL</label>
@@ -160,7 +160,7 @@
 <fieldset>
 	<input id="hibernateId" type=hidden><br>
 	<label for="servceId">ID</label>
-    <input id="serviceId"  name="serviceId" size=20 maxlength=20><br>
+    <input id="serviceId"  name="serviceId" size=20 maxlength=20 key display><br>
 	<label for="monDay">Monday</label>
     <input id="monDay"  name="monDay" type=checkbox><br>
 	<label for="tuesDay">Tuesday</label>
@@ -197,7 +197,7 @@
 	<label for="serviceId">Calendar ID</label>
     <input id="serviceId" size=20 maxlength=20 required><br>
 	<label for="date">Date</label>
-    <input id="date" name="date"  type=text picker="date" required><br>
+    <input id="date" name="date"  type=text picker="date" required key display><br>
 	<label for="exceptionType">Exception Type</label>
     <input id="exceptionType" size=2 maxlength=2><br>
 </fieldset>
@@ -215,10 +215,10 @@
 	<input id="hibernateId" type=hidden><br>
 
 	<label for="agencyId">Agency ID</label>
-    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required><br>
+    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required key><br>
 	
 	<label for="agencyName">Name</label>
-    <input id="agencyName" name="agencyName" size=30 maxlength=30  type="text" required><br>
+    <input id="agencyName" name="agencyName" size=30 maxlength=30  type="text" required display><br>
 	
 	<label for="agencyUrl">URL</label>
     <input id="agencyUrl" name="agencyUrl" size=30 maxlength=100><br>
@@ -252,7 +252,7 @@ you will lose all the routes, trips and stoptimes if you do
 	<label for="agencyId">Agency</label>
     <input id="agencyId" size=10 maxlength=10 required><br>
 	<label for="routeId">Route ID</label>
-    <input id="routeId" name="routeId" size=30 maxlength=30 required><br>
+    <input id="routeId" name="routeId" size=30 maxlength=30 required key display><br>
 	<label for="routeShortName">Short Name</label>
     <input id="routeShortName" name="routeShortName" size=30 maxlength=100 required><br>
 	<label for="routeLongName">Long Name</label>
@@ -286,9 +286,9 @@ you will lose all the routes, trips and stoptimes if you do
 	<label for="routeId">Route</label>
     <input id="routeId" size=30 maxlength=30 required><br>
 	<label for="tripId">Trip ID</label>
-    <input id="tripId" size=10 maxlength=10 required><br>
+    <input id="tripId" size=10 maxlength=10 required key display><br>
 	<label for="serviceId">Service ID</label>
-    <select id="serviceId" name="serviceId"></select> <br>
+    <select id="serviceId" name="serviceId" table="Calendar"></select> <br>
 	<label for="tripHeadsign">Head sign</label>
     <input id="tripHeadsign" size=30 maxlength=100 required><br>
 	<label for="tripShortName">Short Name</label>
@@ -312,7 +312,7 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="tripId">Trip ID </label>
     <input id="tripId" size=10 maxlength=10 required><br>
  	<label for="tripId">Start</label>
- 	<input id="startTime" name="startTime" type=text picker=time required lessthan="endTime"><br>
+ 	<input id="startTime" name="startTime" type=text picker=time required lessthan="endTime" key display><br>
  	<label for="endTime">End Time</label>
     <input id="endTime" name="endTime" type=text picker=time required greaterthan="startTime" ><br>
  	<label for="headwaySecs">Headway Seconds</label>
@@ -341,7 +341,7 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="tripId">Trip ID</label>
     <input id="tripId" name="tripId" size=10 maxlength=10 required><br>
   	<label for="stopId">Stop ID </label>
-    <input id="stopId" name="stopId" size=10 maxlength=10 required><br>
+    <input id="stopId" name="stopId" size=10 maxlength=10 required key display><br>
   	<label for="arrivalTime">Arrival Time</label>
     <input id="arrivalTime" name="arrivalTime"  type=text picker=time required lessthan="departureTime"><br>
   	<label for="departureTime">Departure Time</label>

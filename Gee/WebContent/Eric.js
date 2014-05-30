@@ -1,128 +1,275 @@
-function Startup(){
-	SetUp();
-	MapSetUp();
-//	$("select, input").uniform();
+function MainSetup(){
+	dfd = new $.Deferred();
+	FBSetup(dfd);
+	dfd.done(function(){
+		initTableRelations();
+		initTables();
+		MapSetUp();
+		$("#interface").show();
+		$("#welcome").hide();
+
+		refreshAll();
+		SetupMenu();
+	});
 }
 
-var hid_lookup;
-function getTable(tableName,keyName,displayField,matchField,matchValue,orderField){
+
+function initTableRelations(){
+	//<div id="Stops" class="Eric" parent="Instance" display_field="stopName">
+	$('.Eric').each(function(){
+		tableName=$(this).attr('id');
+		
+		relations[tableName]['parent']=
+				// <div id="CalendarDates" class="Eric" parent="Instance" >
+				$(this).attr('parent')
+				||
+				//<input id="parentTable" value="Trips" type=hidden>
+				$('#dialog-edit-'+tableName+'-form :input[id=parentTable]').val();
+
+		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
+		relations[tablename]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
+		// <input id="stopName" name="stopName" size=30 maxlength=30 required display>		
+		relations[tablename]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
+
+		relations[parent]['children'].push(tableName);		
+	});
+}
+
+function initTables(){
+	for (tablename in relations){
+	    if (tableName === 'length' || !relations.hasOwnProperty(tableName)) continue;
+		initSelectForm(tableName);
+		initInputForm(tableName);
+		initDialogs(tableName);
+	}
+}
+
+function refreshAll(){
+	for (tablename in relations){
+	    if (tableName === 'length' || !relations.hasOwnProperty(tableName)
+	    		// Only refresh the orphans. logically everything else will get called as a result.
+	    		|| relations[tableName]['children']) 
+	    	continue;
+	    refreshTable(tableName);  
+	}
+	
+}
+
+function refreshTable(tableName){
+	keyName=relations[tableName]['key'];
+	displayField=relations[tableName]['display'];
+	parent=relations[tableName]['parent'];
+	matchField=relations[parent]['key'];
+	matchValue=$('#select-'+parent).val()
+	
+	dfd=getTableData(tableName,keyName,displayField,matchField,matchValue);
+	dfd.done(function (){
+		populateSelectList(tableName,keyName,displayField);
+		for (child in relations[tableName]['children']){
+		    if (child === 'length' || !relations.hasOwnProperty(child)) continue;
+			refreshTable(child);
+		}
+		postRefresh(tableName);
+	});
+	return dfd;
+}
+
+function postRefresh(tablename){
+	switch(tableName){
+	case 'Stops':
+		drawStops();
+		break;
+	case 'StopTimes':
+		drawTrip();
+		break;
+	}
+}
+	
+function populateSelectList(tableName,keyName,displayField){
+	var save_select_row=$("#select-"+tableName).val();
+	$select_list = $("#select-"+tableName);
+    if (!$select_list.length){
+    	$select_list=$("<select/>", {
+    		id: "select-"+tableName,
+    		name: "select-"+tableName
+		});
+		$select_list.appendTo("#form-"+tableName);
+    }
+	
+    $select_list.empty();
+
+    // TODO CHECK THIS LINE
+	$.each( hid_lookup[tableName], function( key, val ) {
+		$option=$('<option>')
+		.val(val[keyName])
+		.text(val[displayField]);	
+		$option.data(val['hibernateId']);
+		$option.appendTo($select_list);
+		
+	});
+	if (save_select_row != null &&
+			$("#select-"+tableName+
+				" option[value='"+
+				save_select_row+"']").length != 0 		
+	){
+		$("#select-"+tableName).val(save_select_row);
+	}
+	// for the benefit of StopTimes, which has two parents, stops and trips, set the initial value of Stops
+	secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
+	$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
+
+}
+
+
+function getTableData(tableName,keyName,displayField,matchField,matchValue,orderField){
+	keyName=relations[tablename]['key'];
+	displayField=relations[tableName]['display'];
+	orderField=relations[tableName]['order'];
+	parentTable=relations[tableName]['parent'];
+	matchField=relations[parentTable]['key'];
+	matchValue=$('#select-'+parentTable).val()
+	
 	var $url;
 	if (orderField==null){
 		orderField=displayField;
 	}
+	
 	switch (tableName){
-	case 'Instance':
-		$url="/Gee/User?entity="+tableName+"&order="+orderField;
+	// special case for Instance, TODO generalise
+		case 'Instance':
+			$url="/Gee/User";
 		break;
 		default:
-		$url= "/Gee/Entity?entity="+tableName+"&order="+orderField;
+			$url= "/Gee/Entity";
 	}
+	$url+="?entity="+tableName;
 
 	if (matchField != null){
 		$url+="&field="+matchField+"&value="+matchValue;
 	}
+	if (orderField != null){
+		$url+="&order="+orderField;
+	}
 	hid_lookup[tableName]={};
+
 	var dfd = new $.Deferred();
-	dfd.done(function(){
-		configureSubSelects(tableName);
-	});
 	$.getJSON($url, 
 			function( data ) {
-			var items = [];
-			var save_select_row=$("#select-"+tableName).val();
-			$("#form-"+tableName).remove();
-			$("#select-"+tableName).remove();
-			$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
-
-			$select_list=$("<select/>", {
-				id: "select-"+tableName,
-				name: "select-"+tableName
-				});
 			$.each( data, function( key, val ) {
-				$option=$('<option>')
-					.val(val[keyName])
-					.text(val[displayField]);
-				$option.data(val['hibernateId']);
-				$option.appendTo($select_list);
-				hid_lookup[tableName][val[keyName]]=val['hibernateId'];
-				
+				hid_lookup[tableName][val[keyName]]=val['hibernateId'];		
 			});
+			dfd.resolve();
+		}
+	);			
+			
+	return dfd;
+}
 
-			$select_list.appendTo("#form-"+tableName);
-			if (save_select_row != null &&
-					$("#select-"+tableName+
-						" option[value='"+
-						save_select_row+"']").length != 0 		
-			){
-				$("#select-"+tableName).val(save_select_row);
-			}
-			// for the benefit of StopTimes, set the initial value of Stops
-			secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-    		$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
 
-			//class="pure-button  pure-button-primary"
-    		bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
-			$('<button type="button" class="btn btn-primary btn-xs">')
-				.attr('id',"opener-add-"+tableName)
-				.text('Add')
-				.appendTo("#form-"+tableName);
-			$('<button type="button" class="btn btn-success btn-xs">')
-				.attr('id',"opener-edit-"+tableName)
-				.text('Edit')
-				.appendTo("#form-"+tableName);
-			$('<button type="button" class="btn btn-danger btn-xs">')
-				.attr('id',"opener-delete-"+tableName)
-				.text('Delete')
-				.appendTo("#form-"+tableName);
-			$('#dialog-edit-'+tableName+'-form').validate();
-			// set the pickers
-			var $inputs = $('#dialog-edit-'+tableName+'-form :input');
-		    
-		    $inputs.each(function() {
-		    	switch ($(this).attr('picker')){
-		    		case 'date':
-		    		$(this).datepicker({
-		    		    showAnim: 'slideDown',
-		    		    dateFormat: 'yy-mm-dd'
-		    		});
-		    		break;
-		    		
-		    		case 'time':
-			    	$(this).timepicker({
-			    	    timeFormat: 'H:i:s',
-			    	    step:1
-			   		});
-			    	break;
 
-		    		case 'colour':
-				    	$(this).spectrum({
-				    	    showInput: true,
-				    	    preferredFormat: "hex6"
-				    	});
-				    break;
-			    }		
-			    
-		    	if ($(this).attr('greaterthan')){
-		    		$(this).change(function(){
-		    			if (!$('#'+$(this).attr('greaterthan')).val() || $(this).val() < $('#'+$(this).attr('greaterthan')).val()){
-		    				$('#'+$(this).attr('greaterthan')).val(
-		    					$(this).val()
-		    				);
-		    		}
-		    		});
-		    	}
-		    	if ($(this).attr('lessthan')){
-		    		$(this).change(function(){
-		    			if (!$('#'+$(this).attr('lessthan')).val() || $(this).val() > $('#'+$(this).attr('lessthan')).val()){
-		    				$('#'+$(this).attr('lessthan')).val(
-		    					$(this).val()
-		    				);
-		    			}
-		    		});
-		    	}
+var hid_lookup;
 
-		
+
+function initSelectForm(tableName){
+	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
+	$select_list=$("<select/>", {
+		id: "select-"+tableName,
+		name: "select-"+tableName
+		});
+	$select_list.appendTo("#form-"+tableName);
+	
+	//class="pure-button  pure-button-primary"
+	bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
+	$('<button type="button" class="btn btn-primary btn-xs">')
+		.attr('id',"opener-add-"+tableName)
+		.text('Add')
+		.appendTo("#form-"+tableName);
+	$('<button type="button" class="btn btn-success btn-xs">')
+		.attr('id',"opener-edit-"+tableName)
+		.text('Edit')
+		.appendTo("#form-"+tableName);
+	$('<button type="button" class="btn btn-danger btn-xs">')
+		.attr('id',"opener-delete-"+tableName)
+		.text('Delete')
+		.appendTo("#form-"+tableName);
+	
+	$( "#opener-add-"+tableName ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-edit-"+tableName ).data("edit_flag",false);
+	    $( "#dialog-edit-"+tableName ).dialog( "open" );
+	});
+
+	$( "#opener-edit-"+tableName ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-edit-"+tableName ).data("edit_flag",true);
+	    $( "#dialog-edit-"+tableName ).dialog( "open" );
+	});
+	
+	$( "#opener-delete-"+tableName ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-delete-"+tableName ).dialog( "open" );
+	});
+	
+	$('#select-'+tableName).change(function() {
+		configureSubSelects(tableName);
+	});
+
+}
+
+function initInputForm(tableName){
+	$('#dialog-edit-'+tableName+'-form').validate();
+	// set the pickers
+
+	var $inputs = $('#dialog-edit-'+tableName+'-form :input');
+    
+    $inputs.each(function() {
+    	switch ($(this).attr('picker')){
+    		case 'date':
+    		$(this).datepicker({
+    		    showAnim: 'slideDown',
+    		    dateFormat: 'yy-mm-dd'
+    		});
+    		break;
+    		
+    		case 'time':
+	    	$(this).timepicker({
+	    	    timeFormat: 'H:i:s',
+	    	    step:1
+	   		});
+	    	break;
+
+    		case 'colour':
+		    	$(this).spectrum({
+		    	    showInput: true,
+		    	    preferredFormat: "hex6"
 		    	});
+		    break;
+	    }		
+	    
+    	if ($(this).attr('greaterthan')){
+    		$(this).change(function(){
+    			if (!$('#'+$(this).attr('greaterthan')).val() || $(this).val() < $('#'+$(this).attr('greaterthan')).val()){
+    				$('#'+$(this).attr('greaterthan')).val(
+    					$(this).val()
+    				);
+    		}
+    		});
+    	}
+    	if ($(this).attr('lessthan')){
+    		$(this).change(function(){
+    			if (!$('#'+$(this).attr('lessthan')).val() || $(this).val() > $('#'+$(this).attr('lessthan')).val()){
+    				$('#'+$(this).attr('lessthan')).val(
+    					$(this).val()
+    				);
+    			}
+    		});
+    	}
+    
+    });
+	
+}
+
+function initDailogs(tableName){
 			$( "#dialog-edit-"+tableName ).dialog({ 
 				open : function (event,ui){
 					$('#dialog-edit-'+tableName+'-form').validate().form();
@@ -183,12 +330,14 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 						$.ajax({
 							method:"POST",
 							dataType: 'JSON',
-							  async: false,
-						data: {values: datastring},
+							data: {values: datastring},
 							url: "/Gee/Entity",
 							success: function(response){
-								postEditHandler(tableName,values);
-								}
+								postEditHandler(tableName,values).done( function(){
+									refreshTable(tableName);
+									}
+								);
+							}
 						});
 						
 						$( this ).dialog( "close" );
@@ -199,6 +348,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 					}
 				}
 			});
+			
 			$( "#dialog-delete-"+tableName ).dialog({ 
 				open : function (event,ui){
 					// there should only by one "do you wanna delete this field
@@ -212,6 +362,7 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 				width : 600,
 				resizable : true,
 				dragable : true,
+
 				buttons : {
 					// TODO **IMPORTANT** 
 					// this will leave all the children to this record orphaned. right now you have to manually delete 
@@ -233,13 +384,13 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 							method:"POST",
 							dataType: 'JSON',
 							data: {values: datastring},
-							  async: false,
 							url: "/Gee/Entity",
 							success: function(response){
-//								alert("Record Deleted = "+response);
-								postEditHandler(tableName,values);
-//								SetUp(tableName);
-								}
+								postEditHandler(tableName,values).done( function(){
+									refreshTable(tableName);
+									}
+								);
+							}
 						});
 						$( this ).dialog( "close" );
 					    
@@ -249,32 +400,117 @@ function getTable(tableName,keyName,displayField,matchField,matchValue,orderFiel
 					}
 				}
 			});
-
-			$( "#opener-add-"+tableName ).click(function(e) {
-			    e.preventDefault();
-	
-			    $( "#dialog-edit-"+tableName ).data("edit_flag",false);
-			    $( "#dialog-edit-"+tableName ).dialog( "open" );
-			});
-		
-			$( "#opener-edit-"+tableName ).click(function(e) {
-			    e.preventDefault();
-			    $( "#dialog-edit-"+tableName ).data("edit_flag",true);
-			    $( "#dialog-edit-"+tableName ).dialog( "open" );
-			});
-			
-			$( "#opener-delete-"+tableName ).click(function(e) {
-			    e.preventDefault();
-			    $( "#dialog-delete-"+tableName ).dialog( "open" );
-			});
-				
-			addChangeFunction(tableName);
-			dfd.resolve();
-		});
-	return dfd;
 }
 
+// After we've added or edited a stoptime, we (potentially) need to "heal" the sort order to match time. 
+// This should perhaps be moved into the DB interface on the server. 
+function postEditHandler(tableName,record){
+	dfd=new $.Deferred();
+	switch (tableName){
+		case 'StopTimes':
+			url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
+			
+			$.ajax({
+				  url: url,
+				  dataType: 'json',
+						success: function(response){
+							dfd.resolve();
+							}
+				  }
+			);
+		break;
+		default:
+			dfd.resolve();
+			
+	}
+	return dfd;
+}
+//MENUs
+function SetupMenu(){
+	
+$( "#getstops" ).click(function(e) {
+    e.preventDefault();
+    $( "#dialog-getstops" ).dialog( "open" );
+    
+});
 
+$("#dialog-getstops" ).dialog({ 
+	open : function (event,ui){
+		// there should only by one "do you wanna delete this field
+		// set it to whatever the select text is
+	},
+	autoOpen: false, 
+	modal :true,
+	width : 600,
+	resizable : true,
+	dragable : true,
+	buttons : {
+		// TODO **IMPORTANT** 
+		// this will leave all the children to this record orphaned. right now you have to manually delete 
+		// the children first else you wont even be able to see them after the parent is gone
+		// so we need a recursive delete children function.
+		"Upload": function() {
+		    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+		    // this horrid global nested hash was the only way I could map 
+		    // from tableName + gtfs-id value to hibernateId
+			values={};
+		    
+			$url= "/Gee/ImportStops?"+
+			"n="+map.getBounds().getNorth()+
+			"&s="+map.getBounds().getSouth()+
+			"&e="+map.getBounds().getEast()+
+			"&w="+map.getBounds().getWest()+
+			"&t="+$( "#stop_type").val()
+			;
+			$.ajax({
+				method:"GET",
+				dataType: 'JSON',
+				  async: false,
+				url: $url,
+				success: function(response){
+					SetUp();
+					}
+			});
+			$( this ).dialog( "close" );
+		    
+		},
+		Cancel: function() {
+			 $( this ).dialog( "close" );
+		}
+	}
+});
+}
+
+// RUN TIME FORM HANDLING, THIS STUFF GETS RUN EVERY TIME YOU CLICK EDIT
+
+//  this is just for any select lists inside the edit/create forms
+function populate_selects_in_forms(formId){
+	var $selects = $('#'+formId+' select');
+
+	$selects.each(function(){
+		$this_select=this;
+		tableName=$this_select.attr('table');
+		keyName=relations[tableName]['key'];
+		displayField=relations[tableName]['display'];
+		$(this).empty();
+		url= "/Gee/Entity?entity="+tableName+"&order="+keyName;
+	
+		$.ajax({
+			  url: url,
+			  dataType: 'json',
+			  async: false,
+			  success: function(data) {
+					$.each( data, function( key, val ) {
+						
+						$option=$('<option>')
+						.val(val[keyName])
+						.text(val[displayField])
+						.appendTo($this_select);
+					});
+			  }
+		});
+	});
+}
 // TODO init_edit and init_create need merging
 function init_edit_values(tableName,keyName){
 	parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
@@ -284,7 +520,7 @@ function init_edit_values(tableName,keyName){
 	$url= "/Gee/Entity?entity="+tableName;
 	$url+="&field="+keyName+"&value="+$('#select-'+tableName).val();
 
-    populate_selects('dialog-edit-'+tableName+'-form');
+    populate_selects_in_forms('dialog-edit-'+tableName+'-form');
 	$.getJSON($url, 
 		function( data ) {
 		var items = [];
@@ -345,7 +581,7 @@ function init_create_values(tableName){
     parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
     secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
     secondParentKey = $('#dialog-edit-'+tableName+'-form input[id=secondParentKey]').val();
-    populate_selects('dialog-edit-'+tableName+'-form');
+    populate_selects_in_forms('dialog-edit-'+tableName+'-form');
 			var $inputs = $('#dialog-edit-'+tableName+'-form :input');
 		    $inputs.each(function() {
 		    	if (this.id == parentKey){
@@ -374,150 +610,7 @@ function init_delete_values(tableName,keyName){
 }
 
 
-
-function postEditHandler(tableName,record){
-	switch (tableName){
-		case 'StopTimes':
-			url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
-			
-			$.ajax({
-				  url: url,
-				  async: false,			  
-				  dataType: 'json',
-						success: function(response){
-							drawTrip(record['tripId']);
-							}
-				  }
-			);
-	}
-	SetUp(tableName);
-	
-}
-
-
-
-function SetUp(tableName){
-	hid_lookup = {};
-	if (tableName === null){
-		tabkeName="";
-	}
-//	alert("I am trying to set table "+tableName+"\n this is all very much still in development, but thanks for coming");
-	switch (tableName){
-	  default:
-	  case "Instance":
-			getTable("Instance","hibernateId","databaseName");
-	  case "Agency":
-			getTable("Agency","agencyId","agencyName");
-	  case "Calendar":
-			getTable("Calendar","serviceId","serviceId");
-	  case "CalendarDates":
-			getTable("CalendarDates","date","date","serviceId",$('#select-Calendar').val());
-
-	  case "Stops":
-			getTable("Stops","stopId","stopName");
-			drawStops();
-	  // the default should just call the top 3, the ones below wil get called as a result.
-	  // but if we change any of the below then referesh everything below it
-	  break;
-			
-	  case "Routes":
-			getTable("Routes","routeId","routeId");
-	  case "Trips":
-			getTable("Trips","tripId","tripId","routeId",$('#select-Routes').val());
-		
-	  case 'Frequencies':
-			getTable("Frequencies","startTime","startTime","tripId",$('#select-Trips').val(),"startTime");
-		  
-	  case "StopTimes":
-			getTable("StopTimes","stopId","stopId","tripId",$('#select-Trips').val(),"stopSequence");
-			drawTrip($('#select-Trips').val());
-	}
-}
-
-function addChangeFunction(tableName){
-	switch (tableName){
-	case 'Agency': 
-	case 'Routes': 
-	case 'Trips': 
-	case 'Calendar': 
-		$('#select-'+tableName).change(function() {
-			configureSubSelects(tableName);
-		});
-	break;
-	
-	case 'StopTimes': 
-// set the "second parent table" select list to match this, it should be Stops, which I could hard code
-// but there may be another table like this, and hey, this is all scary enough now anyway
-		$('#select-'+tableName).change(function() {
-		    secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-    		$('#select-'+secondParentTable).val($('#select-'+tableName).val());	   
-    		
-		});
-		
-	break;
-	}
-}
-
-function configureSubSelects(tableName){
-	switch (tableName){
-		case 'Agency': 
-			getTable("Routes","routeId","routeId","agencyId",$('#select-Agency').val());
-			break;
-		case 'Calendar': 
-			getTable("CalendarDates","date","date","serviceId",$('#select-Calendar').val());
-			break;
-		case 'Routes': 
-			getTable("Trips","tripId","tripId","routeId",$('#select-Routes').val());
-		break;
-		case 'Trips': 
-			var dfd1=getTable("StopTimes","stopId","stopId","tripId",$('#select-Trips').val(),"stopSequence");
-			var dfd2=getTable("Frequencies","startTime","startTime","tripId",$('#select-Trips').val(),"startTime");
-			
-			$.when(dfd1,dfd2).then(function () {
-				drawTrip($('#select-Trips').val());
-			});
-			
-		break;
-	}
-}
-
-
-function populate_selects(formId){
-	var $selects = $('#'+formId+' select');
-
-	$selects.each(function(){
-		$(this).empty();
-		$this_select=this;
-		switch (this.id){
-			case 'serviceId':
-				tableName='Calendar';
-				keyName='serviceId';
-				displayField='serviceId';
-			break;
-			case 'stopId':
-				tableName='Stops';
-				keyName='stopId';
-				displayField='stopName';
-			break;
-		}
-		url= "/Gee/Entity?entity="+tableName+"&order="+keyName;
-	
-		$.ajax({
-			  url: url,
-			  dataType: 'json',
-			  async: false,
-			  success: function(data) {
-					$.each( data, function( key, val ) {
-						
-						$option=$('<option>')
-						.val(val[keyName])
-						.text(val[displayField])
-						.appendTo($this_select);
-					});
-			  }
-		});
-	});
-}
+// MAP STUFF
 var map;
 var allStopsArr = [];
 var tripStopsArr = [];
@@ -570,7 +663,6 @@ function MapSetUp(){
 
 	    $( "#dialog-edit-Stops").dialog( "open" );
 	});
-	drawStops();
 }
 
 function drawStops(){
@@ -656,74 +748,8 @@ function drawTrip(tripId){
 	);
 }
 
-function SetupMenu(){
-	
-$( "#getstops" ).click(function(e) {
-    e.preventDefault();
-    $( "#dialog-getstops" ).dialog( "open" );
-    
-});
 
-$("#dialog-getstops" ).dialog({ 
-	open : function (event,ui){
-		// there should only by one "do you wanna delete this field
-		// set it to whatever the select text is
-	},
-	autoOpen: false, 
-	modal :true,
-	width : 600,
-	resizable : true,
-	dragable : true,
-	buttons : {
-		// TODO **IMPORTANT** 
-		// this will leave all the children to this record orphaned. right now you have to manually delete 
-		// the children first else you wont even be able to see them after the parent is gone
-		// so we need a recursive delete children function.
-		"Upload": function() {
-		    // only the GTFS id (e.g agencyId) is stored as the value in the select list
-		    // this horrid global nested hash was the only way I could map 
-		    // from tableName + gtfs-id value to hibernateId
-			values={};
-		    
-			$url= "/Gee/ImportStops?"+
-			"n="+map.getBounds().getNorth()+
-			"&s="+map.getBounds().getSouth()+
-			"&e="+map.getBounds().getEast()+
-			"&w="+map.getBounds().getWest()+
-			"&t="+$( "#stop_type").val()
-			;
-			$.ajax({
-				method:"GET",
-				dataType: 'JSON',
-				  async: false,
-				url: $url,
-				success: function(response){
-					SetUp();
-					}
-			});
-			$( this ).dialog( "close" );
-		    
-		},
-		Cancel: function() {
-			 $( this ).dialog( "close" );
-		}
-	}
-});
-}
-
-function MainSetup(){
-	dfd = new $.Deferred();
-	FBSetup(dfd);
-	dfd.done(function(){
-//		alert("so the fblogin should now be done");
-
-		$("#interface").show();
-		$("#welcome").hide();
-		SetupMenu();
-		Startup();	
-
-	});
-}
+// FACEBOOK LOGIN
 
 function FBSetup(dfd){
 window.fbAsyncInit = function() {

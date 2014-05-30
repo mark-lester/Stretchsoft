@@ -44,7 +44,7 @@ public class Generic {
     public String databaseName="gtfs";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
     public Transaction tx = null;
-    public Session session = null;
+//    public Session session = null;
 
     public Generic(String hibernateConfigDirectory,String databaseName){
     	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
@@ -105,7 +105,7 @@ public class Generic {
     public SessionFactory configureSessionFactory() throws HibernateException {
         Configuration configuration = new Configuration();   
          configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
-         configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName);
+         configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
         serviceRegistry = new ServiceRegistryBuilder().
                 applySettings(configuration.getProperties()).
                 buildServiceRegistry();   
@@ -179,6 +179,8 @@ public class Generic {
              Set <String> keys = tableMap.map.keySet();
              String className=tableMap.className;
              String tableName=tableMap.tableName;
+     		Session session = null;
+
              session = factory.openSession();
              tx = session.beginTransaction();
             
@@ -218,6 +220,7 @@ public class Generic {
             
              String className=tableMap.className;
              String tableName=tableMap.tableName;
+
              Session session = factory.openSession();
              try {
                  Object entities[]=session.createCriteria(className).list().toArray();
@@ -295,7 +298,7 @@ public class Generic {
  public int createRecord(String className,Hashtable <String,String> record){
      Integer recordId = null;
 //     className = "tables."+className;
-     session = factory.openSession();
+     Session session = factory.openSession();
      tx = session.beginTransaction();
      recordId=createRecordInner(className,record);
      tx.commit();
@@ -308,6 +311,7 @@ public class Generic {
  public int createRecordInner(String className,Hashtable <String,String> record){
      Integer recordId = null;
      System.err.println("start insert class="+className+"\n");
+     Session session = factory.openSession();
 
      try{
          Object hibernateRecord = (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);           

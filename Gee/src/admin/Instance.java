@@ -9,8 +9,8 @@ public class Instance extends AdminBase {
 
 String databaseName;
 String ownerUserId;
-String publicRead;
-String publicWrite;
+int publicRead;
+int publicWrite;
 String agencyLang;
 String agencyPhone;
 public Instance(){}
@@ -18,8 +18,8 @@ public Instance(){}
 public Instance (
 		String databaseName,
 		String ownerUserId,
-		String publicRead,
-		String publicWrite
+		int publicRead,
+		int publicWrite
 		){
 		this.databaseName=databaseName;
 		this.ownerUserId=ownerUserId;
@@ -34,16 +34,27 @@ public Instance(Hashtable <String,String> record){
 public void update(Hashtable <String,String> record){
 	this.databaseName=record.get("databaseName");
 	this.ownerUserId=record.get("ownerUserId");
-	this.publicRead=record.get("publicRead");
-	this.publicWrite=record.get("publicWrite");
+	try {
+		this.publicRead=Integer.parseInt(record.get("publicRead"));
+	} catch (NumberFormatException ex){
+		System.err.println(ex);		
+		this.publicRead=0;
+	}
+
+	try {
+		this.publicWrite=Integer.parseInt(record.get("publicWrite"));
+	} catch (NumberFormatException ex){
+		System.err.println(ex);		
+		this.publicWrite=0;
+	}
 }
 
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 	record.put("databaseName",this.databaseName);
 	record.put("ownerUserId",this.ownerUserId);
-	record.put("publicRead",this.publicRead);
-	record.put("publicWrite",this.publicWrite);
+	record.put("publicRead",Integer.toString(this.publicRead));
+	record.put("publicWrite",Integer.toString(this.publicWrite));
 	return record;
 }
 public void setdatabaseName(String databaseName){
@@ -62,19 +73,19 @@ public String getownerUserId(){
 	return this.ownerUserId;
 }
 
-public void setpublicRead(String publicRead){
+public void setpublicRead(int publicRead){
 	this.publicRead = publicRead;
 }
 
-public String getpublicRead(){
+public int getpublicRead(){
 	return this.publicRead;
 }
 
-public void setpublicWrite(String publicWrite){
+public void setpublicWrite(int publicWrite){
 	this.publicWrite = publicWrite;
 }
 
-public String getpublicWrite(){
+public int getpublicWrite(){
 	return this.publicWrite;
 }
 

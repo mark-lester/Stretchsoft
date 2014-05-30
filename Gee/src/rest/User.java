@@ -46,23 +46,12 @@ import admin.*;
  * Servlet implementation class Entity
  */
 @WebServlet("/User")
-public class User extends HttpServlet {
-	private static Admin adminDB;
-	private static final long serialVersionUID = 1L;
-	private static ServletConfig servletConfig;
-	protected String FACEBOOK_SECRET;
-
-	public void init(ServletConfig config) throws ServletException
-	{
-	    super.init(config);
-	    FACEBOOK_SECRET = config.getInitParameter("FACEBOOK_SECRET");
-	}
+public class User extends Generic {
     /**
      * @see HttpServlet#HttpServlet()
      */
     public User() {
         super();
-        adminDB = new Admin();
     }
 
 	/**
@@ -71,19 +60,34 @@ public class User extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		String userId = getUserId(request);
-		if (request.getParameter("post").equals("1")){
+	
+		if (request.getParameter("post") != null){
 			doPost(request,response);
 			return;
 		}
+		String userId = getUserId(request,response);
 		response.setContentType("text/html");
+		
 		ObjectMapper mapper = new ObjectMapper();
-		String query="FROM "+request.getParameter("entity");
-		Session session = adminDB.factory.openSession();
-
-		if (request.getParameter("field") != null){
-			query+=" WHERE "+request.getParameter("field")+"='"+request.getParameter("value")+"'";
+		String query="FROM Instance";
+		switch (request.getParameter("entity")){
+		case "Instance":
+			query="FROM Instance where ownerUserId='"+userId+"' or publicRead='1'";
+// UNION			query="FROM Instance,Access where Instance.databaseName Access.databseName and Access.userId='"+userId+"' or publicRead='1'";
+			break;
+		case "Users": // of a given database
+			query="FROM Access where userId='"+userId+"' and databaseName";
+			
+			break;
+			
+			
+				
 		}
+		Session session = admin.factory.openSession();
+
+//		if (request.getParameter("field") != null){
+//			query+=" WHERE "+request.getParameter("field")+"='"+request.getParameter("value")+"'";
+//		}
 		/*
 		if (request.getParameter("secondfield") != null){
 			query+=" AND "+request.getParameter("secondfield")+"='"+request.getParameter("secondvalue")+"'";
@@ -113,6 +117,7 @@ public class User extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String userId = getUserId(request,response);
 		String json = request.getParameter("values");
 		System.err.print("In POST got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
@@ -123,6 +128,24 @@ public class User extends HttpServlet {
 		System.err.print("In POST className "+className+" action="+record.get("action")+"\n"); 
 		int recordId=0;
 		String action=record.get("action");
+		switch (className){
+		case "Instance":// you can only change DB instance if you are an admin
+			record.put("ownerId", userId);
+			if (!admin.verifyAdminAccess(record.get("databaseName"),userId)){
+				return;
+			}
+			break;
+		case "User": // you can only edit yourself
+			record.put("userId", userId);
+			break;
+		case "Access":  // you can only change access rights to a DB if you are an admin
+			if (!admin.verifyAdminAccess(record.get("databaseName"),userId)){
+				return;
+			}
+			break;
+		default:
+			return;
+		}
 		
 		// fussy old java doesnt like null as the switch arg, 
 		if (action == null){
@@ -130,16 +153,29 @@ public class User extends HttpServlet {
 		}
 		switch (action){
 			case "delete":
-				recordId = adminDB.deleteRecord(className,record);
+				recordId = admin.deleteRecord(className,record);
+				switch(className){
+				case "Instance":
+					// DELETE DATABASE databaseName
+					break;
+				}
 			break;
 		
 			case "update":
-				recordId = adminDB.updateRecord(className,record);
+				recordId = admin.updateRecord(className,record);
 			break;
 		
 			// assume "create"
 			default:
-				recordId = adminDB.createRecord(className,record);
+				recordId = admin.createRecord(className,record);
+				switch(className){
+				case "Instance":
+					// CREATE DATABASE databaseName
+					break;
+				case "Invite":
+					// send an amail to the invitee
+					break;
+				}
 			break;
 		}
 
@@ -156,61 +192,4 @@ public class User extends HttpServlet {
 			e.printStackTrace();	 
 		}
 	}
-
-
-protected String getUserId(HttpServletRequest request){
-	Cookie[] cookies = request.getCookies();
-	String signed_request = null;
-	byte[] payload=null;
-	String sig = null;
-	String access_token=null;
-	String userId=null;
-
-	Base64 codec = new Base64();
-	 
-	for (Cookie cookie : cookies) {
-		System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
-        if (cookie.getName().equals("fbsr_287612631394075")){
-        	signed_request = cookie.getValue();
-        }
-        if (cookie.getName().equals("gee_fbat")){
-        	access_token = new String(codec.decode(cookie.getValue()));
-        }
-	}
-	
-	if (signed_request != null){
-		String[] sr_parts = signed_request.split("\\.",2);
-		String encoded_sig = sr_parts[0];
-	
-	  // decode the data
-	
-		String encodedPayload = sr_parts[1];
-    
-
-        payload = codec.decode(encodedPayload);
-        String payload_string = new String(payload);
-        System.err.print("payload = " + payload_string + "\n");
-     
-        sig = new String(codec.decode(encoded_sig));
-        try {	  
-    	    SecretKeySpec secret = new SecretKeySpec(FACEBOOK_SECRET.getBytes(),"hmacSHA256");
-	   	    Mac mac = Mac.getInstance("hmacSHA256");
-    	    mac.init(secret);
-    	    String sig_comp = new String(mac.doFinal(encodedPayload.getBytes()));
-    	    if (sig.equals(sig_comp)){
-    			ObjectMapper mapper = new ObjectMapper();
-    			Hashtable<String,String> record = mapper.readValue(payload, Hashtable.class);
-
-    	    	userId = record.get("user_id");
-        		System.err.print("user_id = " + userId + "\n");
-    	    }
-//    		System.err.print("sig = " + sig+" sig_comp = "+sig_comp+" comp val = " + sig.equals(sig_comp)+ "\n");
-    	} catch (Exception e) {
-    	    System.out.println(e.getMessage());
-    	} 
-	}
-	
-	return userId;
-}
-
 }
