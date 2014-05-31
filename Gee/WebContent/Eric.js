@@ -198,48 +198,46 @@ function getTableData(table){
 
 function initSelectForm(tableName){
 	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
-	var $select_list=$("<select/>", {
+	$("<select/>", {
 		id: "select-"+tableName,
 		name: "select-"+tableName
-		});
-	$select_list.appendTo("#form-"+tableName);
+		})
+		.change(function (){
+			refreshTable(tableName);
+		})
+		.appendTo("#form-"+tableName);
+	
 	
 	//class="pure-button  pure-button-primary"
 	bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
 	$('<button type="button" class="btn btn-primary btn-xs">')
 		.attr('id',"opener-add-"+tableName)
 		.text('Add')
+		.click(function(e) {
+			e.preventDefault();
+			$( "#dialog-edit-"+tableName ).data("edit_flag",false);
+			$( "#dialog-edit-"+tableName ).dialog( "open" );
+		})
 		.appendTo("#form-"+tableName);
+
 	$('<button type="button" class="btn btn-success btn-xs">')
 		.attr('id',"opener-edit-"+tableName)
 		.text('Edit')
+		.click(function(e) {
+		    e.preventDefault();
+		    $( "#dialog-edit-"+tableName ).data("edit_flag",true);
+		    $( "#dialog-edit-"+tableName ).dialog( "open" );
+		})
 		.appendTo("#form-"+tableName);
+	
 	$('<button type="button" class="btn btn-danger btn-xs">')
 		.attr('id',"opener-delete-"+tableName)
 		.text('Delete')
+		.click(function(e) {
+		    e.preventDefault();
+		    $( "#dialog-delete-"+tableName ).dialog( "open" );
+		})
 		.appendTo("#form-"+tableName);
-	
-	$( "#opener-add-"+tableName ).click(function(e) {
-	    e.preventDefault();
-	    $( "#dialog-edit-"+tableName ).data("edit_flag",false);
-	    $( "#dialog-edit-"+tableName ).dialog( "open" );
-	});
-
-	$( "#opener-edit-"+tableName ).click(function(e) {
-	    e.preventDefault();
-	    $( "#dialog-edit-"+tableName ).data("edit_flag",true);
-	    $( "#dialog-edit-"+tableName ).dialog( "open" );
-	});
-	
-	$( "#opener-delete-"+tableName ).click(function(e) {
-	    e.preventDefault();
-	    $( "#dialog-delete-"+tableName ).dialog( "open" );
-	});
-	
-	$('#select-'+tableName).change(function() {
-		refreshTable(tableName);
-	});
-
 }
 
 function initInputForm(tableName){
@@ -301,7 +299,7 @@ function initDialogs(tableName){
 					$('#dialog-edit-'+tableName+'-form').validate().form();
 					if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
 						$(".edit-dialog .ui-widget-header").css("background-color", "green");
-						init_edit_values(tableName,keyName);
+						init_edit_values(tableName);
 					} else {
 						$(".edit-dialog .ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
 						init_create_values(tableName);
@@ -352,7 +350,6 @@ function initDialogs(tableName){
 						}
 					    var datastring = JSON.stringify(values);
 					    
-						$url= "/Gee/Entity";
 						$.ajax({
 							method:"POST",
 							dataType: 'JSON',
@@ -405,7 +402,6 @@ function initDialogs(tableName){
 					    values['action']='delete';
 					    var datastring = JSON.stringify(values);
 					    
-						$url= "/Gee/Entity";
 						$.ajax({
 							method:"POST",
 							dataType: 'JSON',
@@ -538,7 +534,8 @@ function populate_selects_in_forms(formId){
 	});
 }
 // TODO init_edit and init_create need merging
-function init_edit_values(tableName,keyName){
+function init_edit_values(tableName){
+	var keyName=relations[tableName]['key'];
 	var parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
     var parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
     var secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();

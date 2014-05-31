@@ -43,7 +43,7 @@ public class Generic {
     public String dataDirectory="/home/Gee/gtfs/";
     public String databaseName="gtfs";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
-    public Transaction tx = null;
+//    public Transaction tx = null;
 //    public Session session = null;
 
     public Generic(String hibernateConfigDirectory,String databaseName){
@@ -182,7 +182,7 @@ public class Generic {
      		Session session = null;
 
              session = factory.openSession();
-             tx = session.beginTransaction();
+             Transaction tx = session.beginTransaction();
             
              try {
                  CsvReader csvReader = new CsvReader(dataDirectory+tableName+".txt");
@@ -194,7 +194,7 @@ public class Generic {
                          String hibernateFieldName=tableMap.map.get(databaseFieldName);
                          record.put(hibernateFieldName, csvReader.get(databaseFieldName));
                      }
-                     createRecordInner(className,record);
+                     createRecordInner(session,tx,className,record);
                  }
                 
              } catch ( FileNotFoundException ex) {
@@ -278,7 +278,7 @@ public class Generic {
              TableMap tableMap = ReadTableMap(resourceFile);
              String className=tableMap.className;
              Session session = factory.openSession();
-             tx = session.beginTransaction();
+             Transaction tx = session.beginTransaction();
 
              try {
                  Object entities[]=session.createCriteria(className).list().toArray();
@@ -299,8 +299,8 @@ public class Generic {
      Integer recordId = null;
 //     className = "tables."+className;
      Session session = factory.openSession();
-     tx = session.beginTransaction();
-     recordId=createRecordInner(className,record);
+     Transaction tx = session.beginTransaction();
+     recordId=createRecordInner(session,tx,className,record);
      tx.commit();
      session.close();
      return recordId;
@@ -308,11 +308,10 @@ public class Generic {
  // hived this into an inner method so we can do mass inserts on one session, and not commit every line else it takes yonks
  // we dont really need to bother doing this for update,
  // but if we are going to allow "zap database" then delete could do with the same
- public int createRecordInner(String className,Hashtable <String,String> record){
+ public int createRecordInner(Session session,Transaction tx, String className,Hashtable <String,String> record){
      Integer recordId = null;
      System.err.println("start insert class="+className+"\n");
-     Session session = factory.openSession();
-
+ 
      try{
          Object hibernateRecord = (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);           
          recordId = (Integer) session.save(hibernateRecord);
@@ -362,8 +361,9 @@ public class Generic {
 //     className = "tables."+className;
      int hibernateId = Integer.parseInt(record.get("hibernateId"));
      Session session = factory.openSession();
+     Transaction tx = null;
      try{
-         tx = session.beginTransaction();
+    	 tx = session.beginTransaction();
          Object hibernateRecord =
              (Object)session.get(Class.forName(className),hibernateId);
          session.delete(hibernateRecord);
