@@ -58,9 +58,7 @@ public class User extends Generic {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 		TODO - change this to use prepared statements else it's gonna blow up once apostrophe gets used
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {	
 		if (request.getParameter("post") != null){
 			doPost(request,response);
 			return;

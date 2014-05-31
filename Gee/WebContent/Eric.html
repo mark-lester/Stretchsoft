@@ -33,7 +33,7 @@
 <script src="js/jquery.timepicker.min.js"></script>
 <script src="js/jquery.validate.js"></script>
 
-<script type="text/javascript" src="Editor.js"></script>
+<script type="text/javascript" src="Eric.js"></script>
 <script src="//connect.facebook.net/en_US/all.js"></script>
         
 <title>Welcome to Gee</title>
@@ -80,13 +80,13 @@
 
 <div class="row">
 <div class="col-md-3">
-<div id="Instance" class="Eric">
+<div id="Instance" class="Eric" no_join>
 <h5>Databases</h5>
 </div>
-<div id="Stops" class="Eric" parent="Instance" display_field="stopName">
+<div id="Stops" class="Eric" parent="Instance">
 <h5>Stops</h5>
 </div>
-<div id="Calendar" parent="Instance" >
+<div id="Calendar" class="Eric" parent="Instance" >
 <h5>Calendar</h5>
 </div>
 <div id="CalendarDates" class="Eric" parent="Instance" >
@@ -123,7 +123,28 @@
 </fieldset>
  </form>
  </div>
-	
+
+<div id="dialog-edit-Instance" title="Add/Edit Database" class="edit-dialog">
+<form id="dialog-edit-Instance-form">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<label for="databaseName">Instance Name(required)</label>
+    <input id="databaseName" name="databaseName" size=10 maxlength=10 required key display><br>
+	<label for="ownerUserId">Code (required)</label>
+    <input id="ownerUserId" name="ownerUserId" size=30 maxlength=30 required><br>
+	<label for="publicRead">Public Read</label>
+    <input id="publicRead" name="publicRead" type=checkbox required><br>
+	<label for="publicWrite">Public Write</label>
+    <input id="publicWrite" name="publicWrite" type=checkbox required><br>
+</fieldset>
+ </form>
+ </div>
+<div id="dialog-delete-Instance" title="Delete Database">
+<form id="dialog-delete-Instance-form">
+     Are you sure you want to delete Database <input readonly name="display" size=20 maxlength=20><br>
+     You will lose all data if you do.
+</form>
+</div>	
 
 <div id="dialog-edit-Stops" title="Add/Edit Stop" class="edit-dialog">
 <form id="dialog-edit-Stops-form">
@@ -139,7 +160,7 @@
     <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
 	<label for="stopUrl">URL</label>
     <input id="stopUrl" name="stopUrl" size=30 maxlength=100><br>
-	<label for="stoplAT">Latitude (required)</label>
+	<label for="stopLat">Latitude (required)</label>
     <input id="stopLat" name="stopLat" size=30 maxlength=100 required><br>
 	<label for="stopLon">Longitude (required)</label>
     <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
@@ -278,15 +299,14 @@ you will lose all the routes, trips and stoptimes if you do
 
 <div id="dialog-edit-Trips" title="Add/Edit Trips">
 <form id="dialog-edit-Trips-form">
+  <fieldset>
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Routes" type=hidden>
 	<input id="parentKey" value="routeId" type=hidden>
-	
-  <fieldset>
 	<label for="routeId">Route</label>
     <input id="routeId" size=30 maxlength=30 required><br>
 	<label for="tripId">Trip ID</label>
-    <input id="tripId" size=10 maxlength=10 required key display><br>
+    <input id="tripId" name="tripId" size=10 maxlength=10 required key display><br>
 	<label for="serviceId">Service ID</label>
     <select id="serviceId" name="serviceId" table="Calendar"></select> <br>
 	<label for="tripHeadsign">Head sign</label>

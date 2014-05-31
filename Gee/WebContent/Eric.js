@@ -1,15 +1,20 @@
+var hid_lookup=[];
+var relations=[];
+
 function MainSetup(){
 	dfd = new $.Deferred();
 	FBSetup(dfd);
 	dfd.done(function(){
 		initTableRelations();
 		initTables();
-		MapSetUp();
+		
 		$("#interface").show();
 		$("#welcome").hide();
 
-		refreshAll();
-		SetupMenu();
+		$.when(refreshAll()).done(function(){
+			MapSetUp();
+			SetupMenu();
+		});
 	});
 }
 
@@ -17,26 +22,49 @@ function MainSetup(){
 function initTableRelations(){
 	//<div id="Stops" class="Eric" parent="Instance" display_field="stopName">
 	$('.Eric').each(function(){
-		tableName=$(this).attr('id');
-		
-		relations[tableName]['parent']=
+		var tableName=$(this).attr('id');
+		if (!relations[tableName]){
+			relations[tableName]=[];
+		}
+		if ($(this).attr('parent') != undefined){
+			relations[tableName]['parent']=
 				// <div id="CalendarDates" class="Eric" parent="Instance" >
-				$(this).attr('parent')
-				||
-				//<input id="parentTable" value="Trips" type=hidden>
-				$('#dialog-edit-'+tableName+'-form :input[id=parentTable]').val();
+				$(this).attr('parent');			
+		}
+		if (!relations[tableName]['parent']){
+			if ($('#dialog-edit-'+tableName+'-form :input[id=parentTable]').length){
+				relations[tableName]['parent']=
+					//<input id="parentTable" value="Trips" type=hidden>
+					$('#dialog-edit-'+tableName+'-form :input[id=parentTable]').val();				
+			}
+		}
+		if ($(this).attr('no_join') != undefined){
+			relations[tableName]['no_join']=1;			
+		}
 
+		
 		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
-		relations[tablename]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
+		relations[tableName]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
+		
 		// <input id="stopName" name="stopName" size=30 maxlength=30 required display>		
-		relations[tablename]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
-
-		relations[parent]['children'].push(tableName);		
+		relations[tableName]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
+		
+		if (relations[tableName]['parent']){
+			var child=undefined;
+			var parent=relations[tableName]['parent'];
+			if (!relations[parent]){
+				relations[parent]=[];
+			}
+			if (!relations[parent]['children']){
+				relations[parent]['children']=[];
+			}
+			relations[parent]['children'].push(tableName);		
+		}
 	});
 }
 
 function initTables(){
-	for (tablename in relations){
+	for (tableName in relations){
 	    if (tableName === 'length' || !relations.hasOwnProperty(tableName)) continue;
 		initSelectForm(tableName);
 		initInputForm(tableName);
@@ -45,95 +73,76 @@ function initTables(){
 }
 
 function refreshAll(){
-	for (tablename in relations){
+	var deferreds=[];
+	var dfd = new $.Deferred();
+	for (tableName in relations){
 	    if (tableName === 'length' || !relations.hasOwnProperty(tableName)
 	    		// Only refresh the orphans. logically everything else will get called as a result.
-	    		|| relations[tableName]['children']) 
+	    		|| relations[tableName]['parent'] != undefined ) 
 	    	continue;
-	    refreshTable(tableName);  
+	    deferreds.push(refreshTable(tableName));  
 	}
-	
-}
-
-function refreshTable(tableName){
-	keyName=relations[tableName]['key'];
-	displayField=relations[tableName]['display'];
-	parent=relations[tableName]['parent'];
-	matchField=relations[parent]['key'];
-	matchValue=$('#select-'+parent).val()
-	
-	dfd=getTableData(tableName,keyName,displayField,matchField,matchValue);
-	dfd.done(function (){
-		populateSelectList(tableName,keyName,displayField);
-		for (child in relations[tableName]['children']){
-		    if (child === 'length' || !relations.hasOwnProperty(child)) continue;
-			refreshTable(child);
-		}
-		postRefresh(tableName);
+	$.when(deferreds).done(function(){
+		dfd.resolve();
 	});
 	return dfd;
 }
 
-function postRefresh(tablename){
+function refreshTable(tableName){
+	var child=undefined;
+	var deferreds=[];
+	var dfd = new $.Deferred();
+	
+	gt_dfd=getTableData(tableName);
+	gt_dfd.done(function (){
+		for (child in relations[tableName]['children']){
+			deferreds.push(refreshTable(relations[tableName]['children'][child]));
+		}
+	});
+	$.when(deferreds).done(function(){
+		postRefresh(tableName);
+		dfd.resolve();
+	});
+	
+	return dfd;
+}
+
+function postRefresh(tableName){
 	switch(tableName){
 	case 'Stops':
 		drawStops();
 		break;
 	case 'StopTimes':
-		drawTrip();
+		drawTrip($('#select-Trips').val());
 		break;
 	}
 }
 	
-function populateSelectList(tableName,keyName,displayField){
-	var save_select_row=$("#select-"+tableName).val();
-	$select_list = $("#select-"+tableName);
-    if (!$select_list.length){
-    	$select_list=$("<select/>", {
-    		id: "select-"+tableName,
-    		name: "select-"+tableName
-		});
-		$select_list.appendTo("#form-"+tableName);
-    }
-	
-    $select_list.empty();
 
-    // TODO CHECK THIS LINE
-	$.each( hid_lookup[tableName], function( key, val ) {
-		$option=$('<option>')
-		.val(val[keyName])
-		.text(val[displayField]);	
-		$option.data(val['hibernateId']);
-		$option.appendTo($select_list);
-		
-	});
-	if (save_select_row != null &&
-			$("#select-"+tableName+
-				" option[value='"+
-				save_select_row+"']").length != 0 		
-	){
-		$("#select-"+tableName).val(save_select_row);
+function getTableData(table){
+	var tableName=table;
+	var keyName=relations[tableName]['key'];
+//	alert("in getTable tableName="+tableName+" key="+keyName);
+	var displayField=relations[tableName]['display'];
+	var orderField=relations[tableName]['order'];
+	var parentTable=relations[tableName]['parent'];
+	var matchField=undefined;
+	var matchvalue=undefined;
+	
+	if (parentTable != undefined && relations[parentTable]['no_join'] == undefined){
+		matchField=relations[parentTable]['key'];
+		matchValue=$('#select-'+parentTable).val();		
 	}
-	// for the benefit of StopTimes, which has two parents, stops and trips, set the initial value of Stops
-	secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-	$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
-
-}
-
-
-function getTableData(tableName,keyName,displayField,matchField,matchValue,orderField){
-	keyName=relations[tablename]['key'];
-	displayField=relations[tableName]['display'];
-	orderField=relations[tableName]['order'];
-	parentTable=relations[tableName]['parent'];
-	matchField=relations[parentTable]['key'];
-	matchValue=$('#select-'+parentTable).val()
-	
-	var $url;
-	if (orderField==null){
+	var save_select_row=undefined;
+	var $select_list = $("#select-"+tableName);
+	if ($("#select-"+tableName).val()!=undefined){
+     	save_select_row=$("#select-"+tableName).val();
+    } 
+	if (orderField==undefined){
 		orderField=displayField;
 	}
 	
+	var $url;
 	switch (tableName){
 	// special case for Instance, TODO generalise
 		case 'Instance':
@@ -144,35 +153,52 @@ function getTableData(tableName,keyName,displayField,matchField,matchValue,order
 	}
 	$url+="?entity="+tableName;
 
-	if (matchField != null){
+	if (matchField != undefined){
 		$url+="&field="+matchField+"&value="+matchValue;
 	}
-	if (orderField != null){
+	if (orderField != undefined){
 		$url+="&order="+orderField;
 	}
 	hid_lookup[tableName]={};
+    $select_list.empty();
 
 	var dfd = new $.Deferred();
 	$.getJSON($url, 
 			function( data ) {
 			$.each( data, function( key, val ) {
-				hid_lookup[tableName][val[keyName]]=val['hibernateId'];		
+				if (0){
+				alert("got some thing for table="+tableName+
+						" keyName="+keyName+
+						" displayField="+displayField+
+						" key="+val[keyName]+
+						" display="+val[displayField]);
+				}
+				hid_lookup[tableName][val[keyName]]=val['hibernateId'];	
+				var $option=$('<option>').val(val[keyName]).text(val[displayField]);	
+				$option.data(val['hibernateId']);
+				$option.appendTo($select_list);
 			});
 			dfd.resolve();
 		}
-	);			
-			
+	);	
+	
+	dfd.done(function(){
+		if (save_select_row != undefined &&
+				$("#select-"+tableName+" option[value='"+save_select_row+"']").length != 0 		
+		){
+			$("#select-"+tableName).val(save_select_row);
+		}
+		// for the benefit of StopTimes, which has two parents, stops and trips, set the initial value of Stops
+		secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
+		$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
+	});
+	
 	return dfd;
 }
 
-
-
-var hid_lookup;
-
-
 function initSelectForm(tableName){
 	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
-	$select_list=$("<select/>", {
+	var $select_list=$("<select/>", {
 		id: "select-"+tableName,
 		name: "select-"+tableName
 		});
@@ -211,7 +237,7 @@ function initSelectForm(tableName){
 	});
 	
 	$('#select-'+tableName).change(function() {
-		configureSubSelects(tableName);
+		refreshTable(tableName);
 	});
 
 }
@@ -269,7 +295,7 @@ function initInputForm(tableName){
 	
 }
 
-function initDailogs(tableName){
+function initDialogs(tableName){
 			$( "#dialog-edit-"+tableName ).dialog({ 
 				open : function (event,ui){
 					$('#dialog-edit-'+tableName+'-form').validate().form();
@@ -405,7 +431,7 @@ function initDailogs(tableName){
 // After we've added or edited a stoptime, we (potentially) need to "heal" the sort order to match time. 
 // This should perhaps be moved into the DB interface on the server. 
 function postEditHandler(tableName,record){
-	dfd=new $.Deferred();
+	var dfd=new $.Deferred();
 	switch (tableName){
 		case 'StopTimes':
 			url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
@@ -513,11 +539,11 @@ function populate_selects_in_forms(formId){
 }
 // TODO init_edit and init_create need merging
 function init_edit_values(tableName,keyName){
-	parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
-    parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
-    secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-    secondParentKey = $('#dialog-edit-'+tableName+'-form input[id=secondParentKey]').val();
-	$url= "/Gee/Entity?entity="+tableName;
+	var parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
+    var parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
+    var secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
+    var secondParentKey = $('#dialog-edit-'+tableName+'-form input[id=secondParentKey]').val();
+	var $url= "/Gee/Entity?entity="+tableName;
 	$url+="&field="+keyName+"&value="+$('#select-'+tableName).val();
 
     populate_selects_in_forms('dialog-edit-'+tableName+'-form');
@@ -577,10 +603,10 @@ function init_edit_values(tableName,keyName){
 }
 
 function init_create_values(tableName){
-    parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
-    parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
-    secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-    secondParentKey = $('#dialog-edit-'+tableName+'-form input[id=secondParentKey]').val();
+    var parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
+    var parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
+    var secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
+    var secondParentKey = $('#dialog-edit-'+tableName+'-form input[id=secondParentKey]').val();
     populate_selects_in_forms('dialog-edit-'+tableName+'-form');
 			var $inputs = $('#dialog-edit-'+tableName+'-form :input');
 		    $inputs.each(function() {

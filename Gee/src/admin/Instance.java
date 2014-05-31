@@ -11,8 +11,7 @@ String databaseName;
 String ownerUserId;
 int publicRead;
 int publicWrite;
-String agencyLang;
-String agencyPhone;
+
 public Instance(){}
 
 public Instance (

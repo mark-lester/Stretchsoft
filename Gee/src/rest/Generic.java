@@ -77,7 +77,7 @@ public class Generic extends HttpServlet {
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
-		System.err.println("databaseName ="+databaseName+"\n");
+		System.err.println("databaseName="+databaseName+"\n");
 		
 		if (signed_request != null){
 			String[] sr_parts = signed_request.split("\\.",2);
@@ -107,10 +107,13 @@ public class Generic extends HttpServlet {
 	  //      		return userId;
 	    	    } else {
 	    	    	// cookie doesnt add up
+	    	    	System.err.print("ERROR, cookie failure, mismatch\n");
 	    	    	return null;
 	    	    }
 	    	} catch (Exception e) {
-	    	    System.out.println(e.getMessage());
+    	    	System.err.print("ERROR, cookie failure, bad code\n");
+	    	    System.out.println("error message="+e.getMessage());
+	    	    return null;
 	    	} 
 		}
 		Hashtable <String,String> record = new Hashtable <String,String>();	
