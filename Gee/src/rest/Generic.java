@@ -48,12 +48,10 @@ public class Generic extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException
 	{
 	    super.init(config);
+	    System.err.println("getting facebook secret");
 	    FACEBOOK_SECRET = config.getInitParameter("FACEBOOK_SECRET");
-//		System.err.print("FACEBOOK_SECRET=" + FACEBOOK_SECRET+"\n");
-//		System.err.print("SERVLET NAME=" + getServletName()+"\n");
-		
-
 	}
+	
 	public String getUserId(HttpServletRequest request, HttpServletResponse response){
 		Cookie[] cookies = request.getCookies();
 		String signed_request = null;
@@ -91,6 +89,7 @@ public class Generic extends HttpServlet {
 	        payload = codec.decode(encodedPayload);
 	        String payload_string = new String(payload);
 	        System.err.print("payload = " + payload_string + "\n");
+	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
 	     
 	        sig = new String(codec.decode(encoded_sig));
 	        try {	  

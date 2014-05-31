@@ -139,6 +139,8 @@ public class Generic {
             TableMap tableMap = ReadTableMap(resourceFile);
             hibernateConfig.tableMaps.put(tableMap.className, tableMap);
         }   
+        System.out.println("HIBERNATE CONECTION STUFF :"+hibernateConfig.properties.get("hibernate.connection.url")+":\n");       
+
        
         return hibernateConfig;
     }

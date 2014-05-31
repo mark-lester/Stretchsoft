@@ -41,6 +41,11 @@ function initTableRelations(){
 		if ($(this).attr('no_join') != undefined){
 			relations[tableName]['no_join']=1;			
 		}
+		if ($(this).attr('method') != undefined){
+			relations[tableName]['method']=$(this).attr('method');			
+		} else {
+			relations[tableName]['method']="Entity";						
+		}
 
 		
 		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
@@ -142,16 +147,7 @@ function getTableData(table){
 		orderField=displayField;
 	}
 	
-	var $url;
-	switch (tableName){
-	// special case for Instance, TODO generalise
-		case 'Instance':
-			$url="/Gee/User";
-		break;
-		default:
-			$url= "/Gee/Entity";
-	}
-	$url+="?entity="+tableName;
+	var $url="/Gee/"+relations[tableName]['method']+"?entity="+tableName;
 
 	if (matchField != undefined){
 		$url+="&field="+matchField+"&value="+matchValue;
@@ -349,12 +345,13 @@ function initDialogs(tableName){
 						    values['action']='create';
 						}
 					    var datastring = JSON.stringify(values);
-					    
+						var $url="/Gee/"+relations[tableName]['method'];
+
 						$.ajax({
 							method:"POST",
 							dataType: 'JSON',
 							data: {values: datastring},
-							url: "/Gee/Entity",
+							url: $url,
 							success: function(response){
 								postEditHandler(tableName,values).done( function(){
 									refreshTable(tableName);
@@ -401,12 +398,13 @@ function initDialogs(tableName){
 					    values['entity']=tableName;
 					    values['action']='delete';
 					    var datastring = JSON.stringify(values);
-					    
+						var $url="/Gee/"+relations[tableName]['method'];
+
 						$.ajax({
 							method:"POST",
 							dataType: 'JSON',
 							data: {values: datastring},
-							url: "/Gee/Entity",
+							url: $url,
 							success: function(response){
 								postEditHandler(tableName,values).done( function(){
 									refreshTable(tableName);
@@ -515,7 +513,9 @@ function populate_selects_in_forms(formId){
 		keyName=relations[tableName]['key'];
 		displayField=relations[tableName]['display'];
 		$(this).empty();
-		url= "/Gee/Entity?entity="+tableName+"&order="+keyName;
+		var $url="/Gee/"+relations[tableName]['method'];
+
+		url= "/Gee/"+relations[tableName]['method']+"?entity="+tableName+"&order="+keyName;
 	
 		$.ajax({
 			  url: url,
@@ -540,7 +540,8 @@ function init_edit_values(tableName){
     var parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
     var secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
     var secondParentKey = $('#dialog-edit-'+tableName+'-form input[id=secondParentKey]').val();
-	var $url= "/Gee/Entity?entity="+tableName;
+    
+	var $url= "/Gee/"+relations[tableName]['method']+"?entity="+tableName;
 	$url+="&field="+keyName+"&value="+$('#select-'+tableName).val();
 
     populate_selects_in_forms('dialog-edit-'+tableName+'-form');

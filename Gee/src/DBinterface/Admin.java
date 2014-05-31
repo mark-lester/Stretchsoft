@@ -1,22 +1,10 @@
 package DBinterface;
 import java.util.Hashtable;
-import admin.*;
-
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
- 
-import javax.xml.parsers.*;
-import org.xml.sax.*;
-import sax.*;
-
-import org.hibernate.HibernateException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import org.hibernate.Session;
-
 import admin.*;
-
 
 public class Admin extends Generic {
 /*
@@ -168,6 +156,42 @@ public class Admin extends Generic {
 		}
 		return instance.getdatabaseName();
 	}	
+	
+	public boolean CreateMySqlDatabase(String databaseName) {
+        try {
+            // Create a connection to the database.
+            Connection connection = DriverManager.getConnection(
+            		hibernateConfig.properties.get("hibernate.connection.url"), 
+            		hibernateConfig.properties.get("hibernate.connection.username"), 
+            		hibernateConfig.properties.get("hibernate.connection.password"));
+            
+            PreparedStatement statement =
+                    connection.prepareStatement("CREATE DATABASE IF NOT EXISTS "+databaseName);
+            statement.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+	public boolean DeleteMySqlDatabase(String databaseName) {
+        try {
+            // Create a connection to the database.
+            Connection connection = DriverManager.getConnection(
+            		hibernateConfig.properties.get("hibernate.connection.url"), 
+            		hibernateConfig.properties.get("hibernate.connection.username"), 
+            		hibernateConfig.properties.get("hibernate.connection.password"));
+            
+            PreparedStatement statement =
+                    connection.prepareStatement("DROP DATABASE IF EXISTS "+databaseName);
+            statement.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
 
 }// end class
   

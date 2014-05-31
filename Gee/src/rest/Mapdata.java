@@ -1,12 +1,7 @@
 package rest;
 
 import java.io.IOException;
-
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Hashtable;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,20 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.hibernate.HibernateException; 
 import org.hibernate.Session; 
 import org.hibernate.Transaction;
-import org.hibernate.SessionFactory;
-import org.hibernate.service.*;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
-
 import DBinterface.*;
-import sax.*;
 import tables.*;
-import java.io.IOException;
-import javax.persistence.criteria.*;
+
 
 
 /**
@@ -43,16 +31,14 @@ import javax.persistence.criteria.*;
  * file obsolete.
  */
 @WebServlet("/Mapdata")
-public class Mapdata extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-	private static GtfsLoader gtfsLoader;
-   
+public class Mapdata extends Generic {
+	private static final long serialVersionUID = 2L;
+
     /**
      * @see HttpServlet#HttpServlet()
      */
     public Mapdata() {
         super();
-        gtfsLoader = new GtfsLoader();
     }
 
 	/**
@@ -60,10 +46,17 @@ public class Mapdata extends HttpServlet {
 	 */
    
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String userId = getUserId(request,response);
+		if (userId == null){
+			System.err.print("Failed to get access in Mapdata\n"); 
+			
+			return; // your cookie doesnt add up
+		}
 		response.setContentType("text/html");
 		ObjectMapper mapper = new ObjectMapper();
+		Session session = gtfs.factory.openSession();
+		response.setContentType("text/html");
 		MapCoords mapCoords = new MapCoords();
-		Session session = gtfsLoader.factory.openSession();
 		Criteria criteria;
 		String action=request.getParameter("action");
 		if (action == null){

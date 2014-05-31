@@ -47,6 +47,8 @@ import admin.*;
  */
 @WebServlet("/User")
 public class User extends Generic {
+	private static final long serialVersionUID = 3L;
+
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -117,19 +119,19 @@ public class User extends Generic {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String userId = getUserId(request,response);
 		String json = request.getParameter("values");
-		System.err.print("In POST got "+json+"\n"); 
+		System.err.print("In User POST for user("+userId+") got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
 		
-		String className = record.get("entity");
-		className = "tables."+className;
-		System.err.print("In POST className "+className+" action="+record.get("action")+"\n"); 
+		String entity = record.get("entity");
+		String className = "admin."+entity;
 		int recordId=0;
 		String action=record.get("action");
-		switch (className){
+		switch (entity){
 		case "Instance":// you can only change DB instance if you are an admin
-			record.put("ownerId", userId);
+			record.put("ownerUserId", userId);
 			if (!admin.verifyAdminAccess(record.get("databaseName"),userId)){
+				System.err.print("Access Violation on <Instance> For "+userId+" database="+record.get("databaseName")+"\n"); 
 				return;
 			}
 			break;
@@ -138,13 +140,14 @@ public class User extends Generic {
 			break;
 		case "Access":  // you can only change access rights to a DB if you are an admin
 			if (!admin.verifyAdminAccess(record.get("databaseName"),userId)){
+				System.err.print("Access Violation on <"+className+"> For "+userId+" database="+record.get("databaseName")+"\n"); 
 				return;
 			}
 			break;
 		default:
 			return;
 		}
-		
+		System.err.print("Got past security\n");
 		// fussy old java doesnt like null as the switch arg, 
 		if (action == null){
 			action="";
@@ -152,9 +155,9 @@ public class User extends Generic {
 		switch (action){
 			case "delete":
 				recordId = admin.deleteRecord(className,record);
-				switch(className){
+				switch(entity){
 				case "Instance":
-					// DELETE DATABASE databaseName
+					admin.DeleteMySqlDatabase(record.get("databaseName"));
 					break;
 				}
 			break;
@@ -165,14 +168,18 @@ public class User extends Generic {
 		
 			// assume "create"
 			default:
-				recordId = admin.createRecord(className,record);
-				switch(className){
+				boolean success=true;
+				switch(entity){
 				case "Instance":
-					// CREATE DATABASE databaseName
+					System.err.print("About to call create database\n"); 
+					success = admin.CreateMySqlDatabase(record.get("databaseName"));
 					break;
 				case "Invite":
-					// send an amail to the invitee
+					// send an email to the invitee
 					break;
+				}
+				if (success){
+					recordId = admin.createRecord(className,record);
 				}
 			break;
 		}

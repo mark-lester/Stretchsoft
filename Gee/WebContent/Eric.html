@@ -90,7 +90,7 @@
 
 <div class="row">
 <div class="col-md-3">
-<div id="Instance" class="Eric" no_join>
+<div id="Instance" class="Eric" no_join method="User">
 <h5>Databases</h5>
 </div>
 <div id="Stops" class="Eric" parent="Instance">
@@ -140,12 +140,10 @@
 	<input id="hibernateId" type=hidden>
 	<label for="databaseName">Instance Name(required)</label>
     <input id="databaseName" name="databaseName" size=10 maxlength=10 required key display><br>
-	<label for="ownerUserId">Code (required)</label>
-    <input id="ownerUserId" name="ownerUserId" size=30 maxlength=30 required><br>
 	<label for="publicRead">Public Read</label>
-    <input id="publicRead" name="publicRead" type=checkbox required><br>
+    <input id="publicRead" name="publicRead" type=checkbox><br>
 	<label for="publicWrite">Public Write</label>
-    <input id="publicWrite" name="publicWrite" type=checkbox required><br>
+    <input id="publicWrite" name="publicWrite" type=checkbox><br>
 </fieldset>
  </form>
  </div>
