@@ -6,66 +6,82 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import DBinterface.GtfsLoader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import java.util.Hashtable;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse; 
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.hibernate.HibernateException; 
-import org.hibernate.Session; 
-import org.hibernate.Transaction;
-import org.hibernate.SessionFactory;
-import org.hibernate.service.*;
-import org.hibernate.cfg.Configuration;
-
-import DBinterface.*;
-import sax.*;
-import tables.*;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * Servlet implementation class Loader
  */
 @WebServlet("/Loader")
-public class Loader extends HttpServlet {
+public class Loader extends Generic {
 	private static final long serialVersionUID = 1L;
-	private static GtfsLoader gtfsLoader;
       
     /**
      * @see HttpServlet#HttpServlet()
      */
     public Loader() {
         super();
-        gtfsLoader = new GtfsLoader();
-  
-    }
+      }
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		String userId = getUserId(request,response);
+		if (userId == null){
+			return; // your cookie doesnt add up
+		}
+
 		response.setContentType("text/html");
-		gtfsLoader.runLoader();
+		String action=request.getParameter("action");
+		if (action==null)action=""; // switch doesnt like null
+		switch(action){
+		case "dump":
+			gtfs.runDumper();
+			putData();
+			break;
+		}
 	}
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String userId = getUserId(request,response);
+		if (userId == null){
+			return; // your cookie doesnt add up
+		}
+		String json = request.getParameter("values");
+		System.err.print("In POST got "+json+"\n"); 
+		ObjectMapper mapper = new ObjectMapper();
+		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
+
+		response.setContentType("text/html");
+		String action=record.get("action");
+		String encodedData = record.get("file");
+		System.err.println("encoded data length = "+encodedData.length());
+		
+		Base64 decoder = new Base64();
+		byte[] decodedBytes = decoder.decode(encodedData);
+		int length=decodedBytes.length;
+		System.err.println("decoded bytes length = "+length);
+		if (action==null)action=""; // switch doesnt like null
+		switch(action){
+		case "import":
+			gtfs.runLoader(decodedBytes);
+			break;
+		case "dump":
+			gtfs.runDumper();
+			putData();
+			break;
+		}
 		// TODO Auto-generated method stub
+	}
+	
+
+	protected boolean putData(){
+		return true;
 	}
 
 }

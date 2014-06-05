@@ -115,7 +115,7 @@ public class Entity extends Generic {
 
 		try {
 			PrintWriter out = response.getWriter();
-			out.println(mapper.writeValueAsString(recordId));
+			out.println(mapper.writeValueAsString(record));
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {

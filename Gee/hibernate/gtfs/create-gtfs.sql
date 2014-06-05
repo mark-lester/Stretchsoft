@@ -5,11 +5,12 @@
    I've tried to keep the rest of it consistent with the S in GTFS
 TODO
    Constraints
-   Pattern support (not by hacking the base tables) 
 */
 
+/*
 CREATE DATABASE IF NOT EXISTS gtfs;
 use gtfs;
+*/
 
 /* Required GTFS tables */
 
@@ -26,6 +27,24 @@ CREATE TABLE `agency` (
 	agency_lang VARCHAR(255),
 	agency_phone VARCHAR(255)
 );
+/*==========================================*/
+
+DROP TABLE IF EXISTS calendar;
+
+CREATE TABLE `calendar` (
+	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
+	service_id VARCHAR(255) NOT NULL UNIQUE KEY,
+	monday INTEGER,
+	tuesday INTEGER,
+	wednesday INTEGER,
+	thursday INTEGER,
+	friday INTEGER,
+	saturday INTEGER,
+	sunday INTEGER,
+	start_date DATE ,	
+	end_date DATE 
+);
+
 
 /*==========================================*/
 
@@ -62,7 +81,11 @@ CREATE TABLE `routes` (
 	route_type INTEGER,
 	route_url VARCHAR(255),
 	route_color VARCHAR(255),
-	route_text_color VARCHAR(255)
+	route_text_color VARCHAR(255)/*.
+	 FOREIGN KEY (agency_id) 
+        REFERENCES agency(agency_id)
+        ON DELETE CASCADE
+        */
 );
 
 /*==========================================*/
@@ -83,7 +106,9 @@ CREATE TABLE `trips` (
 	KEY `route_id` (route_id),
 	KEY `service_id` (service_id),
 	KEY `direction_id` (direction_id),
-	KEY `block_id` (block_id)
+	KEY `block_id` (block_id)/*,
+	FOREIGN KEY (route_id) references routes(route_id),
+	FOREIGN KEY (service_id) references calendar(calendar_id)*/
 );
 
 /*==========================================*/
@@ -105,26 +130,11 @@ CREATE TABLE `stop_times` (
 	KEY `stop_id` (stop_id),
 	KEY `stop_sequence` (stop_sequence),
 	KEY `pickup_type` (pickup_type),
-	KEY `drop_off_type` (drop_off_type)
+	KEY `drop_off_type` (drop_off_type)/*,
+	FOREIGN KEY (trip_id) references trips(trip_id),
+	FOREIGN KEY (stop_id) references stops(stop_id)*/
 );
 
-/*==========================================*/
-
-DROP TABLE IF EXISTS calendar;
-
-CREATE TABLE `calendar` (
-	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	service_id VARCHAR(255) NOT NULL UNIQUE KEY,
-	monday INTEGER,
-	tuesday INTEGER,
-	wednesday INTEGER,
-	thursday INTEGER,
-	friday INTEGER,
-	saturday INTEGER,
-	sunday INTEGER,
-	start_date DATE ,	
-	end_date DATE 
-);
 /*==========================================*/
 
 /* Optional GTFS tables */
@@ -137,7 +147,8 @@ CREATE TABLE `calendar_dates` (
 	`date` DATE ,
 	exception_type INTEGER,
 	KEY `service_id` (service_id),
-	KEY `exception_type` (exception_type)    
+	KEY `exception_type` (exception_type)/*,
+	FOREIGN KEY (service_id) references calendar(service_id)*/
 );
 
 /*==========================================*/
@@ -164,7 +175,9 @@ CREATE TABLE fare_rules (
 	route_id VARCHAR(255),
 	origin_id VARCHAR(255),
 	destination_id VARCHAR(255),
-	contains_id VARCHAR(255)
+	contains_id VARCHAR(255)/*,
+	FOREIGN KEY (fare_id) references fares(fare_id),
+	FOREIGN KEY (route_id) references routes(route_id),*/
 );
 
 /*==========================================*/
@@ -189,7 +202,8 @@ CREATE TABLE frequencies (
 	trip_id VARCHAR(255) NOT NULL,
 	start_time TIME NOT NULL,
 	end_time TIME NOT NULL,
-	headway_secs MEDIUMINT NOT NULL
+	headway_secs MEDIUMINT NOT NULL/*,
+	FOREIGN KEY (trip_id) references trips(trip_id)*/
 );
 
 /*==========================================*/
@@ -201,7 +215,9 @@ CREATE TABLE transfers (
 	from_stop_id VARCHAR(255) NOT NULL,
 	to_stop_id VARCHAR(255) NOT NULL,
 	transfer_type INTEGER,
-	min_transfer_time MEDIUMINT NOT NULL
+	min_transfer_time MEDIUMINT NOT NULL/*,
+	FOREIGN KEY (from_stop_id) references stops(stop_id),
+	FOREIGN KEY (to_stop_id) references stops(stop_id)*/
 );
 
 /*==========================================*/
@@ -213,4 +229,3 @@ CREATE TABLE imported_stops (
     osm_node_id VARCHAR(255) NOT NULL,
     stops_hibernate_id INTEGER NOT NULL
 );
-

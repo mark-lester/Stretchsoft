@@ -6,7 +6,7 @@ import org.apache.commons.cli.*;
 public class RunLoader {
 	
 public static void main(String[] args) {
-	GtfsLoader gtfsLoader = new GtfsLoader();
+	Gtfs gtfs = new Gtfs(args[0],args[1]);
 	CommandLineParser parser = new BasicParser();
 	CommandLine cmd=null;
 	// create the Options
@@ -19,9 +19,9 @@ public static void main(String[] args) {
 		e.printStackTrace();
 	} 
 	if(cmd.hasOption("d")) {
-		gtfsLoader.runDumper();
+		gtfs.runDumper();
 	} else {
-		gtfsLoader.runLoader();
+		gtfs.runLoader();
 	}
   }
 }

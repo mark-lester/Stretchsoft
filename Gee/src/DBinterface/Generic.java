@@ -1,15 +1,29 @@
 package DBinterface;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.io.ByteArrayInputStream;
+
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
-
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.io.ByteArrayInputStream;
+import org.apache.commons.lang.ArrayUtils;
+import java.util.zip.*;
+import java.io.ByteArrayOutputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -43,9 +57,18 @@ public class Generic {
     public String dataDirectory="/home/Gee/gtfs/";
     public String databaseName="gtfs";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
+    public static final int ZIP_BUFFER_SIZE = 50;
 //    public Transaction tx = null;
 //    public Session session = null;
 
+//TODO merge these two constructors
+    public Generic(String hibernateConfigDirectory,String databaseName, String userName){
+    	this.dataDirectory="/home/Gee/users/"+userName;    	
+    	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
+    	this.databaseName=databaseName;
+    	init();
+    }
+    
     public Generic(String hibernateConfigDirectory,String databaseName){
     	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
     	this.databaseName=databaseName;
@@ -66,6 +89,79 @@ public class Generic {
         hibernateConfig = ReadConfig();
     }
     
+    public static byte[] unzipByteArray(byte[] file)
+            throws IOException {
+      byte[] byReturn = null;
+
+      Inflater oInflate = new Inflater(false);
+      oInflate.setInput(file);
+
+      ByteArrayOutputStream oZipStream = new ByteArrayOutputStream();
+      try {
+        while (! oInflate.finished() ){
+          byte[] byRead = new byte[ZIP_BUFFER_SIZE];
+          int iBytesRead = oInflate.inflate(byRead);
+          if (iBytesRead == byRead.length){
+            oZipStream.write(byRead);
+          }
+          else {
+            oZipStream.write(byRead, 0, iBytesRead);
+          }
+        }
+        byReturn = oZipStream.toByteArray();
+      }
+      catch (DataFormatException ex){
+        throw new IOException("Attempting to unzip file that is not zipped.");
+      }
+      finally {
+        oZipStream.close();
+      }
+      return byReturn;
+    }
+    
+    public void runLoader(byte[] zipData) {
+    	 // this is where you start, with an InputStream containing the bytes from the zip file
+    	InputStream zipStream = new ByteArrayInputStream(zipData);
+        ZipInputStream zis = new ZipInputStream(zipStream);
+        ZipEntry entry;
+        Hashtable <String,Reader> zipHash = new Hashtable <String,Reader>();
+ 
+        try {
+			while ((entry = zis.getNextEntry()) != null) {   
+			    String fileName = entry.getName();
+				System.err.println("In unzip, got file ["+fileName+"]\n");
+			    byte[] buffer=new byte[1024];
+			    String outString ="";
+			    int len;
+			    int tlen=0;
+			    while ((len = zis.read(buffer,0,1024)) != -1){
+			    	tlen+=len;
+			    	byte [] subArray = Arrays.copyOfRange(buffer, 0, len);
+			    	String str = new String(subArray, "UTF-8");
+				    System.err.println("\n\nblock "+len+" :"+str+":");
+			    	
+			    	outString += str;
+			    }
+			    System.err.println("This is the full CSV file content");
+			    System.err.write(outString.getBytes());
+		    	Reader thisReader = new StringReader(outString);
+			    System.err.println("\nEND OF CSV");
+			    
+		    	zipHash.put(fileName,thisReader);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        for (String resourceFile : hibernateConfig.resources) {
+            // load the specific table
+            System.out.println("Loading "+resourceFile+"...\n");       
+            LoadTable(resourceFile,zipHash);
+            System.out.println("Done "+resourceFile+"\n");       
+        }   
+    }
+    
     public void runLoader() {
         // get the tables out of the hibernate.cfg.xml.
         // you can presumably do that via hibernate itself but I couldn't work out how to do that
@@ -73,7 +169,7 @@ public class Generic {
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
             System.out.println("Loading "+resourceFile+"...\n");       
-            LoadTable(resourceFile);
+            LoadTable(resourceFile,null);
             System.out.println("Done "+resourceFile+"\n");       
         }   
     }
@@ -168,16 +264,14 @@ public class Generic {
         return tableMap;
     }
       
-    
-
  // TODO refactor this to use the classNames from the keys of tableMaps
-     public boolean LoadTable(String resourceFile){
+     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash){
          // the resource file is the <table>.hbm.xml
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
          // and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be
              TableMap tableMap = ReadTableMap(resourceFile);
-             Enumeration ekeys = tableMap.map.keys();
+//             Enumeration<String> ekeys = tableMap.map.keys();
              Set <String> keys = tableMap.map.keySet();
              String className=tableMap.className;
              String tableName=tableMap.tableName;
@@ -187,15 +281,30 @@ public class Generic {
              Transaction tx = session.beginTransaction();
             
              try {
-                 CsvReader csvReader = new CsvReader(dataDirectory+tableName+".txt");
+            	 CsvReader csvReader=null;
+            	 if (zipHash == null){
+            		 csvReader = new CsvReader(dataDirectory+tableName+".txt");
+            	 } else {
+            		 if (zipHash.get(tableName+".txt")==null) return false;
+            		 csvReader = new CsvReader(zipHash.get(tableName+".txt"));
+            	 }
                  csvReader.readHeaders();
                  while (csvReader.readRecord()) {
                      Hashtable<String,String> record = new Hashtable<String,String>();
-                    
+                     boolean set_flag=false;
                      for (String databaseFieldName : keys) {
+                    	 if (databaseFieldName == null || databaseFieldName.isEmpty()) continue;
                          String hibernateFieldName=tableMap.map.get(databaseFieldName);
-                         record.put(hibernateFieldName, csvReader.get(databaseFieldName));
+                    	 if (hibernateFieldName == null || hibernateFieldName.isEmpty()) continue;
+                         String csvFieldValue=csvReader.get(databaseFieldName);
+                    	 if (csvFieldValue == null || csvFieldValue.isEmpty() || csvFieldValue.length() > 255) continue;
+                    	 
+                         record.put(hibernateFieldName, csvFieldValue);
+                         set_flag=true;
+                         System.err.println("table :"+tableName+": field :"+hibernateFieldName+": length="+csvFieldValue.length()+ " value :"+csvFieldValue+":");
                      }
+                     System.err.println("Record done");
+                     if (!set_flag) continue;
                      createRecordInner(session,tx,className,record);
                  }
                 
@@ -313,6 +422,9 @@ public class Generic {
  public int createRecordInner(Session session,Transaction tx, String className,Hashtable <String,String> record){
      Integer recordId = null;
      System.err.println("start insert class="+className+"\n");
+     for (String key : record.keySet()){
+         System.err.println("record("+key+")="+record.get(key));    	 
+     }
  
      try{
          Object hibernateRecord = (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);           

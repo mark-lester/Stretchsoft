@@ -8,6 +8,7 @@ import java.util.*;
 public class Instance extends AdminBase {
 
 String databaseName;
+String description;
 String ownerUserId;
 int publicRead;
 int publicWrite;
@@ -16,11 +17,13 @@ public Instance(){}
 
 public Instance (
 		String databaseName,
+		String description,
 		String ownerUserId,
 		int publicRead,
 		int publicWrite
 		){
 		this.databaseName=databaseName;
+		this.description=description;
 		this.ownerUserId=ownerUserId;
 		this.publicRead=publicRead;
 		this.publicWrite=publicWrite;
@@ -51,6 +54,7 @@ public void update(Hashtable <String,String> record){
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 	record.put("databaseName",this.databaseName);
+	record.put("description",this.description);
 	record.put("ownerUserId",this.ownerUserId);
 	record.put("publicRead",Integer.toString(this.publicRead));
 	record.put("publicWrite",Integer.toString(this.publicWrite));
@@ -62,6 +66,14 @@ public void setdatabaseName(String databaseName){
 
 public String getdatabaseName(){
 	return this.databaseName;
+}
+
+public void setdescription(String description){
+	this.description = description;
+}
+
+public String getdescription(){
+	return this.description;
 }
 
 public void setownerUserId(String ownerUserId){

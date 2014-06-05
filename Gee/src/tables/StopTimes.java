@@ -81,7 +81,11 @@ public void update(Hashtable <String,String> record){
 //			System.err.println(ex);		
 			this.dropOffType=0;
 		}
-
+		
+		// paseDouble freaks out on an empty string
+		if (!record.containsKey("shapeDistTraveled") || record.get("shapeDistTraveled").isEmpty()){
+			record.put("shapeDistTraveled","0");
+		}
 		try {
 			this.shapeDistTraveled=Double.parseDouble(record.get("shapeDistTraveled"));
 		} catch (NumberFormatException ex){

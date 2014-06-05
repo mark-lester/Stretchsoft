@@ -125,15 +125,15 @@ public class Generic extends HttpServlet {
 		    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
 		    response.addCookie(cookie1); 
 		}
-		gtfs = getGtfs(databaseName);
+		gtfs = getGtfs(databaseName,userId);
 		
 		return userId;
 	}
 
-	public Gtfs getGtfs(String databaseName){
+	public Gtfs getGtfs(String databaseName, String userId){
 		if (gtfsStore.get(databaseName) == null){
 			// TODO make sure it's there, or at least in the instances table.
-			gtfsStore.put(databaseName, new Gtfs("/home/Gee/config/gtfs",databaseName));
+			gtfsStore.put(databaseName, new Gtfs("/home/Gee/config/gtfs",databaseName,userId));
 		}
 		
 		return gtfsStore.get(databaseName);

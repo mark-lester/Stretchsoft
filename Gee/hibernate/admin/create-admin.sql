@@ -49,6 +49,7 @@ DROP TABLE IF EXISTS `instance`;
 CREATE TABLE `instance` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	database_name VARCHAR(255),
+	description VARCHAR(255),	
 	owner_user_id VARCHAR(255) NOT NULL,
 	public_read INTEGER,
 	public_write INTEGER

@@ -15,16 +15,14 @@ import DBinterface.GtfsLoader;
  * Servlet implementation class ImportStops
  */
 @WebServlet("/ImportStops")
-public class ImportStops extends HttpServlet {
+public class ImportStops extends Generic {
 	private static final long serialVersionUID = 1L;
-	private static GtfsLoader gtfsLoader;
     
     /**
      * @see HttpServlet#HttpServlet()
      */
     public ImportStops() {
         super();
-        gtfsLoader = new GtfsLoader();
     }
 
 	/**
@@ -36,8 +34,12 @@ public class ImportStops extends HttpServlet {
 		String east=request.getParameter("e");
 		String west=request.getParameter("w");
 		String stop_type=request.getParameter("t");
+		String userId = getUserId(request,response);
+		if (userId == null){
+			return; // your cookie doesnt add up
+		}
 
-        gtfsLoader.StopsImport(north,south,east,west, stop_type);
+        gtfs.StopsImport(north,south,east,west, stop_type);
 
 		// TODO Auto-generated method stub
 	}

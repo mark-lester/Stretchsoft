@@ -1,4 +1,8 @@
 package DBinterface;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -30,6 +34,8 @@ public class Admin extends Generic {
  * GrantUserAdminAccess adminId,userId,databaseName,[true,false]
  *   
  */
+	private static String sql_commands=null;
+    
 	public Admin(){
 		super("/home/Gee/config/admin","admin");
 	}
@@ -158,7 +164,7 @@ public class Admin extends Generic {
 	}	
 	
 	public boolean CreateMySqlDatabase(String databaseName) {
-        try {
+	    try {
             // Create a connection to the database.
             Connection connection = DriverManager.getConnection(
             		hibernateConfig.properties.get("hibernate.connection.url"), 
@@ -168,12 +174,33 @@ public class Admin extends Generic {
             PreparedStatement statement =
                     connection.prepareStatement("CREATE DATABASE IF NOT EXISTS "+databaseName);
             statement.execute();
+            statement =
+                    connection.prepareStatement("USE "+databaseName);
+            statement.execute();
+            if (sql_commands == null) sql_commands = readFile("/home/Gee/config/gtfs/create-gtfs.sql", Charset.defaultCharset());
+			for (String command : sql_commands.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/","").split(";")){
+				command = command.trim();
+				if (command.length() == 0) continue;
+				System.err.println("SQL COMMAND = "+command); 
+				statement =
+                    connection.prepareStatement(command);
+				statement.execute();
+			}
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+     
         return true;
     }
+	
+	static String readFile(String path, Charset encoding) 
+			  throws IOException 
+	{
+		byte[] encoded = Files.readAllBytes(Paths.get(path));
+		return new String(encoded, encoding);
+	}
+
 
 	public boolean DeleteMySqlDatabase(String databaseName) {
         try {

@@ -66,6 +66,11 @@
         	<button class="btn btn-default navbar-btn" name="getstops" id="getstops">Get Stops From OSM</button>
     	  </form>
         </li>
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn" name="import_gtfs" id="import_gtfs">Import GTFS</button>
+    	  </form>
+        </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
       	 <li class="active">   
@@ -133,13 +138,30 @@
 </fieldset>
  </form>
  </div>
+ 
+<div id="dialog-import_gtfs" title="Import GTFS" class="edit-dialog">
+<form id="dialog-import_gtfs-form">
+<fieldset>
+	<label for="url">Download from URL (usually from GTFS exchange)</label>
+    <input id="url" name="url" size=100 maxlength=200><br>
+    or 
+	<label for="upload_file">Upload GTFS from local file system</label>
+    <input id="upload_file" name="upload_file" type=file><br>
+    
+</fieldset>
+ </form>
+ </div>
+ 
+ 
 
 <div id="dialog-edit-Instance" title="Add/Edit Database" class="edit-dialog">
 <form id="dialog-edit-Instance-form">
 <fieldset>
 	<input id="hibernateId" type=hidden>
-	<label for="databaseName">Instance Name(required)</label>
-    <input id="databaseName" name="databaseName" size=10 maxlength=10 required key display><br>
+	<label for="databaseName">Database Name</label>
+    <input id="databaseName" name="databaseName" size=10 maxlength=10 required key><br>
+	<label for="description">Description </label>
+    <input id="description" name="description" size=10 maxlength=10 required display><br>
 	<label for="publicRead">Public Read</label>
     <input id="publicRead" name="publicRead" type=checkbox><br>
 	<label for="publicWrite">Public Write</label>

@@ -1,5 +1,15 @@
 var hid_lookup=[];
 var relations=[];
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i].trim();
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
+
 
 function MainSetup(){
 	dfd = new $.Deferred();
@@ -81,7 +91,7 @@ function refreshAll(){
 	var deferreds=[];
 	var dfd = new $.Deferred();
 	for (tableName in relations){
-	    if (tableName === 'length' || !relations.hasOwnProperty(tableName)
+	    if (tableName == 'length' || !relations.hasOwnProperty(tableName)
 	    		// Only refresh the orphans. logically everything else will get called as a result.
 	    		|| relations[tableName]['parent'] != undefined ) 
 	    	continue;
@@ -132,7 +142,7 @@ function getTableData(table){
 	var orderField=relations[tableName]['order'];
 	var parentTable=relations[tableName]['parent'];
 	var matchField=undefined;
-	var matchvalue=undefined;
+	var matchValue=undefined;
 	
 	if (parentTable != undefined && relations[parentTable]['no_join'] == undefined){
 		matchField=relations[parentTable]['key'];
@@ -192,6 +202,13 @@ function getTableData(table){
 	return dfd;
 }
 
+function pre_refreshTable(tableName){
+  switch(tableName){
+  case 'Instance':
+     	document.cookie ="gee_databasename="+$("#select-Instance").val();
+  }	
+}
+
 function initSelectForm(tableName){
 	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
 	$("<select/>", {
@@ -199,11 +216,15 @@ function initSelectForm(tableName){
 		name: "select-"+tableName
 		})
 		.change(function (){
+			pre_refreshTable(tableName);
 			refreshTable(tableName);
 		})
 		.appendTo("#form-"+tableName);
-	
-	
+
+	if (tableName == 'Instance'){
+		$("#select-Instance").val(getCookie("gee_databasename"));
+	}
+
 	//class="pure-button  pure-button-primary"
 	bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
 	$('<button type="button" class="btn btn-primary btn-xs">')
@@ -446,8 +467,9 @@ function postEditHandler(tableName,record){
 	return dfd;
 }
 //MENUs
+var GTFS_Upload_file=null;
 function SetupMenu(){
-	
+
 $( "#getstops" ).click(function(e) {
     e.preventDefault();
     $( "#dialog-getstops" ).dialog( "open" );
@@ -456,8 +478,6 @@ $( "#getstops" ).click(function(e) {
 
 $("#dialog-getstops" ).dialog({ 
 	open : function (event,ui){
-		// there should only by one "do you wanna delete this field
-		// set it to whatever the select text is
 	},
 	autoOpen: false, 
 	modal :true,
@@ -474,7 +494,7 @@ $("#dialog-getstops" ).dialog({
 		    // this horrid global nested hash was the only way I could map 
 		    // from tableName + gtfs-id value to hibernateId
 			values={};
-		    
+			
 			$url= "/Gee/ImportStops?"+
 			"n="+map.getBounds().getNorth()+
 			"&s="+map.getBounds().getSouth()+
@@ -488,7 +508,7 @@ $("#dialog-getstops" ).dialog({
 				  async: false,
 				url: $url,
 				success: function(response){
-					SetUp();
+					refreshAll();
 					}
 			});
 			$( this ).dialog( "close" );
@@ -499,6 +519,79 @@ $("#dialog-getstops" ).dialog({
 		}
 	}
 });
+
+$( "#import_gtfs" ).click(function(e) {
+    e.preventDefault();
+
+    $( "#dialog-import_gtfs" ).dialog( "open" );
+    
+});
+// Set an event listener on the Choose File field.
+$('#upload_file').bind("change", function(evt) {
+    //Retrieve the first (and only!) File from the FileList object
+    var f = evt.target.files[0]; 
+
+    if (f) {
+      var r = new FileReader();
+      r.onload = (function (f) {
+          return function (e) {
+              GTFS_Upload_file = e.target.result;
+          };
+      })(f);
+      r.readAsBinaryString(f);
+    } else { 
+      alert("Failed to load file");
+    }
+  });
+
+
+$("#dialog-import_gtfs" ).dialog({ 
+	open : function (event,ui){
+	},
+	autoOpen: false, 
+	modal :true,
+	width : 600,
+	resizable : true,
+	dragable : true,
+	buttons : {
+		// TODO **IMPORTANT** 
+		// this will leave all the children to this record orphaned. right now you have to manually delete 
+		// the children first else you wont even be able to see them after the parent is gone
+		// so we need a recursive delete children function.
+		"Upload": function() {
+		    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+		    // this horrid global nested hash was the only way I could map 
+		    // from tableName + gtfs-id value to hibernateId
+			values={};
+			values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
+			values['file']=window.btoa(GTFS_Upload_file);
+			console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+"\n");
+//			values['file']=$('#dialog-import_gtfs :input[id=upload_file]').val();
+			values['action']='import';
+		    var datastring = JSON.stringify(values);
+			$url= "/Gee/Loader";
+			console.log("loader about to ajax\n");
+			$.ajax({
+				method:"POST",
+				dataType: 'JSON',
+				async: false,
+				data: {values: datastring},
+				url: $url,
+				success: function(response){
+					refreshAll();
+					}
+			});
+			$( this ).dialog( "close" );
+		    
+		},
+		Cancel: function() {
+			 $( this ).dialog( "close" );
+		}
+	}
+});
+
+
+
 }
 
 // RUN TIME FORM HANDLING, THIS STUFF GETS RUN EVERY TIME YOU CLICK EDIT
