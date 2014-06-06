@@ -9,15 +9,15 @@ import java.text.ParseException;
 
 public class Routes extends GtfsBase {
 
-String routeId;
-String agencyId;
-String routeShortName;
-String routeLongName;
-String routeDesc;
-int routeType;
-String routeUrl;
-String routeColor;
-String routeTextColor;
+String routeId="";
+String agencyId="";
+String routeShortName="";
+String routeLongName="";
+String routeDesc="";
+int routeType=0;
+String routeUrl="";
+String routeColor="";
+String routeTextColor="";
 public Routes(){}
 
 public Routes(
@@ -60,15 +60,23 @@ public void update(Hashtable <String,String> record){
 
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
-	record.put("routeId",this.routeId);
-	record.put("agencyId",this.agencyId);
-	record.put("routeShortName",this.routeShortName);
-	record.put("routeLongName",this.routeLongName);
-	record.put("routeDesc",this.routeDesc);
+	if (this.routeId != null)
+		record.put("routeId",this.routeId);
+	if (this.agencyId != null)
+		record.put("agencyId",this.agencyId);
+	if (this.routeShortName != null)
+		record.put("routeShortName",this.routeShortName);
+	if (this.routeLongName != null)
+		record.put("routeLongName",this.routeLongName);
+	if (this.routeDesc != null)
+		record.put("routeDesc",this.routeDesc);
 	record.put("routeType",Integer.toString(this.routeType));
-	record.put("routeUrl",this.routeUrl);
-	record.put("routeColor",this.routeColor);
-	record.put("routeTextColor",this.routeTextColor);
+	if (this.routeUrl != null)
+		record.put("routeUrl",this.routeUrl);
+	if (this.routeColor != null)
+		record.put("routeColor",this.routeColor);
+	if (this.routeTextColor != null)
+		record.put("routeTextColor",this.routeTextColor);
 	return record;
 }
 

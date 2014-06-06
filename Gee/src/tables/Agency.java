@@ -7,12 +7,12 @@ import java.util.*;
 
 public class Agency extends GtfsBase {
 
-String agencyId;
-String agencyName;
-String agencyUrl;
-String agencyTimezone;
-String agencyLang;
-String agencyPhone;
+String agencyId="";
+String agencyName="";
+String agencyUrl="";
+String agencyTimezone="";
+String agencyLang="";
+String agencyPhone="";
 public Agency(){}
 
 public Agency(
@@ -46,12 +46,18 @@ public void update(Hashtable <String,String> record){
 
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
-	record.put("agencyId",this.agencyId);
-	record.put("agencyName",this.agencyName);
-	record.put("agencyUrl",this.agencyUrl);
-	record.put("agencyTimezone",this.agencyTimezone);
-	record.put("agencyLang",this.agencyLang);
-	record.put("agencyPhone",this.agencyPhone);
+	if (this.agencyId != null)
+		record.put("agencyId",this.agencyId);
+	if (this.agencyName != null)
+		record.put("agencyName",this.agencyName);
+	if (this.agencyUrl != null)
+		record.put("agencyUrl",this.agencyUrl);
+	if (this.agencyTimezone != null)
+		record.put("agencyTimezone",this.agencyTimezone);
+	if (this.agencyLang != null)
+		record.put("agencyLang",this.agencyLang);
+	if (this.agencyPhone != null)
+		record.put("agencyPhone",this.agencyPhone);
 	return record;
 }
 

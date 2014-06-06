@@ -9,10 +9,10 @@ import java.text.ParseException;
 
 public class Transfers extends GtfsBase {
 
-String fromStopId;
-String toStopId;
-int transferType;
-int minTransferTime;
+String fromStopId="";
+String toStopId="";
+int transferType=0;
+int minTransferTime=0;
 public Transfers(){}
 
 public Transfers(

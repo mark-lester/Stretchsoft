@@ -9,10 +9,10 @@ import java.text.ParseException;
 
 public class Frequencies extends GtfsBase {
 
-String tripId;
+String tripId="";
 Date startTime;
 Date endTime;
-int headwaySecs;
+int headwaySecs=0;
 public Frequencies(){}
 
 public Frequencies(

@@ -10,12 +10,12 @@ import java.text.ParseException;
 
 public class FareAttributes extends GtfsBase {
 
-String fareId;
-String pricE;
-String currencyType;
-boolean paymentMethod;
-int transferS;
-int transferDuration;
+String fareId="";
+String pricE="";
+String currencyType="";
+boolean paymentMethod=false;
+int transferS=0;
+int transferDuration=0;
 public FareAttributes(){}
 
 public FareAttributes(

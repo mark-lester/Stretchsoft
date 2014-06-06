@@ -10,15 +10,15 @@ import java.text.ParseException;
 
 public class Trips extends GtfsBase {
 
-String tripId;
-String routeId;
-String serviceId;
-String tripHeadsign;
-String tripShortName;
-int directionId;
-String blockId;
-String shapeId;
-int wheelchairAccessible;
+String tripId="";
+String routeId="";
+String serviceId="";
+String tripHeadsign="";
+String tripShortName="";
+int directionId=0;
+String blockId="";
+String shapeId="";
+int wheelchairAccessible=0;
 public Trips(){}
 
 public Trips(
@@ -74,11 +74,16 @@ public Hashtable <String,String> hash(){
 	record.put("tripId",this.tripId);
 	record.put("routeId",this.routeId);
 	record.put("serviceId",this.serviceId);
-	record.put("tripHeadsign",this.tripHeadsign);
-	record.put("tripShortName",this.tripShortName);
+	if (this.tripHeadsign != null)
+		record.put("tripHeadsign",this.tripHeadsign);
+	if (this.tripShortName != null)
+		record.put("tripShortName",this.tripShortName);
+
 	record.put("directionId",Integer.toString(this.directionId));
-	record.put("blockId",this.blockId);
-	record.put("shapeId",this.shapeId);
+	if (this.blockId != null)
+		record.put("blockId",this.blockId);
+	if (this.shapeId != null)
+		record.put("shapeId",this.shapeId);
 	record.put("wheelchairAccessible",Integer.toString(this.wheelchairAccessible));
 	return record;
 }

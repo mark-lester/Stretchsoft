@@ -9,16 +9,16 @@ import java.text.ParseException;
 
 public class Stops extends GtfsBase {
 
-String stopId;
-String stopCode;
-String stopName;
-String stopDesc;
-float stopLat;
-float stopLon;
-String zoneId;
-String stopUrl;
-int locationType;
-String parentStation;
+String stopId="";
+String stopCode="";
+String stopName="";
+String stopDesc="";
+float stopLat=0;
+float stopLon=0;
+String zoneId="";
+String stopUrl="";
+int locationType=0;
+String parentStation="";
 public Stops(){}
 
 public Stops(
@@ -83,11 +83,16 @@ public void update(Hashtable <String,String> record){
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 	record.put("stopId",this.stopId);
-	record.put("stopCode",this.stopCode);
-	record.put("stopName",this.stopName);
-	record.put("stopDesc",this.stopDesc);
-	record.put("zoneId",this.zoneId);
-	record.put("stopUrl",this.stopUrl);
+	if (this.stopCode != null)
+		record.put("stopCode",this.stopCode);
+	if (this.stopName != null)
+		record.put("stopName",this.stopName);
+	if (this.stopDesc != null)
+		record.put("stopDesc",this.stopDesc);
+	if (this.zoneId != null)
+		record.put("zoneId",this.zoneId);
+	if (this.stopUrl != null)
+		record.put("stopUrl",this.stopUrl);
 	record.put("locationType",Integer.toString(this.locationType));
 	record.put("stopLat",Float.toString(this.stopLat));
 	record.put("stopLon",Float.toString(this.stopLon));

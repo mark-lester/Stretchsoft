@@ -590,8 +590,23 @@ $("#dialog-import_gtfs" ).dialog({
 	}
 });
 
+$( "#export_gtfs" ).click(function(e) {
+    e.preventDefault();
+    export_gtfs();
+});
 
 
+}
+
+function export_gtfs(){
+	var win = window.open('/Gee/Loader?action=export', '_blank');
+	if(win){
+	    //Browser has allowed it to be opened
+	    win.focus();
+	}else{
+	    //Broswer has blocked it
+	    alert('Please allow popups for this site');
+	}
 }
 
 // RUN TIME FORM HANDLING, THIS STUFF GETS RUN EVERY TIME YOU CLICK EDIT

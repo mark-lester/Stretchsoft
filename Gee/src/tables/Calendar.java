@@ -126,9 +126,10 @@ public Hashtable <String,String>  hash(){
     record.put("saturDay",Integer.toString(this.saturDay));
     record.put("sunDay",Integer.toString(this.sunDay));
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");  
-    
-	record.put("startDate",df.format(this.startDate));
-	record.put("endDate",df.format(this.endDate));
+    if (this.startDate != null)
+    	record.put("startDate",df.format(this.startDate));
+    if (this.startDate != null)
+    	record.put("endDate",df.format(this.endDate));
 	return record;
 }
 

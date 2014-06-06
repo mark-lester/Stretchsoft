@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
@@ -19,6 +20,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.zip.ZipEntry;
+import java.util.Map;
+import java.util.Iterator;
 import java.util.zip.ZipInputStream;
 import java.io.ByteArrayInputStream;
 import org.apache.commons.lang.ArrayUtils;
@@ -48,12 +51,14 @@ import com.csvreader.CsvWriter;
 
 import sax.HibernateConfig;
 import sax.TableMap;
+import DBinterface.StringOutputStream;
 
 public class Generic {
     public SessionFactory factory;
     private SessionFactory sessionFactory;
     private ServiceRegistry serviceRegistry;
-    public static HibernateConfig hibernateConfig=null;
+    public static final Hashtable <String,HibernateConfig> configStore = new  Hashtable <String,HibernateConfig>();
+    public HibernateConfig hibernateConfig=null;
     public String dataDirectory="/home/Gee/gtfs/";
     public String databaseName="gtfs";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
@@ -88,39 +93,19 @@ public class Generic {
             System.err.println("Failed to create sessionFactory object." + ex);
             throw new ExceptionInInitializerError(ex);
         }   
-        if (hibernateConfig == null){
-            hibernateConfig = ReadConfig();        	
+        
+        if (!configStore.containsKey("/home/Gee/config/gtfs")){
+        	configStore.put("/home/Gee/config/gtfs",ReadConfig("/home/Gee/config/gtfs"));        	
         }
-    }
-    
-    public static byte[] unzipByteArray(byte[] file)
-            throws IOException {
-      byte[] byReturn = null;
-
-      Inflater oInflate = new Inflater(false);
-      oInflate.setInput(file);
-
-      ByteArrayOutputStream oZipStream = new ByteArrayOutputStream();
-      try {
-        while (! oInflate.finished() ){
-          byte[] byRead = new byte[ZIP_BUFFER_SIZE];
-          int iBytesRead = oInflate.inflate(byRead);
-          if (iBytesRead == byRead.length){
-            oZipStream.write(byRead);
-          }
-          else {
-            oZipStream.write(byRead, 0, iBytesRead);
-          }
+        
+        if (!configStore.containsKey("/home/Gee/config/admin")){
+        	configStore.put("/home/Gee/config/admin",ReadConfig("/home/Gee/config/admin"));        	
         }
-        byReturn = oZipStream.toByteArray();
-      }
-      catch (DataFormatException ex){
-        throw new IOException("Attempting to unzip file that is not zipped.");
-      }
-      finally {
-        oZipStream.close();
-      }
-      return byReturn;
+        
+        if (!configStore.containsKey(hibernateConfigDirectory)){
+        	configStore.put(hibernateConfigDirectory,ReadConfig(hibernateConfigDirectory));        	
+        }
+        hibernateConfig = configStore.get(hibernateConfigDirectory);        	
     }
     
     public void runLoader(byte[] zipData) {
@@ -129,28 +114,19 @@ public class Generic {
         ZipInputStream zis = new ZipInputStream(zipStream);
         ZipEntry entry;
         Hashtable <String,Reader> zipHash = new Hashtable <String,Reader>();
- 
+   
         try {
 			while ((entry = zis.getNextEntry()) != null) {   
 			    String fileName = entry.getName();
-				System.err.println("In unzip, got file ["+fileName+"]\n");
 			    byte[] buffer=new byte[1024];
 			    String outString ="";
 			    int len;
-			    int tlen=0;
-			    while ((len = zis.read(buffer,0,1024)) != -1){
-			    	tlen+=len;
+			    while ((len = zis.read(buffer,0,1024)) != -1){			    	
 			    	byte [] subArray = Arrays.copyOfRange(buffer, 0, len);
 			    	String str = new String(subArray, "UTF-8");
-				    System.err.println("\n\nblock "+len+" :"+str+":");
-			    	
 			    	outString += str;
 			    }
-			    System.err.println("This is the full CSV file content");
-			    System.err.write(outString.getBytes());
 		    	Reader thisReader = new StringReader(outString);
-			    System.err.println("\nEND OF CSV");
-			    
 		    	zipHash.put(fileName,thisReader);
 			}
 		} catch (IOException e) {
@@ -190,16 +166,42 @@ public class Generic {
         }   
     }
 
-    public void runDumper() {
+    public byte[] runDumper() {
         // get the tables out of the hibernate.cfg.xml.
         // you can presumably do that via hibernate itself but I couldn't work out how to do that
-
+        Hashtable <String,String> files = new Hashtable <String,String>();
+        
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
             System.out.println("Dumping "+resourceFile+"...\n");       
-            DumpTable(resourceFile);
+//            DumpTable(resourceFile,zipFile,csvWriter);
+            DumpTable(resourceFile,files,null);
             System.out.println("Done "+resourceFile+"\n");       
-        }   
+        } 
+        
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();  
+        ZipOutputStream zipfile = new ZipOutputStream(bos);  
+        Iterator i = files.keySet().iterator();  
+        String fileName = null;  
+        ZipEntry zipentry = null;  
+        while (i.hasNext()) {  
+            fileName = (String) i.next();  
+            zipentry = new ZipEntry(fileName);  
+            try {
+				zipfile.putNextEntry(zipentry);
+				zipfile.write(files.get(fileName).getBytes());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}  
+        }  
+        try {
+			zipfile.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  
+        return bos.toByteArray();  
     }
     
     public SessionFactory configureSessionFactory() throws HibernateException {
@@ -214,7 +216,7 @@ public class Generic {
         return sessionFactory;
     }
     
-    private HibernateConfig ReadConfig() 
+    private HibernateConfig ReadConfig(String directory) 
     {
         // reads the config to get the list of mapping (resource) files
         SAXParserFactory spf;
@@ -225,7 +227,7 @@ public class Generic {
             SAXParser saxParser = spf.newSAXParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             xmlReader.setContentHandler(hibernateConfig);
-            xmlReader.parse(hibernateConfigDirectory+"/hibernate.cfg.xml");
+            xmlReader.parse(directory+"/hibernate.cfg.xml");
         } catch (SAXException ex) {
             System.err.println(ex);       
         } catch (IOException ex) {
@@ -236,8 +238,8 @@ public class Generic {
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
             System.out.println("READCONFIG "+resourceFile+"...\n"); 
-            TableMap tableMap = ReadTableMap(resourceFile);
-            hibernateConfig.tableMaps.put(tableMap.className, tableMap);
+            TableMap tableMap = ReadTableMap(resourceFile,directory);
+            hibernateConfig.tableMaps.put(resourceFile, tableMap);
         }   
         System.out.println("HIBERNATE CONECTION STUFF :"+hibernateConfig.properties.get("hibernate.connection.url")+":\n");       
 
@@ -245,7 +247,7 @@ public class Generic {
         return hibernateConfig;
     }
       
-    private TableMap ReadTableMap(String resourceFile) 
+    private TableMap ReadTableMap(String resourceFile, String directory) 
     {
         // populates a hash of the field names, and also initialises "className" and "tableName" strings
         SAXParserFactory spf;
@@ -256,7 +258,7 @@ public class Generic {
             SAXParser saxParser = spf.newSAXParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             xmlReader.setContentHandler(tableMap);
-            xmlReader.parse(hibernateConfigDirectory+"/"+resourceFile);
+            xmlReader.parse(directory+"/"+resourceFile);
         } catch (SAXException ex) {
             System.err.println(ex);       
         } catch (IOException ex) {
@@ -267,6 +269,8 @@ public class Generic {
        
         return tableMap;
     }
+    
+    
       
  // TODO refactor this to use the classNames from the keys of tableMaps
      public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash){
@@ -274,7 +278,7 @@ public class Generic {
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
          // and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be
-             TableMap tableMap = ReadTableMap(resourceFile);
+             TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
 //             Enumeration<String> ekeys = tableMap.map.keys();
              Set <String> keys = tableMap.map.keySet();
              String className=tableMap.className;
@@ -305,9 +309,7 @@ public class Generic {
                     	 
                          record.put(hibernateFieldName, csvFieldValue);
                          set_flag=true;
-                         System.err.println("table :"+tableName+": field :"+hibernateFieldName+": length="+csvFieldValue.length()+ " value :"+csvFieldValue+":");
                      }
-                     System.err.println("Record done");
                      if (!set_flag) continue;
                      createRecordInner(session,tx,className,record);
                  }
@@ -322,12 +324,13 @@ public class Generic {
              return true;
          }
 
-     public boolean DumpTable(String resourceFile){
+//     public boolean DumpTable(String resourceFile,ZipOutputStream zipFile,CsvWriter csvWriter){
+         public boolean DumpTable(String resourceFile,Hashtable <String,String> fileHash,CsvWriter csvWriter){
          // the resource file is the <table>.hbm.xml
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
          // and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be
-             TableMap tableMap = ReadTableMap(resourceFile);
+         TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
              Enumeration ekeys = tableMap.map.keys();
              Set <String> keys = tableMap.map.keySet();
 //             String[] keyArray = keys.toArray(new String[0]);
@@ -335,12 +338,21 @@ public class Generic {
             
              String className=tableMap.className;
              String tableName=tableMap.tableName;
-
+             StringOutputStream os =null;
+             int recno=0;
              Session session = factory.openSession();
              try {
                  Object entities[]=session.createCriteria(className).list().toArray();
-                
-                 CsvWriter csvWriter = new CsvWriter(dataDirectory+tableName+".txt");
+                 String fileName=tableName+".txt";
+                 if (fileHash != null){
+                	 os = new StringOutputStream();
+                	 String fileData = new String();
+                	 csvWriter=new CsvWriter(os,',',StandardCharsets.UTF_8);
+// csvWriter must be set as well. We have to pass both else when 
+                     // the local csvWriter drops out of scope it wil close the zipFile stream as well. 
+                 } else {
+                     csvWriter = new CsvWriter(dataDirectory+tableName+".txt");                	 
+                 }
                  csvWriter.writeRecord(fieldOrder);
                  for (Object record : entities) {
                      ArrayList <String> outrec = new ArrayList <String> ();
@@ -369,11 +381,13 @@ public class Generic {
 
                  }
                  csvWriter.close();
+                 fileHash.put(fileName,os.toString());
+
                 
              } catch ( FileNotFoundException ex) {
                  System.err.println("Failed to get csv file for "+tableName+" :" + ex);       
              }  catch ( IOException ex) {
-                 System.err.println("Failed reading csv file for "+tableName+" :" + ex);       
+                 System.err.println("Failed writing csv file for "+tableName+" :" + ex);       
              } catch (ClassNotFoundException e) {
                  // TODO Auto-generated catch block
                  e.printStackTrace();
@@ -384,31 +398,28 @@ public class Generic {
                  // TODO Auto-generated catch block
                  e.printStackTrace();
              }
-            
              return true;
          }
     
  // I guess we should just do this with SQL, i.e. delete from table;
      public boolean ZapTable(String resourceFile){
-             TableMap tableMap = ReadTableMap(resourceFile);
-             String className=tableMap.className;
-             Session session = factory.openSession();
-             Transaction tx = session.beginTransaction();
-
-             try {
-                 Object entities[]=session.createCriteria(className).list().toArray();
-                
-                 for (Object record : entities) {
-                     session.delete(record);
-                 }
-             } catch (SecurityException e) {
+    	 TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
+    	 String className=tableMap.className;
+    	 Session session = factory.openSession();
+    	 Transaction tx = session.beginTransaction();
+    	 try {
+    		 Object entities[]=session.createCriteria(className).list().toArray();
+    		 for (Object record : entities) {
+    			 session.delete(record);
+    		}
+         } catch (SecurityException e) {
                  // TODO Auto-generated catch block
-                 e.printStackTrace();
-             }
-             tx.commit();
-            
-             return true;
+             e.printStackTrace();
          }
+         tx.commit();
+            
+         return true;
+     }
 
  public int createRecord(String className,Hashtable <String,String> record){
      Integer recordId = null;
@@ -425,15 +436,10 @@ public class Generic {
  // but if we are going to allow "zap database" then delete could do with the same
  public int createRecordInner(Session session,Transaction tx, String className,Hashtable <String,String> record){
      Integer recordId = null;
-     System.err.println("start insert class="+className+"\n");
-     for (String key : record.keySet()){
-         System.err.println("record("+key+")="+record.get(key));    	 
-     }
  
      try{
          Object hibernateRecord = (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);           
          recordId = (Integer) session.save(hibernateRecord);
-         System.err.println("done an insert\n");
       }catch (HibernateException|
               ClassNotFoundException|
               InvocationTargetException|
@@ -443,7 +449,6 @@ public class Generic {
           if (tx!=null) tx.rollback();
           e.printStackTrace();
       }
-     System.err.println("ready return\n");
       return recordId;
  }
 

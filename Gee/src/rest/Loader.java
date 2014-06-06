@@ -1,6 +1,8 @@
 package rest;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -33,13 +35,13 @@ public class Loader extends Generic {
 			return; // your cookie doesnt add up
 		}
 
-		response.setContentType("text/html");
 		String action=request.getParameter("action");
 		if (action==null)action=""; // switch doesnt like null
 		switch(action){
-		case "dump":
-			gtfs.runDumper();
-			putData();
+		case "export":
+			response.setHeader("Content-Disposition", "inline; filename="+databaseName+".zip" );
+			response.setContentType("application/zip, application/octet-stream");
+			response.getOutputStream().write(gtfs.runDumper());
 			break;
 		}
 	}
@@ -70,10 +72,6 @@ public class Loader extends Generic {
 		switch(action){
 		case "import":
 			gtfs.runLoader(decodedBytes);
-			break;
-		case "dump":
-			gtfs.runDumper();
-			putData();
 			break;
 		}
 		// TODO Auto-generated method stub

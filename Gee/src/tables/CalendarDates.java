@@ -9,7 +9,7 @@ import java.text.ParseException;
 
 public class CalendarDates extends GtfsBase {
 
-String serviceId;
+String serviceId="";
 Date date;
 int exceptionType;
 public CalendarDates(){}

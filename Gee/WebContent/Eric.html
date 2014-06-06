@@ -54,7 +54,9 @@
    
 <nav class="navbar navbar-default" role="navigation">
   <div class="container">
-    <!-- Brand and toggle get grouped for better mobile display -->
+    <!-- Brand and toggle ge
+	<label for="upload_file">Upload GTFS from local file system</label>
+    <input id="upload_file" name="upload_file" type=file><br>t grouped for better mobile display -->
     <div class="navbar-header">
     <img class="navbar-brand" src="img/cow-icon.png" >
     <a class="navbar-brand" href="#">Welcome to Gee</a>
@@ -69,6 +71,11 @@
      	 <li class="active">
           <form action="#">
         	<button class="btn btn-default navbar-btn" name="import_gtfs" id="import_gtfs">Import GTFS</button>
+    	  </form>
+        </li>
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn" name="export_gtfs" id="export_gtfs">Export GTFS</button>
     	  </form>
         </li>
       </ul>
@@ -142,17 +149,11 @@
 <div id="dialog-import_gtfs" title="Import GTFS" class="edit-dialog">
 <form id="dialog-import_gtfs-form">
 <fieldset>
-	<label for="url">Download from URL (usually from GTFS exchange)</label>
-    <input id="url" name="url" size=100 maxlength=200><br>
-    or 
 	<label for="upload_file">Upload GTFS from local file system</label>
     <input id="upload_file" name="upload_file" type=file><br>
-    
 </fieldset>
  </form>
  </div>
- 
- 
 
 <div id="dialog-edit-Instance" title="Add/Edit Database" class="edit-dialog">
 <form id="dialog-edit-Instance-form">

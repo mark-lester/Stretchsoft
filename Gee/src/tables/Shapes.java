@@ -9,11 +9,11 @@ import java.text.ParseException;
 
 public class Shapes extends GtfsBase {
 
-String shapeId;
-double shapePtLat;
-double shapePtLon;
-int shapePtSequence;
-double shapeDistTraveled;
+String shapeId="";
+double shapePtLat=0;
+double shapePtLon=0;
+int shapePtSequence=0;
+double shapeDistTraveled=0;
 public Shapes(){}
 
 public Shapes(

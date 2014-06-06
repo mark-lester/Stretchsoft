@@ -103,6 +103,7 @@ public Hashtable <String,String> hash(){
 	record.put("departureTime",df.format(this.departureTime));
 	record.put("stopId",this.stopId);
 	record.put("stopSequence",Integer.toString(this.stopSequence));
+	if (this.stopHeadsign == null)this.stopHeadsign = "";
 	record.put("stopHeadsign",this.stopHeadsign);
 	record.put("pickUpType",Integer.toString(this.pickUpType));
 	record.put("dropOffType",Integer.toString(this.dropOffType));

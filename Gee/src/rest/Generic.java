@@ -29,6 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class Generic extends HttpServlet {
 	public Gtfs gtfs=null;
 	public Admin admin=null;
+	public String databaseName="gtfs";  //should really be null
 	public static Hashtable <String,Gtfs> gtfsStore=null;
 	
 	private static final long serialVersionUID = 1L;
@@ -59,7 +60,6 @@ public class Generic extends HttpServlet {
 		String sig = null;
 		String access_token=null;
 		String userId=null;
-		String databaseName=null;
 
 		Base64 codec = new Base64();
 		 System.err.println("IN GET USER ID\n");
