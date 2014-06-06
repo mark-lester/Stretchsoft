@@ -53,11 +53,13 @@ public class Generic {
     public SessionFactory factory;
     private SessionFactory sessionFactory;
     private ServiceRegistry serviceRegistry;
-    public HibernateConfig hibernateConfig;
+    public static HibernateConfig hibernateConfig=null;
     public String dataDirectory="/home/Gee/gtfs/";
     public String databaseName="gtfs";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
     public static final int ZIP_BUFFER_SIZE = 50;
+    
+    
 //    public Transaction tx = null;
 //    public Session session = null;
 
@@ -86,7 +88,9 @@ public class Generic {
             System.err.println("Failed to create sessionFactory object." + ex);
             throw new ExceptionInInitializerError(ex);
         }   
-        hibernateConfig = ReadConfig();
+        if (hibernateConfig == null){
+            hibernateConfig = ReadConfig();        	
+        }
     }
     
     public static byte[] unzipByteArray(byte[] file)
