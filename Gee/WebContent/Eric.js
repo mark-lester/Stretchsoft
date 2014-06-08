@@ -104,10 +104,9 @@ function refreshAll(){
 }
 
 function refreshTable(tableName){
-	var child=undefined;
 	var dfd = new $.Deferred();
 	
-	gt_dfd=getTableData(tableName);
+	var gt_dfd=getTableData(tableName);
 	gt_dfd.done(function (){
 		var deferreds=refreshChildren(tableName);
 		$.when(deferreds).done(function(){
@@ -138,8 +137,23 @@ function postRefresh(tableName){
 	}
 }
 	
+var get_table_deffereds=[];
 
 function getTableData(table){
+  var dfd;
+  $.when(get_table_deffereds[table]).done(
+		  function(){
+			  dfd=getTableDataInner(table);
+		  }
+		  );
+  return dfd;
+}
+
+function getTableDataInner(table){
+	var dfd = new $.Deferred();
+	get_table_deffereds[table]=dfd;
+
+	
 	var tableName=table;
 	var keyName=relations[tableName]['key'];
 //	alert("in getTable tableName="+tableName+" key="+keyName);
@@ -163,7 +177,6 @@ function getTableData(table){
 		console.log("catching databasename "+save_select_row);
 	}
 
-
 	if (orderField==undefined){
 		orderField=displayField;
 	}
@@ -179,7 +192,6 @@ function getTableData(table){
 	hid_lookup[tableName]={};
     $select_list.empty();
 
-	var dfd = new $.Deferred();
 	$.getJSON($url, 
 			function( data ) {
 			$.each( data, function( key, val ) {
@@ -328,7 +340,7 @@ function initDialogs(tableName){
 				dragable : true,
 				dialogClass: "edit-dialog",
 				buttons : {
-					"Update": function() {                     
+					"Update/Create": function() {                     
                         if (!$('#dialog-edit-'+tableName+'-form').validate().form()) {
                         	return;
                         }
@@ -451,6 +463,14 @@ function initDialogs(tableName){
 function postEditHandler(tableName,record){
 	var dfd=new $.Deferred();
 	switch (tableName){
+		case 'Instance':
+			if (record['action'] == 'delete') {
+				// we just zapped the current DB, so set the DB cookie to the first one
+				document.cookie="gee_databasename="+$('#select-'+tableName).first();
+			}
+			dfd.resolve();			
+		break;
+			
 		case 'StopTimes':
 			url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
 			
@@ -463,12 +483,11 @@ function postEditHandler(tableName,record){
 				  }
 			);
 			dfd.done(function(){
-				
+				refreshTable(tableName);
 			})
 		break;
 		default:
-			dfd.resolve();
-			
+			dfd.resolve();			
 	}
 	return dfd;
 }
