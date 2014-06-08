@@ -2,12 +2,14 @@ package rest;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.InputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.util.Hashtable;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
@@ -50,11 +52,12 @@ public class Loader extends Generic {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String json = request.getParameter("values");
 		String userId = getUserId(request,response);
 		if (userId == null){
 			return; // your cookie doesnt add up
 		}
-		String json = request.getParameter("values");
+		
 		System.err.print("In POST got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);

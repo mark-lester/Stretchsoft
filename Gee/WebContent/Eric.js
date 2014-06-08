@@ -153,6 +153,12 @@ function getTableData(table){
 	if ($("#select-"+tableName).val()!=undefined){
      	save_select_row=$("#select-"+tableName).val();
     } 
+	if (tableName == 'Instance'){
+		save_select_row = getCookie("gee_databasename");
+		console.log("catching databasename "+save_select_row);
+	}
+
+
 	if (orderField==undefined){
 		orderField=displayField;
 	}
@@ -172,42 +178,30 @@ function getTableData(table){
 	$.getJSON($url, 
 			function( data ) {
 			$.each( data, function( key, val ) {
-				if (0){
-				alert("got some thing for table="+tableName+
-						" keyName="+keyName+
-						" displayField="+displayField+
-						" key="+val[keyName]+
-						" display="+val[displayField]);
-				}
 				hid_lookup[tableName][val[keyName]]=val['hibernateId'];	
 				var $option=$('<option>').val(val[keyName]).text(val[displayField]);	
 				$option.data(val['hibernateId']);
 				$option.appendTo($select_list);
 			});
+			if (save_select_row != undefined &&
+					$("#select-"+tableName+" option[value='"+save_select_row+"']").length != 0 		
+			){
+				$("#select-"+tableName).val(save_select_row);
+			}
 			dfd.resolve();
 		}
 	);	
 	
 	dfd.done(function(){
-		if (save_select_row != undefined &&
-				$("#select-"+tableName+" option[value='"+save_select_row+"']").length != 0 		
-		){
-			$("#select-"+tableName).val(save_select_row);
-		}
 		// for the benefit of StopTimes, which has two parents, stops and trips, set the initial value of Stops
 		secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-		$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
+		if (secondParentTable != undefined)
+			$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
 	});
 	
 	return dfd;
 }
 
-function pre_refreshTable(tableName){
-  switch(tableName){
-  case 'Instance':
-     	document.cookie ="gee_databasename="+$("#select-Instance").val();
-  }	
-}
 
 function initSelectForm(tableName){
 	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
@@ -216,14 +210,13 @@ function initSelectForm(tableName){
 		name: "select-"+tableName
 		})
 		.change(function (){
-			pre_refreshTable(tableName);
+			if (tableName == 'Instance'){
+				console.log("setting db to "+$("#select-"+tableName).val());
+				document.cookie="gee_databasename="+$("#select-"+tableName).val();				
+			}
 			refreshTable(tableName);
 		})
 		.appendTo("#form-"+tableName);
-
-	if (tableName == 'Instance'){
-		$("#select-Instance").val(getCookie("gee_databasename"));
-	}
 
 	//class="pure-button  pure-button-primary"
 	bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
@@ -459,6 +452,9 @@ function postEditHandler(tableName,record){
 							}
 				  }
 			);
+			dfd.done(function(){
+				
+			})
 		break;
 		default:
 			dfd.resolve();
@@ -570,12 +566,12 @@ $("#dialog-import_gtfs" ).dialog({
 			values['action']='import';
 		    var datastring = JSON.stringify(values);
 			$url= "/Gee/Loader";
-			console.log("loader about to ajax\n");
+			//console.log("loader about to ajax\n"+datastring+"\n");
 			$.ajax({
 				method:"POST",
 				dataType: 'JSON',
 				async: false,
-				data: {values: datastring},
+				data:  {values : datastring},
 				url: $url,
 				success: function(response){
 					refreshAll();

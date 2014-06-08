@@ -41,6 +41,7 @@ public class Entity extends Generic {
 			return; // your cookie doesnt add up
 		}
 		response.setContentType("text/html");
+		System.err.print("In GET database="+databaseName+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity");
 		Session session = gtfs.factory.openSession();
@@ -82,7 +83,7 @@ public class Entity extends Generic {
 			return; // your cookie doesnt add up
 		}
 		String json = request.getParameter("values");
-		System.err.print("In POST got "+json+"\n"); 
+		System.err.print("In POST database="+databaseName+" got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
 		
