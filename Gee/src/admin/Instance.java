@@ -36,6 +36,8 @@ public Instance(Hashtable <String,String> record){
 public void update(Hashtable <String,String> record){
 	this.databaseName=record.get("databaseName");
 	this.ownerUserId=record.get("ownerUserId");
+	this.description=record.get("description");
+	
 	try {
 		this.publicRead=Integer.parseInt(record.get("publicRead"));
 	} catch (NumberFormatException ex){

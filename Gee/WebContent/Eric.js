@@ -105,21 +105,26 @@ function refreshAll(){
 
 function refreshTable(tableName){
 	var child=undefined;
-	var deferreds=[];
 	var dfd = new $.Deferred();
 	
 	gt_dfd=getTableData(tableName);
 	gt_dfd.done(function (){
-		for (child in relations[tableName]['children']){
-			deferreds.push(refreshTable(relations[tableName]['children'][child]));
-		}
-	});
-	$.when(deferreds).done(function(){
-		postRefresh(tableName);
-		dfd.resolve();
+		var deferreds=refreshChildren(tableName);
+		$.when(deferreds).done(function(){
+			postRefresh(tableName);
+			dfd.resolve();
+		});
 	});
 	
 	return dfd;
+}
+
+function refreshChildren(tableName){
+	var deferreds=[];
+	for (child in relations[tableName]['children']){
+		deferreds.push(refreshTable(relations[tableName]['children'][child]));
+	}
+	return deferreds;
 }
 
 function postRefresh(tableName){
@@ -368,7 +373,12 @@ function initDialogs(tableName){
 							url: $url,
 							success: function(response){
 								postEditHandler(tableName,values).done( function(){
-									refreshTable(tableName);
+									getTableData(tableName).done(function (){
+										// fetches the table with potientiall new row
+										// set the select list value, and refresh 
+										$('#select-'+tableName).val(values[relations[tableName]['key']]);
+										refreshChildren(tableName);
+										}); 
 									}
 								);
 							}
