@@ -468,6 +468,10 @@ function postEditHandler(tableName,record){
 				// we just zapped the current DB, so set the DB cookie to the first one
 				document.cookie="gee_databasename="+$('#select-'+tableName).first();
 			}
+			if (record['action'] == 'create') {
+				document.cookie="gee_databasename="+record['databaeName'];
+			}
+			
 			dfd.resolve();			
 		break;
 			

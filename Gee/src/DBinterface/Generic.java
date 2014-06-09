@@ -63,8 +63,10 @@ public class Generic {
     public String databaseName="gtfs";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
     public static final int ZIP_BUFFER_SIZE = 50;
-    
-    
+    public SAXParserFactory spf;
+    public SAXParser saxParser;
+    public XMLReader xmlReader;
+
 //    public Transaction tx = null;
 //    public Session session = null;
 
@@ -87,13 +89,24 @@ public class Generic {
     }
     
     public void init(){
-        try{
+    	try{
             factory = configureSessionFactory();
         } catch (Throwable ex) {
             System.err.println("Failed to create sessionFactory object." + ex);
             throw new ExceptionInInitializerError(ex);
         }   
-        
+
+        hibernateConfig = configStore.get(hibernateConfigDirectory);  
+        spf = SAXParserFactory.newInstance();   
+        spf.setNamespaceAware(true);
+        try {
+			saxParser = spf.newSAXParser();
+	        xmlReader = saxParser.getXMLReader();
+		} catch (ParserConfigurationException | SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	    
         if (!configStore.containsKey("/home/Gee/config/gtfs")){
         	configStore.put("/home/Gee/config/gtfs",ReadConfig("/home/Gee/config/gtfs"));        	
         }
@@ -105,7 +118,6 @@ public class Generic {
         if (!configStore.containsKey(hibernateConfigDirectory)){
         	configStore.put(hibernateConfigDirectory,ReadConfig(hibernateConfigDirectory));        	
         }
-        hibernateConfig = configStore.get(hibernateConfigDirectory);        	
     }
     
     public void runLoader(byte[] zipData) {
@@ -219,22 +231,17 @@ public class Generic {
     private HibernateConfig ReadConfig(String directory) 
     {
         // reads the config to get the list of mapping (resource) files
-        SAXParserFactory spf;
+
         HibernateConfig hibernateConfig=new HibernateConfig();
         try{
-            spf = SAXParserFactory.newInstance();   
-            spf.setNamespaceAware(true);
-            SAXParser saxParser = spf.newSAXParser();
-            XMLReader xmlReader = saxParser.getXMLReader();
             xmlReader.setContentHandler(hibernateConfig);
             xmlReader.parse(directory+"/hibernate.cfg.xml");
         } catch (SAXException ex) {
             System.err.println(ex);       
         } catch (IOException ex) {
             System.err.println(ex);               
-        } catch (ParserConfigurationException ex) {
-            System.err.println(ex);                       
-        }
+        } 
+        
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
             System.out.println("READCONFIG "+resourceFile+"...\n"); 
@@ -250,21 +257,14 @@ public class Generic {
     private TableMap ReadTableMap(String resourceFile, String directory) 
     {
         // populates a hash of the field names, and also initialises "className" and "tableName" strings
-        SAXParserFactory spf;
         TableMap tableMap=new TableMap();
         try{
-            spf = SAXParserFactory.newInstance();   
-            spf.setNamespaceAware(true);
-            SAXParser saxParser = spf.newSAXParser();
-            XMLReader xmlReader = saxParser.getXMLReader();
             xmlReader.setContentHandler(tableMap);
             xmlReader.parse(directory+"/"+resourceFile);
         } catch (SAXException ex) {
             System.err.println(ex);       
         } catch (IOException ex) {
-            System.err.println(ex);               
-        } catch (ParserConfigurationException ex) {
-            System.err.println(ex);                       
+            System.err.println(ex);   
         }
        
         return tableMap;
