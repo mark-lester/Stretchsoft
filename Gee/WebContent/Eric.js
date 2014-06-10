@@ -76,6 +76,7 @@ function initTableRelations(){
 		
 		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
 		relations[tableName]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
+		relations[tableName]['order']=$('#dialog-edit-'+tableName+'-form :input[order]').attr('name');
 		
 		// <input id="stopName" name="stopName" size=30 maxlength=30 required display>
 		relations[tableName]['display']=[];

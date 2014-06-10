@@ -394,11 +394,11 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="stopId">Stop ID </label>
     <input id="stopId" name="stopId" size=10 maxlength=10 required key display><br>
   	<label for="arrivalTime">Arrival Time</label>
-    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required lessthan="departureTime"><br>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime"><br>
   	<label for="departureTime">Departure Time</label>
     <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime"><br>
   	<label for="stopSequence">Stop Sequence</label>
-    <input id="stopSequence" name="stopSequence" size=3 maxlength=3><br>
+    <input id="stopSequence" name="stopSequence" size=3 maxlength=3 order><br>
   	<label for="stopHeadsign">Headsign</label>
     <input id="stopHeadsign" name="stopHeadsign" size=30 maxlength=100><br>
 </fieldset>
