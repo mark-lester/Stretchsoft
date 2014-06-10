@@ -10,18 +10,34 @@ function getCookie(cname) {
     return "";
 }
 
+function setCookie(cname,value){
+	document.cookie=cname+"="+value;				
+
+}
+
+function getDatabaseName(){
+	var dataseName=getCookie('gee_databasename');
+	if (databaseName == undefined || databaseName.length == 0){
+		databaseName='gtfs';
+		setCookie('gee_databasename',databaseName);
+	}
+	return databaseName;
+}
 
 function MainSetup(){
 	dfd = new $.Deferred();
 	FBSetup(dfd);
+
+
 	dfd.done(function(){
 		initTableRelations();
 		initTables();
 		
 		$("#interface").show();
 		$("#welcome").hide();
-
-		$.when(refreshAll()).done(function(){
+		refreshAll();
+		$.when().done(function(){
+			console.log("everything should now be ready");
 			MapSetUp();
 			SetupMenu();
 		});
@@ -61,8 +77,14 @@ function initTableRelations(){
 		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
 		relations[tableName]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
 		
-		// <input id="stopName" name="stopName" size=30 maxlength=30 required display>		
-		relations[tableName]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
+		// <input id="stopName" name="stopName" size=30 maxlength=30 required display>
+		relations[tableName]['display']=[];
+//		relations[tableName]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
+		$('#dialog-edit-'+tableName+'-form :input[display]').each(function (){
+			relations[tableName]['display'].push($(this).attr('name'));
+			console.log("added "+$(this).attr('name')+" first val is "+relations[tableName]['display'][0]+"\n");
+			
+		})
 		
 		if (relations[tableName]['parent']){
 			var child=undefined;
@@ -90,6 +112,11 @@ function initTables(){
 function refreshAll(){
 	var deferreds=[];
 	var dfd = new $.Deferred();
+	// zap everything first as sometimes we dont recurse all the way down
+	for (tableName in relations){
+		$("#select-"+tableName).empty();
+	}
+	
 	for (tableName in relations){
 	    if (tableName == 'length' || !relations.hasOwnProperty(tableName)
 	    		// Only refresh the orphans. logically everything else will get called as a result.
@@ -97,21 +124,27 @@ function refreshAll(){
 	    	continue;
 	    deferreds.push(refreshTable(tableName));  
 	}
+	console.log("I have "+deferreds.length+" dfds");
 	$.when(deferreds).done(function(){
+		console.log("resolving the refresh all dfd");
 		dfd.resolve();
 	});
 	return dfd;
 }
 
 function refreshTable(tableName){
+	console.log("refreshing "+tableName);
 	var dfd = new $.Deferred();
 	
 	var gt_dfd=getTableData(tableName);
 	gt_dfd.done(function (){
+		console.log("got data refreshing "+tableName);
 		var deferreds=refreshChildren(tableName);
 		$.when(deferreds).done(function(){
 			postRefresh(tableName);
+
 			dfd.resolve();
+			console.log("releasing dfd for refreshing "+tableName);
 		});
 	});
 	
@@ -119,11 +152,15 @@ function refreshTable(tableName){
 }
 
 function refreshChildren(tableName){
+	var dfd = new $.Deferred();
 	var deferreds=[];
 	for (child in relations[tableName]['children']){
 		deferreds.push(refreshTable(relations[tableName]['children'][child]));
 	}
-	return deferreds;
+	$.when(deferreds).done(function(){
+		dfd.resolve();
+	})
+	return dfd;
 }
 
 function postRefresh(tableName){
@@ -157,7 +194,7 @@ function getTableDataInner(table){
 	var tableName=table;
 	var keyName=relations[tableName]['key'];
 //	alert("in getTable tableName="+tableName+" key="+keyName);
-	var displayField=relations[tableName]['display'];
+	var defaultOrderField=relations[tableName]['display'][0];
 	var orderField=relations[tableName]['order'];
 	var parentTable=relations[tableName]['parent'];
 	var matchField=undefined;
@@ -178,7 +215,7 @@ function getTableDataInner(table){
 	}
 
 	if (orderField==undefined){
-		orderField=displayField;
+		orderField=defaultOrderField;
 	}
 	
 	var $url="/Gee/"+relations[tableName]['method']+"?entity="+tableName;
@@ -194,10 +231,18 @@ function getTableDataInner(table){
 
 	$.getJSON($url, 
 			function( data ) {
-			$.each( data, function( key, val ) {
-				hid_lookup[tableName][val[keyName]]=val['hibernateId'];	
-				var $option=$('<option>').val(val[keyName]).text(val[displayField]);	
-				$option.data(val['hibernateId']);
+			$.each( data, function( key, values ) {
+				hid_lookup[tableName][values[keyName]]=values['hibernateId'];
+				display_data=[];
+				for (index in relations[tableName]['display']){
+					display_field=relations[tableName]['display'][index];
+					console.log("pushing "+display_field+" = "+values[display_field]+"\n");
+					display_data.push(values[display_field]);
+				}
+				var $option=$('<option>').val(values[keyName]).text(
+						display_data.join(' ')
+						);	
+				$option.data(values['hibernateId']);
 				$option.appendTo($select_list);
 			});
 			if (save_select_row != undefined &&
@@ -229,7 +274,7 @@ function initSelectForm(tableName){
 		.change(function (){
 			if (tableName == 'Instance'){
 				console.log("setting db to "+$("#select-"+tableName).val());
-				document.cookie="gee_databasename="+$("#select-"+tableName).val();				
+				setCookie('gee_databasename',$("#select-"+tableName).val());				
 			}
 			refreshTable(tableName);
 		})
@@ -466,10 +511,10 @@ function postEditHandler(tableName,record){
 		case 'Instance':
 			if (record['action'] == 'delete') {
 				// we just zapped the current DB, so set the DB cookie to the first one
-				document.cookie="gee_databasename="+$('#select-'+tableName).first();
+				setCookie("gee_databasename",$('#select-'+tableName).first());
 			}
 			if (record['action'] == 'create') {
-				document.cookie="gee_databasename="+record['databaeName'];
+				setCookie("gee_databasename=",record['databaseName']);
 			}
 			
 			dfd.resolve();			
@@ -568,6 +613,7 @@ $('#upload_file').bind("change", function(evt) {
           };
       })(f);
       r.readAsBinaryString(f);
+      console.log("read GTFS file");
     } else { 
       alert("Failed to load file");
     }
@@ -594,10 +640,10 @@ $("#dialog-import_gtfs" ).dialog({
 			values={};
 			values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 			values['file']=window.btoa(GTFS_Upload_file);
-			console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+"\n");
 //			values['file']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 			values['action']='import';
 		    var datastring = JSON.stringify(values);
+			console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+" datalength="+datastring.length+"\n");
 			$url= "/Gee/Loader";
 			//console.log("loader about to ajax\n"+datastring+"\n");
 			$.ajax({
@@ -648,7 +694,7 @@ function populate_selects_in_forms(formId){
 		$this_select=this;
 		tableName=$this_select.attr('table');
 		keyName=relations[tableName]['key'];
-		displayField=relations[tableName]['display'];
+		displayField=relations[tableName]['display'][0];
 		$(this).empty();
 		var $url="/Gee/"+relations[tableName]['method'];
 
@@ -659,8 +705,7 @@ function populate_selects_in_forms(formId){
 			  dataType: 'json',
 			  async: false,
 			  success: function(data) {
-					$.each( data, function( key, val ) {
-						
+					$.each( data, function( key, val ) {		
 						$option=$('<option>')
 						.val(val[keyName])
 						.text(val[displayField])
@@ -852,7 +897,7 @@ function drawStops(){
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					allStationsLayer.addLayer(mapobject);
 					/*
-					var mapobject = L.marker(val['stopLat']+0.0001,val['stopLon']).bindLabel(val['stopName'], { noHide: true })
+					var mapobject = L.marker(val['stopLat']+0.0001,val['stopLon']).bindLabel(val['stopName'], { noHi99999999999999999999999999de: true })
 					.addTo(map)
 					.showLabel();
 					allStationsLayer.addLayer(mapobject);
@@ -873,7 +918,7 @@ function drawTrip(tripId){
 			function( data ) {
 				tripStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
-					mapobject=L.circle([val[0],val[1]], 1000, {
+					mapobject=L.circle([val[0],val[1]], 10, {
 						color: 'green',
 						fillColor: 'green',
 						fillOpacity: 0.3,
@@ -892,7 +937,7 @@ function drawTrip(tripId){
 					    iconSize: new L.Point(80,15), 
 					    html: val[2] +":" +val[4]
 					});
-					mapobject = L.marker([val[0]+0.02,val[1]],{icon:myIcon}).addTo(map);
+					mapobject = L.marker([val[0]+0.002,val[1]],{icon:myIcon}).addTo(map);
 					// this is just an array for the polyline function
 					latlngs.push([val[0],val[1]]);
 					tripStationsLayer.addLayer(mapobject);
@@ -970,10 +1015,7 @@ window.fbAsyncInit = function() {
 	      console.log('Good to see you, ' + response.name + '.');
 	    });
        	var access_token =   FB.getAuthResponse()['accessToken'];
-     	document.cookie ="gee_fbat="+access_token;
-	    console.log('access_token='+access_token);
-     	
-
+       	setCookie('gee_fbat',access_token);
 	  }
 }
 

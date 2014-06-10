@@ -32,7 +32,7 @@ public void update(Hashtable <String,String> record){
 
 	this.serviceId=record.get("serviceId");
 	try {
-		this.date=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("date"));
+		this.date=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("date"));
 	} catch (ParseException ex){
 				System.err.println(ex);		
 	}
@@ -49,7 +49,7 @@ public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 
 	this.serviceId=record.put("serviceId",this.serviceId);
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");  
+    SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");  
     
 	record.put("date",df.format(this.date));
 	record.put("exceptionType",Integer.toString(this.exceptionType));

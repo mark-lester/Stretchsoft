@@ -58,7 +58,6 @@ public class Loader extends Generic {
 			return; // your cookie doesnt add up
 		}
 		
-		System.err.print("In POST got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
 
