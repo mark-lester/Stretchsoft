@@ -29,12 +29,20 @@ public CalendarDates(Hashtable <String,String> record){
 }
 
 public void update(Hashtable <String,String> record){
-
+boolean parse_failed=false;
 	this.serviceId=record.get("serviceId");
 	try {
-		this.date=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("date"));
+		this.date=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("date"));
 	} catch (ParseException ex){
-				System.err.println(ex);		
+		parse_failed=true;
+	}
+	
+	if (parse_failed == true){ // could be input data from a GTFS.zip, so try yyyyMMdd
+		try {
+			this.date=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("date"));
+		} catch (ParseException ex){
+			parse_failed=true;
+		}		
 	}
 
 	try {
