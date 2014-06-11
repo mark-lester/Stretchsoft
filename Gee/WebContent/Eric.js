@@ -40,6 +40,7 @@ function MainSetup(){
 			console.log("everything should now be ready");
 			MapSetUp();
 			SetupMenu();
+			
 		});
 	});
 }
@@ -267,6 +268,53 @@ function getTableDataInner(table){
 
 
 function initSelectForm(tableName){
+	var $template=$("#template-select").clone();
+	$template.attr('id','container-'+tableName);
+	
+	$template.find('#template-select-form')
+		.attr('id',"form-"+tableName);
+	
+	$template.find('#template-select-list')
+		.attr('id',"select-"+tableName)
+		.attr('name',"select-"+tableName)
+		.change(function (){
+			if (tableName == 'Instance'){
+				console.log("setting db to "+$("#select-"+tableName).val());
+				setCookie('gee_databasename',$("#select-"+tableName).val());				
+			}
+			refreshTable(tableName);
+		});
+
+	$template.find('#template-opener-add')
+		.attr('id',"opener-add-"+tableName)
+		.click(function(e) {
+			e.preventDefault();
+			$( "#dialog-edit-"+tableName ).data("edit_flag",false);
+			$( "#dialog-edit-"+tableName ).dialog( "open" );
+		});
+
+	$template.find('#template-opener-edit')
+	.attr('id',"opener-edit-"+tableName)
+	.click(function(e) {
+		e.preventDefault();
+		$( "#dialog-edit-"+tableName ).data("edit_flag",true);
+		$( "#dialog-edit-"+tableName ).dialog( "open" );
+	});
+
+	$template.find('#template-opener-delete')
+	.attr('id',"opener-delete-"+tableName)
+	.click(function(e) {
+		e.preventDefault();
+	    $( "#dialog-delete-"+tableName ).dialog( "open" );
+	});
+	label=$("#"+tableName).find("h5").text();
+	$("#"+tableName).find("h5").remove();
+	$template.find('label').text(label);
+	$template.appendTo("#"+tableName).show();
+}	
+
+function initSelectForm_old(tableName){
+	
 	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
 	$("<select/>", {
 		id: "select-"+tableName,

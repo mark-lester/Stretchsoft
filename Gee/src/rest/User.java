@@ -69,20 +69,22 @@ public class User extends Rest {
 		response.setContentType("text/html");
 		
 		ObjectMapper mapper = new ObjectMapper();
-		String query="FROM Instance";
+		String query="FROM Instance where (ownerUserId='"+userId+"' or publicRead='1')";
+
 		switch (request.getParameter("entity")){
 		case "Instance":
-			query="FROM Instance where ownerUserId='"+userId+"' or publicRead='1'";
+			query="FROM Instance where (ownerUserId='"+userId+"' or publicRead='1')";
 // UNION			query="FROM Instance,Access where Instance.databaseName Access.databseName and Access.userId='"+userId+"' or publicRead='1'";
 			break;
 		case "Users": // of a given database
-			query="FROM Access where userId='"+userId+"' and databaseName";
+			query="FROM Access where userId='"+userId+"' ";
 			
-			break;
-			
-			
-				
+			break;							
 		}
+		if (request.getParameter("field") != null){
+			query+=" AND "+request.getParameter("field")+"='"+request.getParameter("value")+"'";
+		}
+
 		Session session = admin.factory.openSession();
 
 //		if (request.getParameter("field") != null){
