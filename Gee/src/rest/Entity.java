@@ -20,7 +20,7 @@ import org.hibernate.Session;
  * Servlet implementation class Entity
  */
 @WebServlet("/Entity")
-public class Entity extends Generic {
+public class Entity extends Rest {
 	private static final long serialVersionUID = 1L;
 
     /**

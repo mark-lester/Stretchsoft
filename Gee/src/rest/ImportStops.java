@@ -15,7 +15,7 @@ import DBinterface.GtfsLoader;
  * Servlet implementation class ImportStops
  */
 @WebServlet("/ImportStops")
-public class ImportStops extends Generic {
+public class ImportStops extends Rest {
 	private static final long serialVersionUID = 1L;
     
     /**

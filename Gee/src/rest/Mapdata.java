@@ -31,7 +31,7 @@ import tables.*;
  * file obsolete.
  */
 @WebServlet("/Mapdata")
-public class Mapdata extends Generic {
+public class Mapdata extends Rest {
 	private static final long serialVersionUID = 2L;
 
     /**

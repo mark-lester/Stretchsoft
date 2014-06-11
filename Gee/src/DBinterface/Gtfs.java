@@ -17,7 +17,7 @@ import sax.*;
 import org.hibernate.HibernateException;
 
 
-public class Gtfs extends Generic {
+public class Gtfs extends DBinterface {
 
 	public Gtfs(String hibernateConfigDirectory,String databaseName,String userId){
 		super(hibernateConfigDirectory,databaseName,userId);

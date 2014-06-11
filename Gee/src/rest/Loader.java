@@ -18,7 +18,7 @@ import org.apache.commons.codec.binary.Base64;
  * Servlet implementation class Loader
  */
 @WebServlet("/Loader")
-public class Loader extends Generic {
+public class Loader extends Rest {
 	private static final long serialVersionUID = 1L;
       
     /**

@@ -46,7 +46,7 @@ import admin.*;
  * Servlet implementation class Entity
  */
 @WebServlet("/User")
-public class User extends Generic {
+public class User extends Rest {
 	private static final long serialVersionUID = 3L;
 
     /**

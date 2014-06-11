@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import org.hibernate.Session;
 import admin.*;
 
-public class Admin extends Generic {
+public class Admin extends DBinterface {
 /*
  * GetUser userId
  * 	  check user exists, if not then implicitly create user.

@@ -55,7 +55,7 @@ import DBinterface.StringOutputStream;
 import org.hibernate.service.jdbc.connections.internal.C3P0ConnectionProvider;
 
 
-public class Generic {
+public class DBinterface {
     public SessionFactory factory;
     private SessionFactory sessionFactory;
     private ServiceRegistry serviceRegistry;
@@ -73,20 +73,20 @@ public class Generic {
 //    public Session session = null;
 
 //TODO merge these two constructors
-    public Generic(String hibernateConfigDirectory,String databaseName, String userName){
+    public DBinterface(String hibernateConfigDirectory,String databaseName, String userName){
     	this.dataDirectory="/home/Gee/users/"+userName;    	
     	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
     	this.databaseName=databaseName;
     	init();
     }
     
-    public Generic(String hibernateConfigDirectory,String databaseName){
+    public DBinterface(String hibernateConfigDirectory,String databaseName){
     	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
     	this.databaseName=databaseName;
     	init();
     }
     
-    public Generic(){
+    public DBinterface(){
     	init();
     }
     

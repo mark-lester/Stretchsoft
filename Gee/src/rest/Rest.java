@@ -26,7 +26,7 @@ import javax.servlet.ServletConfig;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Generic extends HttpServlet {
+public class Rest extends HttpServlet {
 	public Gtfs gtfs=null;
 	public Admin admin=null;
 	public String databaseName="gtfs";  //should really be null
@@ -36,7 +36,7 @@ public class Generic extends HttpServlet {
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
 	
-    public Generic () {
+    public Rest () {
         super();
         if (admin == null){
         	admin = new Admin();
