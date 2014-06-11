@@ -24,5 +24,6 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/base64coder-2010-09-21.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-lang3-3.3.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/org-apache-commons-lang.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-c3p0-4.1.10.Final.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

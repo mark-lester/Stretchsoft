@@ -52,6 +52,8 @@ import com.csvreader.CsvWriter;
 import sax.HibernateConfig;
 import sax.TableMap;
 import DBinterface.StringOutputStream;
+import org.hibernate.service.jdbc.connections.internal.C3P0ConnectionProvider;
+
 
 public class Generic {
     public SessionFactory factory;
