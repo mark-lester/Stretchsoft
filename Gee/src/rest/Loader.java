@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.util.Hashtable;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 
@@ -75,6 +78,17 @@ public class Loader extends Rest {
 		case "import":
 			gtfs.runLoader(decodedBytes);
 			break;
+		}
+		
+		try {
+			PrintWriter out = response.getWriter();
+			out.println(mapper.writeValueAsString(record.get("action")));
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();	 
 		}
 		// TODO Auto-generated method stub
 	}

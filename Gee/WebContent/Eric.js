@@ -11,17 +11,8 @@ function getCookie(cname) {
 }
 
 function setCookie(cname,value){
+	console.log("setting cookie "+cname+"="+value);
 	document.cookie=cname+"="+value;				
-
-}
-
-function getDatabaseName(){
-	var dataseName=getCookie('gee_databasename');
-	if (databaseName == undefined || databaseName.length == 0){
-		databaseName='gtfs';
-		setCookie('gee_databasename',databaseName);
-	}
-	return databaseName;
 }
 
 function MainSetup(){
@@ -37,7 +28,6 @@ function MainSetup(){
 		$("#welcome").hide();
 		refreshAll();
 		$.when().done(function(){
-			console.log("everything should now be ready");
 			MapSetUp();
 			SetupMenu();
 			
@@ -83,9 +73,7 @@ function initTableRelations(){
 		relations[tableName]['display']=[];
 //		relations[tableName]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
 		$('#dialog-edit-'+tableName+'-form :input[display]').each(function (){
-			relations[tableName]['display'].push($(this).attr('name'));
-			console.log("added "+$(this).attr('name')+" first val is "+relations[tableName]['display'][0]+"\n");
-			
+			relations[tableName]['display'].push($(this).attr('name'));			
 		})
 		
 		if (relations[tableName]['parent']){
@@ -179,10 +167,12 @@ function postRefresh(tableName){
 var get_table_deffereds=[];
 
 function getTableData(table){
-  var dfd;
+  var dfd = new $.Deferred();
   $.when(get_table_deffereds[table]).done(
 		  function(){
-			  dfd=getTableDataInner(table);
+			  $.when(getTableDataInner(table)).done(function (){
+				  dfd.resolve();
+			  });
 		  }
 		  );
   return dfd;
@@ -238,7 +228,7 @@ function getTableDataInner(table){
 				display_data=[];
 				for (index in relations[tableName]['display']){
 					display_field=relations[tableName]['display'][index];
-					console.log("pushing "+display_field+" = "+values[display_field]+"\n");
+//					console.log("pushing "+display_field+" = "+values[display_field]+"\n");
 					display_data.push(values[display_field]);
 				}
 				var $option=$('<option>').val(values[keyName]).text(
@@ -247,10 +237,12 @@ function getTableDataInner(table){
 				$option.data(values['hibernateId']);
 				$option.appendTo($select_list);
 			});
-			if (save_select_row != undefined &&
-					$("#select-"+tableName+" option[value='"+save_select_row+"']").length != 0 		
+			if (save_select_row != undefined && save_select_row.length != 0
+//					&& $("#select-"+tableName+" option[value='"+save_select_row+"']").val() != undefined 		
 			){
 				$("#select-"+tableName).val(save_select_row);
+			} else {
+				console.log("the save select row isnt in the list anymore, it says")
 			}
 			dfd.resolve();
 		}
@@ -556,6 +548,7 @@ function initDialogs(tableName){
 // This should perhaps be moved into the DB interface on the server. 
 function postEditHandler(tableName,record){
 	var dfd=new $.Deferred();
+	console.log("In post edit handler table="+tableName+ " action="+record['action']);
 	switch (tableName){
 		case 'Instance':
 			if (record['action'] == 'delete') {
@@ -563,7 +556,7 @@ function postEditHandler(tableName,record){
 				setCookie("gee_databasename",$('#select-'+tableName).first());
 			}
 			if (record['action'] == 'create') {
-				setCookie("gee_databasename=",record['databaseName']);
+				setCookie("gee_databasename",record['databaseName']);
 			}
 			
 			dfd.resolve();			
@@ -645,7 +638,7 @@ $("#dialog-getstops" ).dialog({
 
 $( "#import_gtfs" ).click(function(e) {
     e.preventDefault();
-
+    $( "#dialog-import_gtfs" ).find('input').val('');
     $( "#dialog-import_gtfs" ).dialog( "open" );
     
 });
@@ -687,7 +680,7 @@ $("#dialog-import_gtfs" ).dialog({
 		    // this horrid global nested hash was the only way I could map 
 		    // from tableName + gtfs-id value to hibernateId
 			values={};
-			values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
+//			values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 			values['file']=window.btoa(GTFS_Upload_file);
 //			values['file']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 			values['action']='import';
@@ -702,6 +695,7 @@ $("#dialog-import_gtfs" ).dialog({
 				data:  {values : datastring},
 				url: $url,
 				success: function(response){
+					console.log("finished loading GTFS");
 					refreshAll();
 					}
 			});
