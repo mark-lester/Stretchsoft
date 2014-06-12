@@ -110,14 +110,18 @@ public class Gtfs extends DBinterface {
    
     public boolean UpdateImportedStop(Hashtable <String,String> osmRecord){
         // should be called UpdateOrCreate..
+        if (osmRecord.get("name") == null || osmRecord.get("name").length() == 0 ){
+        	System.err.println("Node name not set");
+        	return false;
+        }
         Session session = factory.openSession();
         Transaction tx = session.beginTransaction();
-	
-		String query ="FROM ImportedStops WHERE osmNodeId="+osmRecord.get("node_id");
+		String query ="FROM ImportedStops WHERE osmNodeId="+osmRecord.get("id");
 //		ImportedStops importedStop[] = (ImportedStops [])session.createQuery(query).list().toArray();
 		Object importedStop[] = session.createQuery(query).list().toArray();
 		if (importedStop.length > 0) { // assertion, should either be 0 or 1
 			// update
+			System.err.println("updating previously imported stop");
 			ImportedStops i = (ImportedStops)importedStop.clone()[0];
 			Stops stopRecord = (Stops)session.get(Stops.class,i.getstopsHibernateId());
 			stopRecord.setstopLat(Float.parseFloat(osmRecord.get("lat")));
@@ -126,23 +130,28 @@ public class Gtfs extends DBinterface {
 			if (osmRecord.containsKey("ref")) {
 				stopRecord.setstopId(osmRecord.get("ref"));
 			} else {
-				stopRecord.setstopId(osmRecord.get("name"));				
+				stopRecord.setstopId("node-"+osmRecord.get("id"));
 			}
 	        session.save(stopRecord);
 		} else {
 			// create
 		    try{
+				System.err.println("importing new stop");
 		        Stops stopRecord = new Stops();           
 				stopRecord.setstopLat(Float.parseFloat(osmRecord.get("lat")));
 				stopRecord.setstopLon(Float.parseFloat(osmRecord.get("lon")));
-				stopRecord.setstopName(osmRecord.get("name"));	
+				stopRecord.setstopName(osmRecord.get("name"));
+				
 				if (osmRecord.containsKey("ref")) {
 					stopRecord.setstopId(osmRecord.get("ref"));
 				} else {
-					stopRecord.setstopId(osmRecord.get("name"));				
+					stopRecord.setstopId("node-"+osmRecord.get("id"));
 				}
+
 				Object Stops[] = session.createQuery("FROM Stops where stopId ='"+stopRecord.getstopId()+"'").list().toArray();
 				if (Stops.length!=0){
+					System.err.println("assertion failure, we seem to already have this stop but it's not in the imported table");
+					session.close();
 					return false;
 				}
 				
@@ -156,11 +165,12 @@ public class Gtfs extends DBinterface {
 		         if (tx!=null) tx.rollback();
 		         e.printStackTrace();
 		     }
-		
 		}
 
         tx.commit();
-        
+        session.close();
+		System.err.println("finished import of stop");
+
         return true;
     }
 }// end class

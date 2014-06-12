@@ -1,24 +1,11 @@
 var hid_lookup=[];
 var relations=[];
-function getCookie(cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) {
-        var c = ca[i].trim();
-        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
-    }
-    return "";
-}
-
-function setCookie(cname,value){
-	console.log("setting cookie "+cname+"="+value);
-	document.cookie=cname+"="+value;				
-}
+var get_table_deffereds=[];
+var GTFS_Upload_file=null;
 
 function MainSetup(){
 	dfd = new $.Deferred();
 	FBSetup(dfd);
-
 
 	dfd.done(function(){
 		initTableRelations();
@@ -29,12 +16,170 @@ function MainSetup(){
 		refreshAll();
 		$.when().done(function(){
 			MapSetUp();
-			SetupMenu();
-			
+			SetupMenu();			
 		});
 	});
 }
 
+function refreshAll(){
+	var deferreds=[];
+	var dfd = new $.Deferred();
+	// zap everything first as sometimes we dont recurse all the way down
+	for (tableName in relations){
+		$("#select-"+tableName).empty();
+	}
+	
+	for (tableName in relations){
+	    if (tableName == 'length' || !relations.hasOwnProperty(tableName)
+	    		// Only refresh the orphans. logically everything else will get called as a result.
+	    		|| relations[tableName]['parent'] != undefined ) 
+	    	continue;
+	    deferreds.push(refreshTable(tableName));  
+	}
+	console.log("I have "+deferreds.length+" dfds");
+	$.when(deferreds).done(function(){
+		console.log("resolving the refresh all dfd");
+		dfd.resolve();
+	});
+	return dfd;
+}
+
+function refreshTable(tableName){
+	console.log("refreshing "+tableName);
+	var dfd = new $.Deferred();
+	
+	var gt_dfd=getTableData(tableName);
+	gt_dfd.done(function (){
+		console.log("got data refreshing "+tableName);
+		var deferreds=refreshChildren(tableName);
+		$.when(deferreds).done(function(){
+			postRefresh(tableName);
+
+			dfd.resolve();
+			console.log("releasing dfd for refreshing "+tableName);
+		});
+	});
+	
+	return dfd;
+}
+
+function postRefresh(tableName){
+	switch(tableName){
+	case 'Stops':
+		drawStops();
+		break;
+	case 'StopTimes':
+		drawTrip($('#select-Trips').val());
+		break;
+	}
+}
+
+function getTableData(table){
+	  var dfd = new $.Deferred();
+	  $.when(get_table_deffereds[table]).done(
+			  function(){
+				  $.when(getTableDataInner(table)).done(function (){
+					  dfd.resolve();
+				  });
+			  }
+			  );
+	  return dfd;
+}
+
+function getTableDataInner(tableName){
+		var dfd = new $.Deferred();
+		get_table_deffereds[tableName]=dfd;
+		
+		var keyName=relations[tableName]['key'];
+//		alert("in getTable tableName="+tableName+" key="+keyName);
+		var defaultOrderField=relations[tableName]['display'][0];
+		var orderField=relations[tableName]['order'];
+		var parentTable=relations[tableName]['parent'];
+		var matchField=undefined;
+		var matchValue=undefined;
+		
+		if (parentTable != undefined && relations[parentTable]['no_join'] == undefined){
+			matchField=relations[parentTable]['key'];
+			matchValue=$('#select-'+parentTable).val();		
+		}
+		var save_select_row=undefined;
+		var $select_list = $("#select-"+tableName);
+		if ($("#select-"+tableName).val()!=undefined 
+			&& $("#select-"+tableName).val().length > 0
+		){
+	     	save_select_row=$("#select-"+tableName).val();
+	    } 
+		if (tableName == 'Instance'){
+			save_select_row = getCookie("gee_databasename");
+			console.log("catching databasename "+save_select_row);
+		}
+
+		if (orderField==undefined){
+			orderField=defaultOrderField;
+		}
+		
+		var $url="/Gee/"+relations[tableName]['method']+"?entity="+tableName;
+
+		if (matchField != undefined){
+			$url+="&field="+matchField+"&value="+matchValue;
+		}
+		if (orderField != undefined){
+			$url+="&order="+orderField;
+		}
+		hid_lookup[tableName]={};
+	    $select_list.empty();
+
+		$.getJSON($url, 
+				function( data ) {
+				$.each( data, function( key, values ) {
+					hid_lookup[tableName][values[keyName]]=values['hibernateId'];
+					display_data=[];
+					for (index in relations[tableName]['display']){
+						display_field=relations[tableName]['display'][index];
+//						console.log("pushing "+display_field+" = "+values[display_field]+"\n");
+						display_data.push(values[display_field]);
+					}
+					var $option=$('<option>').val(values[keyName]).text(
+							display_data.join(' ')
+							);	
+					$option.data(values['hibernateId']);
+					$option.appendTo($select_list);
+				});
+				if (save_select_row != undefined && save_select_row.length != 0
+						&& $("#select-"+tableName+" option[value='"+save_select_row+"']").val() != undefined
+						&& $("#select-"+tableName+" option[value='"+save_select_row+"']").val().length > 0
+				){
+					$("#select-"+tableName).val(save_select_row);
+				} else {
+					console.log("the save select row isnt in the list anymore, it says")
+				}
+				dfd.resolve();
+			}
+		);	
+		
+		dfd.done(function(){
+			// for the benefit of StopTimes, which has two parents, stops and trips, set the initial value of Stops
+			secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
+			if (secondParentTable != undefined 
+				&& $('#select-'+tableName).val() != undefined
+				&& $('#select-'+tableName).val().length > 0)
+				$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
+		});
+		
+		return dfd;
+}
+
+function refreshChildren(tableName){
+	var dfd = new $.Deferred();
+	var deferreds=[];
+	for (child in relations[tableName]['children']){
+		deferreds.push(refreshTable(relations[tableName]['children'][child]));
+	}
+	$.when(deferreds).done(function(){
+		dfd.resolve();
+	})
+	return dfd;
+}
 
 function initTableRelations(){
 	//<div id="Stops" class="Eric" parent="Instance" display_field="stopName">
@@ -99,166 +244,6 @@ function initTables(){
 	}
 }
 
-function refreshAll(){
-	var deferreds=[];
-	var dfd = new $.Deferred();
-	// zap everything first as sometimes we dont recurse all the way down
-	for (tableName in relations){
-		$("#select-"+tableName).empty();
-	}
-	
-	for (tableName in relations){
-	    if (tableName == 'length' || !relations.hasOwnProperty(tableName)
-	    		// Only refresh the orphans. logically everything else will get called as a result.
-	    		|| relations[tableName]['parent'] != undefined ) 
-	    	continue;
-	    deferreds.push(refreshTable(tableName));  
-	}
-	console.log("I have "+deferreds.length+" dfds");
-	$.when(deferreds).done(function(){
-		console.log("resolving the refresh all dfd");
-		dfd.resolve();
-	});
-	return dfd;
-}
-
-function refreshTable(tableName){
-	console.log("refreshing "+tableName);
-	var dfd = new $.Deferred();
-	
-	var gt_dfd=getTableData(tableName);
-	gt_dfd.done(function (){
-		console.log("got data refreshing "+tableName);
-		var deferreds=refreshChildren(tableName);
-		$.when(deferreds).done(function(){
-			postRefresh(tableName);
-
-			dfd.resolve();
-			console.log("releasing dfd for refreshing "+tableName);
-		});
-	});
-	
-	return dfd;
-}
-
-function refreshChildren(tableName){
-	var dfd = new $.Deferred();
-	var deferreds=[];
-	for (child in relations[tableName]['children']){
-		deferreds.push(refreshTable(relations[tableName]['children'][child]));
-	}
-	$.when(deferreds).done(function(){
-		dfd.resolve();
-	})
-	return dfd;
-}
-
-function postRefresh(tableName){
-	switch(tableName){
-	case 'Stops':
-		drawStops();
-		break;
-	case 'StopTimes':
-		drawTrip($('#select-Trips').val());
-		break;
-	}
-}
-	
-var get_table_deffereds=[];
-
-function getTableData(table){
-  var dfd = new $.Deferred();
-  $.when(get_table_deffereds[table]).done(
-		  function(){
-			  $.when(getTableDataInner(table)).done(function (){
-				  dfd.resolve();
-			  });
-		  }
-		  );
-  return dfd;
-}
-
-function getTableDataInner(table){
-	var dfd = new $.Deferred();
-	get_table_deffereds[table]=dfd;
-
-	
-	var tableName=table;
-	var keyName=relations[tableName]['key'];
-//	alert("in getTable tableName="+tableName+" key="+keyName);
-	var defaultOrderField=relations[tableName]['display'][0];
-	var orderField=relations[tableName]['order'];
-	var parentTable=relations[tableName]['parent'];
-	var matchField=undefined;
-	var matchValue=undefined;
-	
-	if (parentTable != undefined && relations[parentTable]['no_join'] == undefined){
-		matchField=relations[parentTable]['key'];
-		matchValue=$('#select-'+parentTable).val();		
-	}
-	var save_select_row=undefined;
-	var $select_list = $("#select-"+tableName);
-	if ($("#select-"+tableName).val()!=undefined){
-     	save_select_row=$("#select-"+tableName).val();
-    } 
-	if (tableName == 'Instance'){
-		save_select_row = getCookie("gee_databasename");
-		console.log("catching databasename "+save_select_row);
-	}
-
-	if (orderField==undefined){
-		orderField=defaultOrderField;
-	}
-	
-	var $url="/Gee/"+relations[tableName]['method']+"?entity="+tableName;
-
-	if (matchField != undefined){
-		$url+="&field="+matchField+"&value="+matchValue;
-	}
-	if (orderField != undefined){
-		$url+="&order="+orderField;
-	}
-	hid_lookup[tableName]={};
-    $select_list.empty();
-
-	$.getJSON($url, 
-			function( data ) {
-			$.each( data, function( key, values ) {
-				hid_lookup[tableName][values[keyName]]=values['hibernateId'];
-				display_data=[];
-				for (index in relations[tableName]['display']){
-					display_field=relations[tableName]['display'][index];
-//					console.log("pushing "+display_field+" = "+values[display_field]+"\n");
-					display_data.push(values[display_field]);
-				}
-				var $option=$('<option>').val(values[keyName]).text(
-						display_data.join(' ')
-						);	
-				$option.data(values['hibernateId']);
-				$option.appendTo($select_list);
-			});
-			if (save_select_row != undefined && save_select_row.length != 0
-//					&& $("#select-"+tableName+" option[value='"+save_select_row+"']").val() != undefined 		
-			){
-				$("#select-"+tableName).val(save_select_row);
-			} else {
-				console.log("the save select row isnt in the list anymore, it says")
-			}
-			dfd.resolve();
-		}
-	);	
-	
-	dfd.done(function(){
-		// for the benefit of StopTimes, which has two parents, stops and trips, set the initial value of Stops
-		secondParentTable = $('#dialog-edit-'+tableName+'-form input[id=secondParentTable]').val();
-		if (secondParentTable != undefined)
-			$('#select-'+secondParentTable).val($('#select-'+tableName).val());	    		
-	});
-	
-	return dfd;
-}
-
-
 function initSelectForm(tableName){
 	var $template=$("#template-select").clone();
 	$template.attr('id','container-'+tableName);
@@ -305,54 +290,6 @@ function initSelectForm(tableName){
 	$template.appendTo("#"+tableName).show();
 }	
 
-function initSelectForm_old(tableName){
-	
-	$("<form>",{id:"form-"+tableName}).appendTo("#"+tableName);
-	$("<select/>", {
-		id: "select-"+tableName,
-		name: "select-"+tableName
-		})
-		.change(function (){
-			if (tableName == 'Instance'){
-				console.log("setting db to "+$("#select-"+tableName).val());
-				setCookie('gee_databasename',$("#select-"+tableName).val());				
-			}
-			refreshTable(tableName);
-		})
-		.appendTo("#form-"+tableName);
-
-	//class="pure-button  pure-button-primary"
-	bootstart_button_stuff=' type="button" class="btn btn-primary btn-xs"';
-	$('<button type="button" class="btn btn-primary btn-xs">')
-		.attr('id',"opener-add-"+tableName)
-		.text('Add')
-		.click(function(e) {
-			e.preventDefault();
-			$( "#dialog-edit-"+tableName ).data("edit_flag",false);
-			$( "#dialog-edit-"+tableName ).dialog( "open" );
-		})
-		.appendTo("#form-"+tableName);
-
-	$('<button type="button" class="btn btn-success btn-xs">')
-		.attr('id',"opener-edit-"+tableName)
-		.text('Edit')
-		.click(function(e) {
-		    e.preventDefault();
-		    $( "#dialog-edit-"+tableName ).data("edit_flag",true);
-		    $( "#dialog-edit-"+tableName ).dialog( "open" );
-		})
-		.appendTo("#form-"+tableName);
-	
-	$('<button type="button" class="btn btn-danger btn-xs">')
-		.attr('id',"opener-delete-"+tableName)
-		.text('Delete')
-		.click(function(e) {
-		    e.preventDefault();
-		    $( "#dialog-delete-"+tableName ).dialog( "open" );
-		})
-		.appendTo("#form-"+tableName);
-}
-
 function initInputForm(tableName){
 	$('#dialog-edit-'+tableName+'-form').validate();
 	// set the pickers
@@ -392,6 +329,7 @@ function initInputForm(tableName){
     		}
     		});
     	}
+    	
     	if ($(this).attr('lessthan')){
     		$(this).change(function(){
     			if (!$('#'+$(this).attr('lessthan')).val() || $(this).val() > $('#'+$(this).attr('lessthan')).val()){
@@ -402,146 +340,144 @@ function initInputForm(tableName){
     		});
     	}
     
-    });
-	
+    });	
 }
 
 function initDialogs(tableName){
-			$( "#dialog-edit-"+tableName ).dialog({ 
-				open : function (event,ui){
-					$('#dialog-edit-'+tableName+'-form').validate().form();
-					if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
-						$(".edit-dialog .ui-widget-header").css("background-color", "green");
-						init_edit_values(tableName);
-					} else {
-						$(".edit-dialog .ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
-						init_create_values(tableName);
-					}
+	$( "#dialog-edit-"+tableName ).dialog({ 
+		open : function (event,ui){
+			$('#dialog-edit-'+tableName+'-form').validate().form();
+			if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
+				$(".edit-dialog .ui-widget-header").css("background-color", "green");
+				init_edit_values(tableName);
+			} else {
+				$(".edit-dialog .ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
+				init_create_values(tableName);
+			}
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 800,
+		resizable : true,
+		dragable : true,
+		dialogClass: "edit-dialog",
+		buttons : {
+			"Update/Create": function() {                     
+                if (!$('#dialog-edit-'+tableName+'-form').validate().form()) {
+                	return;
+                }
+                
+				var $inputs = $('#dialog-edit-'+tableName+'-form :input');
+			    var values = {};
+			    $inputs.each(function() {
+			    	switch ($(this).attr('type')){
+		    		case 'checkbox':
+		    			if ($(this).is(':checked')){
+		    				values[this.id]="1";
+		    			} else {
+		    				values[this.id]="0";
+		    			}
+		    		break;
+		    		case 'color':
+		    				values[this.id]=$(this).spectrum("get").toHex();
 
-				},
-				autoOpen: false, 
-				modal :true,
-				width : 800,
-				resizable : true,
-				dragable : true,
-				dialogClass: "edit-dialog",
-				buttons : {
-					"Update/Create": function() {                     
-                        if (!$('#dialog-edit-'+tableName+'-form').validate().form()) {
-                        	return;
-                        }
-                        
-						var $inputs = $('#dialog-edit-'+tableName+'-form :input');
-					    var values = {};
-					    $inputs.each(function() {
-					    	switch ($(this).attr('type')){
-				    		case 'checkbox':
-				    			if ($(this).is(':checked')){
-				    				values[this.id]="1";
-				    			} else {
-				    				values[this.id]="0";
-				    			}
-				    		break;
-				    		case 'color':
-				    				values[this.id]=$(this).spectrum("get").toHex();
+		    		break;
+			    		
+			    		default:
+					        values[this.id] = $(this).val();
+			    	}
+			    });
+			    $('#dialog-edit-'+tableName+'-form select').each(function() {
+			    	values[this.id]=$(this).val();
+			    });
+
+			    values['entity']=tableName;
+				if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
+				    values['action']='update';
+				} else {
+				    values['action']='create';
+				}
+			    var datastring = JSON.stringify(values);
+				var $url="/Gee/"+relations[tableName]['method'];
+
+				$.ajax({
+					method:"POST",
+					dataType: 'JSON',
+					data: {values: datastring},
+					url: $url,
+					success: function(response){
+						postEditHandler(tableName,values).done( function(){
+							getTableData(tableName).done(function (){
+								// fetches the table with potientiall new row
+								// set the select list value, and refresh 
+								$('#select-'+tableName).val(values[relations[tableName]['key']]);
+								refreshChildren(tableName);
+								}); 
+							}
+						);
+					}
+				});
+				
+				$( this ).dialog( "close" );
+			    
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
 	
-				    		break;
-					    		
-					    		default:
-							        values[this.id] = $(this).val();
-					    	}
-					    });
-					    $('#dialog-edit-'+tableName+'-form select').each(function() {
-					    	values[this.id]=$(this).val();
-					    });
-
-					    values['entity']=tableName;
-						if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
-						    values['action']='update';
-						} else {
-						    values['action']='create';
-						}
-					    var datastring = JSON.stringify(values);
-						var $url="/Gee/"+relations[tableName]['method'];
-
-						$.ajax({
-							method:"POST",
-							dataType: 'JSON',
-							data: {values: datastring},
-							url: $url,
-							success: function(response){
-								postEditHandler(tableName,values).done( function(){
-									getTableData(tableName).done(function (){
-										// fetches the table with potientiall new row
-										// set the select list value, and refresh 
-										$('#select-'+tableName).val(values[relations[tableName]['key']]);
-										refreshChildren(tableName);
-										}); 
-									}
-								);
-							}
-						});
-						
-						$( this ).dialog( "close" );
-					    
-					},
-					Cancel: function() {
-						 $( this ).dialog( "close" );
-					}
-				}
-			});
+	$( "#dialog-delete-"+tableName ).dialog({ 
+		open : function (event,ui){
+			// there should only by one "do you wanna delete this field
+			// set it to whatever the select text is
+			$('#dialog-delete-'+tableName+'-form :input')
+				.val($('#select-'+tableName+' option:selected').text());
 			
-			$( "#dialog-delete-"+tableName ).dialog({ 
-				open : function (event,ui){
-					// there should only by one "do you wanna delete this field
-					// set it to whatever the select text is
-					$('#dialog-delete-'+tableName+'-form :input')
-						.val($('#select-'+tableName+' option:selected').text());
-					
-				},
-				autoOpen: false, 
-				modal :true,
-				width : 600,
-				resizable : true,
-				dragable : true,
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
 
-				buttons : {
-					// TODO **IMPORTANT** 
-					// this will leave all the children to this record orphaned. right now you have to manually delete 
-					// the children first else you wont even be able to see them after the parent is gone
-					// so we need a recursive delete children function.
-					"Delete": function() {
-					    // only the GTFS id (e.g agencyId) is stored as the value in the select list
-					    // this horrid global nested hash was the only way I could map 
-					    // from tableName + gtfs-id value to hibernateId
-						values={};
-//						alert("Want to delete "+$('#select-'+tableName).val()+ "in table "+tableName);
-			    		values['hibernateId']=hid_lookup[tableName][$('#select-'+tableName).val()].toString();
-					    values['entity']=tableName;
-					    values['action']='delete';
-					    var datastring = JSON.stringify(values);
-						var $url="/Gee/"+relations[tableName]['method'];
+		buttons : {
+			// TODO **IMPORTANT** 
+			// this will leave all the children to this record orphaned. right now you have to manually delete 
+			// the children first else you wont even be able to see them after the parent is gone
+			// so we need a recursive delete children function.
+			"Delete": function() {
+			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+			    // this horrid global nested hash was the only way I could map 
+			    // from tableName + gtfs-id value to hibernateId
+				values={};
+//				alert("Want to delete "+$('#select-'+tableName).val()+ "in table "+tableName);
+	    		values['hibernateId']=hid_lookup[tableName][$('#select-'+tableName).val()].toString();
+			    values['entity']=tableName;
+			    values['action']='delete';
+			    var datastring = JSON.stringify(values);
+				var $url="/Gee/"+relations[tableName]['method'];
 
-						$.ajax({
-							method:"POST",
-							dataType: 'JSON',
-							data: {values: datastring},
-							url: $url,
-							success: function(response){
-								postEditHandler(tableName,values).done( function(){
-									refreshTable(tableName);
-									}
-								);
+				$.ajax({
+					method:"POST",
+					dataType: 'JSON',
+					data: {values: datastring},
+					url: $url,
+					success: function(response){
+						postEditHandler(tableName,values).done( function(){
+							refreshTable(tableName);
 							}
-						});
-						$( this ).dialog( "close" );
-					    
-					},
-					Cancel: function() {
-						 $( this ).dialog( "close" );
+						);
 					}
-				}
-			});
+				});
+				$( this ).dialog( "close" );
+			    
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
 }
 
 // After we've added or edited a stoptime, we (potentially) need to "heal" the sort order to match time. 
@@ -575,7 +511,8 @@ function postEditHandler(tableName,record){
 			);
 			dfd.done(function(){
 				refreshTable(tableName);
-			})
+			});
+			
 		break;
 		default:
 			dfd.resolve();			
@@ -583,137 +520,135 @@ function postEditHandler(tableName,record){
 	return dfd;
 }
 //MENUs
-var GTFS_Upload_file=null;
+
 function SetupMenu(){
+	$( "#getstops" ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-getstops" ).dialog( "open" );
+	    
+	});
 
-$( "#getstops" ).click(function(e) {
-    e.preventDefault();
-    $( "#dialog-getstops" ).dialog( "open" );
-    
-});
-
-$("#dialog-getstops" ).dialog({ 
-	open : function (event,ui){
-	},
-	autoOpen: false, 
-	modal :true,
-	width : 600,
-	resizable : true,
-	dragable : true,
-	buttons : {
-		// TODO **IMPORTANT** 
-		// this will leave all the children to this record orphaned. right now you have to manually delete 
-		// the children first else you wont even be able to see them after the parent is gone
-		// so we need a recursive delete children function.
-		"Upload": function() {
-		    // only the GTFS id (e.g agencyId) is stored as the value in the select list
-		    // this horrid global nested hash was the only way I could map 
-		    // from tableName + gtfs-id value to hibernateId
-			values={};
-			
-			$url= "/Gee/ImportStops?"+
-			"n="+map.getBounds().getNorth()+
-			"&s="+map.getBounds().getSouth()+
-			"&e="+map.getBounds().getEast()+
-			"&w="+map.getBounds().getWest()+
-			"&t="+$( "#stop_type").val()
-			;
-			$.ajax({
-				method:"GET",
-				dataType: 'JSON',
-				  async: false,
-				url: $url,
-				success: function(response){
-					refreshAll();
-					}
-			});
-			$( this ).dialog( "close" );
-		    
+	$("#dialog-getstops" ).dialog({ 
+		open : function (event,ui){
 		},
-		Cancel: function() {
-			 $( this ).dialog( "close" );
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+		buttons : {
+			// TODO **IMPORTANT** 
+			// this will leave all the children to this record orphaned. right now you have to manually delete 
+			// the children first else you wont even be able to see them after the parent is gone
+			// so we need a recursive delete children function.
+			"Upload": function() {
+			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+			    // this horrid global nested hash was the only way I could map 
+			    // from tableName + gtfs-id value to hibernateId
+				values={};
+				
+				$url= "/Gee/ImportStops?"+
+				"n="+map.getBounds().getNorth()+
+				"&s="+map.getBounds().getSouth()+
+				"&e="+map.getBounds().getEast()+
+				"&w="+map.getBounds().getWest()+
+				"&t="+$( "#stop_type").val()
+				;
+				$.ajax({
+					method:"GET",
+					dataType: 'JSON',
+					async: false,
+					url: $url,
+					success: function(response){
+						refreshTable('Stops');
+						drawStops();
+						}
+				});
+				$( this ).dialog( "close" );
+			    
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
 		}
-	}
-});
+	});
 
-$( "#import_gtfs" ).click(function(e) {
-    e.preventDefault();
-    $( "#dialog-import_gtfs" ).find('input').val('');
-    $( "#dialog-import_gtfs" ).dialog( "open" );
-    
-});
-// Set an event listener on the Choose File field.
-$('#upload_file').bind("change", function(evt) {
-    //Retrieve the first (and only!) File from the FileList object
-    var f = evt.target.files[0]; 
+	$( "#import_gtfs" ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-import_gtfs" ).find('input').val('');
+	    $( "#dialog-import_gtfs" ).dialog( "open" );
+	    
+	});
+	// Set an event listener on the Choose File field.
+	$('#upload_file').bind("change", function(evt) {
+	    //Retrieve the first (and only!) File from the FileList object
+	    var f = evt.target.files[0]; 
 
-    if (f) {
-      var r = new FileReader();
-      r.onload = (function (f) {
-          return function (e) {
-              GTFS_Upload_file = e.target.result;
-          };
-      })(f);
-      r.readAsBinaryString(f);
-      console.log("read GTFS file");
-    } else { 
-      alert("Failed to load file");
-    }
-  });
+	    if (f) {
+	      var r = new FileReader();
+	      r.onload = (function (f) {
+	          return function (e) {
+	              GTFS_Upload_file = e.target.result;
+	          };
+	      })(f);
+	      r.readAsBinaryString(f);
+	      console.log("read GTFS file");
+	    } else { 
+	      alert("Failed to load file");
+	    }
+	  });
 
 
-$("#dialog-import_gtfs" ).dialog({ 
-	open : function (event,ui){
-	},
-	autoOpen: false, 
-	modal :true,
-	width : 600,
-	resizable : true,
-	dragable : true,
-	buttons : {
-		// TODO **IMPORTANT** 
-		// this will leave all the children to this record orphaned. right now you have to manually delete 
-		// the children first else you wont even be able to see them after the parent is gone
-		// so we need a recursive delete children function.
-		"Upload": function() {
-		    // only the GTFS id (e.g agencyId) is stored as the value in the select list
-		    // this horrid global nested hash was the only way I could map 
-		    // from tableName + gtfs-id value to hibernateId
-			values={};
-//			values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
-			values['file']=window.btoa(GTFS_Upload_file);
-//			values['file']=$('#dialog-import_gtfs :input[id=upload_file]').val();
-			values['action']='import';
-		    var datastring = JSON.stringify(values);
-			console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+" datalength="+datastring.length+"\n");
-			$url= "/Gee/Loader";
-			//console.log("loader about to ajax\n"+datastring+"\n");
-			$.ajax({
-				method:"POST",
-				dataType: 'JSON',
-				async: false,
-				data:  {values : datastring},
-				url: $url,
-				success: function(response){
-					console.log("finished loading GTFS");
-					refreshAll();
-					}
-			});
-			$( this ).dialog( "close" );
-		    
+	$("#dialog-import_gtfs" ).dialog({ 
+		open : function (event,ui){
 		},
-		Cancel: function() {
-			 $( this ).dialog( "close" );
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+		buttons : {
+			// TODO **IMPORTANT** 
+			// this will leave all the children to this record orphaned. right now you have to manually delete 
+			// the children first else you wont even be able to see them after the parent is gone
+			// so we need a recursive delete children function.
+			"Upload": function() {
+			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+			    // this horrid global nested hash was the only way I could map 
+			    // from tableName + gtfs-id value to hibernateId
+				values={};
+//				values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
+				values['file']=window.btoa(GTFS_Upload_file);
+//				values['file']=$('#dialog-import_gtfs :input[id=upload_file]').val();
+				values['action']='import';
+			    var datastring = JSON.stringify(values);
+				console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+" datalength="+datastring.length+"\n");
+				$url= "/Gee/Loader";
+				//console.log("loader about to ajax\n"+datastring+"\n");
+				$.ajax({
+					method:"POST",
+					dataType: 'JSON',
+					async: false,
+					data:  {values : datastring},
+					url: $url,
+					success: function(response){
+						console.log("finished loading GTFS");
+						refreshAll();
+						}
+				});
+				$( this ).dialog( "close" );
+			    
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
 		}
-	}
-});
+	});
 
-$( "#export_gtfs" ).click(function(e) {
-    e.preventDefault();
-    export_gtfs();
-});
-
-
+	$( "#export_gtfs" ).click(function(e) {
+	    e.preventDefault();
+	    export_gtfs();
+	});
 }
 
 function export_gtfs(){
@@ -1060,6 +995,21 @@ window.fbAsyncInit = function() {
        	var access_token =   FB.getAuthResponse()['accessToken'];
        	setCookie('gee_fbat',access_token);
 	  }
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i].trim();
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
+
+function setCookie(cname,value){
+	console.log("setting cookie "+cname+"="+value);
+	document.cookie=cname+"="+value;				
 }
 
 
