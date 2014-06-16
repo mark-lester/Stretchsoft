@@ -58,8 +58,8 @@ public Hashtable <String,String> hash(){
 
 	this.serviceId=record.put("serviceId",this.serviceId);
     SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");  
-    
-	record.put("date",df.format(this.date));
+    if (this.date != null)
+    	record.put("date",df.format(this.date));
 	record.put("exceptionType",Integer.toString(this.exceptionType));
 	return record;
 }

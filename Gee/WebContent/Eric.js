@@ -63,6 +63,18 @@ function refreshTable(tableName){
 	return dfd;
 }
 
+function refreshChildren(tableName){
+	var dfd = new $.Deferred();
+	var deferreds=[];
+	for (child in relations[tableName]['children']){
+		deferreds.push(refreshTable(relations[tableName]['children'][child]));
+	}
+	$.when(deferreds).done(function(){
+		dfd.resolve();
+	});
+	return dfd;
+}
+
 function postRefresh(tableName){
 	switch(tableName){
 	case 'Stops':
@@ -167,18 +179,6 @@ function getTableDataInner(tableName){
 		});
 		
 		return dfd;
-}
-
-function refreshChildren(tableName){
-	var dfd = new $.Deferred();
-	var deferreds=[];
-	for (child in relations[tableName]['children']){
-		deferreds.push(refreshTable(relations[tableName]['children'][child]));
-	}
-	$.when(deferreds).done(function(){
-		dfd.resolve();
-	})
-	return dfd;
 }
 
 function initTableRelations(){
@@ -557,11 +557,10 @@ function SetupMenu(){
 				$.ajax({
 					method:"GET",
 					dataType: 'JSON',
-					async: false,
+					async: true,
 					url: $url,
-					success: function(response){
+					complete: function(response){
 						refreshTable('Stops');
-						drawStops();
 						}
 				});
 				$( this ).dialog( "close" );
