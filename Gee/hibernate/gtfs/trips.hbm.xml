@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="tables.Trips" table="trips">
+      <meta attribute="class-description">
+         This class contains the trips detail. 
+      </meta>
+      <id name="hibernateId" type="integer" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+
+      <property name="tripId" column="trip_id" type="string"/>
+      <property name="routeId" column="route_id" type="string"/>
+      <property name="serviceId" column="service_id" type="string"/>
+      <property name="tripHeadsign" column="trip_headsign" type="string"/>
+      <property name="tripShortName" column="trip_short_name" type="string"/>
+      <property name="directionId" column="direction_id" type="integer"/>
+      <property name="blockId" column="block_id" type="string"/>
+      <property name="shapeId" column="shape_id" type="string"/>
+      <property name="wheelchairAccessible" column="wheelchair_accessible" type="integer"/>
+   </class>
+</hibernate-mapping>
+

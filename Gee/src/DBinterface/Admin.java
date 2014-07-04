@@ -1,4 +1,5 @@
 package DBinterface;
+import java.util.concurrent.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -11,6 +12,7 @@ import org.hibernate.Session;
 import admin.*;
 
 public class Admin extends DBinterface {
+	   private static final Semaphore semaphore= new Semaphore(1);
 /*
  * GetUser userId
  * 	  check user exists, if not then implicitly create user.
@@ -45,33 +47,41 @@ public class Admin extends DBinterface {
 	}
 	
 
-	public String getUser(Hashtable <String,String> record){
-		return getUser(record,0);
-	}
 	
-	public String getUser(Hashtable <String,String> record,int recursion_count){
-		if (recursion_count > 1){
-			// ASSERTION FAILURE
-			return null;			
-		}
+	public String getUser(Hashtable <String,String> record){
+		String userId = null;
 		Session session = null;
 	    session = factory.openSession();
+	   
 		String query = null;
 		Users user=null;
-
+		System.err.println("In getUser"); 
+		try {
+			semaphore.acquire();
+			System.err.println("got semaphore"); 
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 		Object entities[] = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
 		session.close();
-		if (entities.length > 1){
+/*		if (entities.length > 1){
 			// ASSERTION FAILURE
 			return null;
-		} else if (entities.length > 0) {
+		} else*/ 
+		if (entities.length > 0) {
 			user = (Users)entities[0];
-			return user.getuserId();
+			userId = user.getuserId();
 		} else {
+			System.err.println("making record"); 
 			int recordId = createRecord("admin.Users",record);
-			return record.get("userId");
+			userId = record.get("userId");
 		    //return getUser(record,recursion_count+1);
 		}
+		semaphore.release();
+		System.err.println("released semaphore"); 
+		return userId;
 	}
 	
 	public Boolean verifyAdminAccess(String databaseName,String userId){
