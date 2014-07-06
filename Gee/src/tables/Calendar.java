@@ -104,13 +104,21 @@ public void update(Hashtable <String,String> record){
 	try {
 		this.startDate=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("startDate"));
 	} catch (ParseException ex){
-		System.err.println(ex);		
+		try{
+		this.startDate=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("startDate"));
+		} catch (ParseException ex2){
+		System.err.println(ex2);
+		}
 	}
 	
 	try {
 		this.endDate=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("endDate"));
 	} catch (ParseException ex){
-		System.err.println(ex);		
+		try{
+		this.endDate=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("endDate"));
+		} catch (ParseException ex2){
+		System.err.println(ex2);
+		}
 	}
 }
 

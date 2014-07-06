@@ -219,9 +219,23 @@ public class DBinterface {
     }
     
     public SessionFactory configureSessionFactory() throws HibernateException {
+    	
+    	try {
+    		   Class.forName("com.mysql.jdbc.Driver");
+    		}
+    		catch(ClassNotFoundException ex) {
+    		   System.out.println("Error: unable to load mysql driver class!");
+    		   System.exit(1);
+    		}
+    	System.err.println("GOT MYSQL DRIVER");
         Configuration configuration = new Configuration();   
          configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
+         System.err.println(" USERNAME="+
+        	        configuration.getProperty("hibernate.connection.username")+
+        	         " password= "+
+        	        configuration.getProperty("hibernate.connection.username")
+         );
         serviceRegistry = new ServiceRegistryBuilder().
                 applySettings(configuration.getProperties()).
                 buildServiceRegistry();   
