@@ -25,5 +25,6 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-lang3-3.3.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/org-apache-commons-lang.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-c3p0-4.1.10.Final.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/mysql-connector-java-3.0.8-stable-bin.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

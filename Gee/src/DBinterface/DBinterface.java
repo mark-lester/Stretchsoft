@@ -225,7 +225,7 @@ public class DBinterface {
     		}
     		catch(ClassNotFoundException ex) {
     		   System.out.println("Error: unable to load mysql driver class!");
-    		   System.exit(1);
+ //   		   System.exit(1);
     		}
     	System.err.println("GOT MYSQL DRIVER");
         Configuration configuration = new Configuration();   

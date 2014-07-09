@@ -810,7 +810,7 @@ var overlayMaps = {
 	    "TripStations": allStationsLayer
 	};
 
-
+var trainIcon;
 function MapSetUp(){
 	map = L.map('map');
 	osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -818,6 +818,20 @@ function MapSetUp(){
 		maxZoom: 18,
 		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
 	});
+	trainIcon = L.icon({
+	    iconUrl: 'img/steamtrain.png',
+	    iconSize:     [44, 44], // size of the icon
+	    iconAnchor:   [22, 44], // point of the icon which will correspond to marker's location
+	    popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
+	});
+
+	trainboldIcon = L.icon({
+	    iconUrl: 'img/steamtrain-bold.png',
+	    iconSize:     [44, 44], // size of the icon
+	    iconAnchor:   [22, 44], // point of the icon which will correspond to marker's location
+	    popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
+	});
+
 
 	baseMaps={
 		    "OSM": baselayer
@@ -858,6 +872,8 @@ function drawStops(){
 				allStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
 	//				alert("want to stick a circle at "+val['stopLat']+" : "+val['stopLon']);
+					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon}).addTo(map);
+/*
 					
 					mapobject=L.circle([val['stopLat'],val['stopLon']], 100, {
 						color: 'red',
@@ -869,7 +885,7 @@ function drawStops(){
 					    $( "#dialog-edit-StopTimes").data("edit_flag",false);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
-					
+	*/				
 
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					allStationsLayer.addLayer(mapobject);
@@ -888,33 +904,32 @@ function drawStops(){
 function drawTrip(tripId){
 	var latlngs=[];
 	var i=0;
-	
+	console.log("drawing a trip for "+tripId);
 	// TODO fix Mapdata?action=stops to retyurn a labelled record, and not have to go val[0,1,...]
 	stopTimesUrl= "/Gee/Mapdata?action=stops&tripId="+tripId;
 	$.getJSON(stopTimesUrl, 
 			function( data ) {
 				tripStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
-					mapobject=L.circle([val[0],val[1]], 10, {
-						color: 'green',
-						fillColor: 'green',
-						fillOpacity: 0.3,
-					})
-					.on("click",function(e) {
+					console.log("about to make a bold train");
+					mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainboldIcon}).addTo(map);
+					mapobjectToValue[L.stamp(mapobject)]=val[2];
+
+					mapobject.on("click",function(e) {
 					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
+					console.log("made a bold train");
 					tripStationsLayer.addLayer(mapobject);
-					mapobjectToValue[L.stamp(mapobject)]=val[2];
 
 					// this is an array of the leaflet objects so we can zap them next time
 					var myIcon = L.divIcon({ 
 					    iconSize: new L.Point(80,15), 
 					    html: val[2] +":" +val[4]
 					});
-					mapobject = L.marker([val[0]+0.002,val[1]],{icon:myIcon}).addTo(map);
+					mapobject = L.marker([val[0]-0.002,val[1]],{icon:myIcon}).addTo(map);
 					// this is just an array for the polyline function
 					latlngs.push([val[0],val[1]]);
 					tripStationsLayer.addLayer(mapobject);
