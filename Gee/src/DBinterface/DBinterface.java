@@ -53,6 +53,7 @@ import sax.HibernateConfig;
 import sax.TableMap;
 import DBinterface.StringOutputStream;
 import org.hibernate.service.jdbc.connections.internal.C3P0ConnectionProvider;
+//import com.mysql.jdbc.Driver;
 
 
 public class DBinterface {
@@ -91,6 +92,15 @@ public class DBinterface {
     }
     
     public void init(){
+    	 try {
+             // The newInstance() call is a work around for some
+             // broken Java implementations
+
+    		 Class.forName("com.mysql.jdbc.Driver").newInstance();
+         } catch (Exception ex) {
+             System.err.println("oops Failed to load com.mysql.jdbc.Driver. " + ex);
+         }
+    	 
     	try{
             factory = configureSessionFactory();
         } catch (Throwable ex) {
@@ -220,14 +230,6 @@ public class DBinterface {
     
     public SessionFactory configureSessionFactory() throws HibernateException {
     	
-    	try {
-    		   Class.forName("com.mysql.jdbc.Driver");
-    		}
-    		catch(ClassNotFoundException ex) {
-    		   System.out.println("Error: unable to load mysql driver class!");
- //   		   System.exit(1);
-    		}
-    	System.err.println("GOT MYSQL DRIVER");
         Configuration configuration = new Configuration();   
          configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");

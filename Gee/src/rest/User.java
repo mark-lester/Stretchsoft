@@ -3,9 +3,6 @@ package rest;
 import java.io.IOException;
 
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import java.util.Hashtable;
 
 import javax.servlet.ServletException;
@@ -13,34 +10,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse; 
-import javax.servlet.http.Cookie;
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletConfig;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import com.google.gson.*;
 
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.hibernate.HibernateException; 
 import org.hibernate.Session; 
-import org.hibernate.Transaction;
-import org.hibernate.SessionFactory;
-import org.hibernate.service.*;
-import org.hibernate.cfg.Configuration;
-
-import org.apache.commons.codec.binary.*;
-import org.apache.commons.discovery.tools.*;
-
-import com.restfb.DefaultFacebookClient;
-import com.restfb.FacebookClient.*;
-
-import DBinterface.*;
-import sax.*;
-import tables.*;
-import admin.*;
 
 /**
  * Servlet implementation class Entity

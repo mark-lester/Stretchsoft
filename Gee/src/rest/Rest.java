@@ -11,20 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import DBinterface.Admin;
 import DBinterface.Gtfs;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse; 
-import javax.servlet.http.Cookie;
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletConfig;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 public class Rest extends HttpServlet {
 	public Gtfs gtfs=null;
@@ -35,6 +27,7 @@ public class Rest extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
+
 	
     public Rest () {
         super();

@@ -10,7 +10,6 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="/usr/share/java/servlet-api-3.0.jar"/>
 	<classpathentry kind="lib" path="/usr/share/java/jaxp-1.4.jar"/>
-	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-core-4.0.1.Final.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-jpa-2.0-api-1.0.1.Final.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/httpclient-4.3.3.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/httpcore-4.3.2.jar"/>
@@ -24,7 +23,12 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/base64coder-2010-09-21.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-lang3-3.3.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/org-apache-commons-lang.jar"/>
-	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-c3p0-4.1.10.Final.jar"/>
-	<classpathentry kind="lib" path="/home/mcl/jarstore/mysql-connector-java-3.0.8-stable-bin.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/mysql-connector-java-5.1.28-bin.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/javacsv-2.0.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-c3p0-4.2.10.Final.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/hibernate-core-4.0.1.Final.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/jackson-core-asl-1.9.2.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/com.springsource.com.fasterxml.jackson.core.jackson-core-2.0.2.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/jackson-databind-2.4.1.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
