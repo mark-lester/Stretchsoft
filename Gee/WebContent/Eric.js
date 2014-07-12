@@ -241,6 +241,7 @@ function initTables(){
 		initSelectForm(tableName);
 		initInputForm(tableName);
 		initDialogs(tableName);
+		initTripBlockDialog();
 	}
 }
 
@@ -343,15 +344,33 @@ function initInputForm(tableName){
     });	
 }
 
+function initTripBlockDialog(){
+	$( "#dialog-edit-TripBlock" ).dialog({ 
+		open : function (event,ui){
+	       console.log("do some filling in on TripBlock");		
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 800,
+		resizable : true,
+		dragable : true,
+
+	});
+
+}
 function initDialogs(tableName){
 	$( "#dialog-edit-"+tableName ).dialog({ 
 		open : function (event,ui){
 			$('#dialog-edit-'+tableName+'-form').validate().form();
 			if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
-				$(".edit-dialog .ui-widget-header").css("background-color", "green");
 				init_edit_values(tableName);
+				
+				$(".ui-dialog-titlebar").css(	"background-color", "green");
+//				$(".ui-widget-header").css("background-color", "green");
+//				$(".ui-dialog-titlebar").attr("style","background-color: green;");
+				console.log("set the title bar to green x 1");
 			} else {
-				$(".edit-dialog .ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
+				$(".edit-dialog.ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
 				init_create_values(tableName);
 			}
 		},
@@ -912,7 +931,7 @@ function drawTrip(tripId){
 				tripStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
 					console.log("about to make a bold train");
-					mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainboldIcon}).addTo(map);
+					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon}).addTo(map);
 					mapobjectToValue[L.stamp(mapobject)]=val[2];
 
 					mapobject.on("click",function(e) {
@@ -924,21 +943,29 @@ function drawTrip(tripId){
 					console.log("made a bold train");
 					tripStationsLayer.addLayer(mapobject);
 
+					/* too UGLY
 					// this is an array of the leaflet objects so we can zap them next time
 					var myIcon = L.divIcon({ 
 					    iconSize: new L.Point(80,15), 
 					    html: val[2] +":" +val[4]
 					});
 					mapobject = L.marker([val[0]-0.002,val[1]],{icon:myIcon}).addTo(map);
+					*/
+					
 					// this is just an array for the polyline function
 					latlngs.push([val[0],val[1]]);
 					tripStationsLayer.addLayer(mapobject);
 				});
-				mapobject=L.polyline(latlngs, 1000, {
-					color: 'green',
-					fillColor: 'green',
-					fillOpacity: 1
+				mapobject=L.polyline(latlngs,  {
+					color: 'red'/*,
+					fillColor: 'red',
+					fillOpacity: 1*/
 				});
+
+				mapobject.on("click",function(e) {
+				    $( "#dialog-edit-TripBlock").dialog( "open" );
+				});
+
 				map.fitBounds(latlngs);
 				tripStationsLayer.addLayer(mapobject);
 				tripStationsLayer.bringToFront();

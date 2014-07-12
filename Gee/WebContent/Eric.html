@@ -3,6 +3,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/uniform.default.css" media="screen" />
+<!-- Latest compiled and minified JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+ <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
 <script src="js/jquery-1.10.2.js"></script>
 <script src="js/jquery-ui.js"></script>
 <link rel="stylesheet" href="css/leaflet.css" />
@@ -17,9 +21,6 @@
 <!-- Optional theme -->
 <link rel="stylesheet" href="css/bootstrap-theme.min.css">
 
-<!-- Latest compiled and minified JavaScript -->
-<script src="js/bootstrap.min.js"></script>
- <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
 <link rel="stylesheet" href="css/vader/jquery-ui-1.10.4.css">
 <script src="js/leaflet.js"></script>
@@ -410,6 +411,13 @@ you will lose all the routes, trips and stoptimes if you do
 	
 </form>
 </div>
+
+<div id="dialog-edit-TripBlock" title="Trip Stop Times">
+<form id="dialog-edit-TripBlock-form">
+  This will be a trip time block
+</form>
+</div>
+
  </div>
  <div id="template-select">
  <form id="template-select-form">
@@ -425,6 +433,7 @@ you will lose all the routes, trips and stoptimes if you do
 </body>
 
 <script>
+
 $("#template-select").hide();
 $("#interface").hide();
 $("#welcome").show();
