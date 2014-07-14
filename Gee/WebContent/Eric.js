@@ -107,6 +107,8 @@ function getTableDataInner(tableName){
 		var defaultOrderField=relations[tableName]['display'][0];
 		var orderField=relations[tableName]['order'];
 		var parentTable=relations[tableName]['parent'];
+		var joinKey=relations[tableName]['joinkey'];
+		
 		var matchField=undefined;
 		var matchValue=undefined;
 		
@@ -138,11 +140,24 @@ function getTableDataInner(tableName){
 		if (orderField != undefined){
 			$url+="&order="+orderField;
 		}
+		if (joinKey != undefined){
+			$url+="&join_key="+joinKey+"&join_table="+parentTable;
+		}
+		
 		hid_lookup[tableName]={};
 	    $select_list.empty();
 
 		$.getJSON($url, 
 				function( data ) {
+				if (joinKey != undefined){
+					count=0;
+					var subdata=[];
+					$.each( data, function( key, values ) {
+						console.log("JOIN BLOCK key="+key+" value="+values);
+						subdata[count++]=values[0];
+					});
+					data=subdata;
+				}
 				$.each( data, function( key, values ) {
 					hid_lookup[tableName][values[keyName]]=values['hibernateId'];
 					display_data=[];
@@ -200,6 +215,7 @@ function initTableRelations(){
 					$('#dialog-edit-'+tableName+'-form :input[id=parentTable]').val();				
 			}
 		}
+
 		if ($(this).attr('no_join') != undefined){
 			relations[tableName]['no_join']=1;			
 		}
@@ -213,6 +229,7 @@ function initTableRelations(){
 		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
 		relations[tableName]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
 		relations[tableName]['order']=$('#dialog-edit-'+tableName+'-form :input[order]').attr('name');
+		relations[tableName]['joinkey']=$('#dialog-edit-'+tableName+'-form :input[joinkey]').attr('name');
 		
 		// <input id="stopName" name="stopName" size=30 maxlength=30 required display>
 		relations[tableName]['display']=[];
@@ -617,6 +634,7 @@ function SetupMenu(){
 	  });
 
 
+
 	$("#dialog-import_gtfs" ).dialog({ 
 		open : function (event,ui){
 		},
@@ -667,6 +685,44 @@ function SetupMenu(){
 	    e.preventDefault();
 	    export_gtfs();
 	});
+	
+	$( "#zap_gtfs" ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-zap_gtfs" ).dialog( "open" );
+	    
+	});
+	
+	$("#dialog-zap_gtfs" ).dialog({ 
+		open : function (event,ui){
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+		buttons : {
+			"Clear": function() {
+				$url= "/Gee/Loader?action=zap";
+				$.ajax({
+					method:"GET",
+					dataType: 'JSON',
+					async: false,
+					data:  {values : datastring},
+					url: $url,
+					success: function(response){
+						console.log("finished zapping GTFS");
+						refreshAll();
+						}
+				});
+				$( this ).dialog( "close" );
+			    
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
+
 }
 
 function export_gtfs(){
@@ -684,11 +740,15 @@ function export_gtfs(){
 
 //  this is just for any select lists inside the edit/create forms
 function populate_selects_in_forms(formId){
+	console.log("finding selects for "+formId);
 	var $selects = $('#'+formId+' select');
 
 	$selects.each(function(){
-		$this_select=this;
-		tableName=$this_select.attr('table');
+		$this_select=this.id;
+		console.log("got select "+$this_select);
+		
+		tableName=$('#'+formId+" #"+$this_select).attr('table');
+		console.log("got tableName "+tableName);
 		keyName=relations[tableName]['key'];
 		displayField=relations[tableName]['display'][0];
 		$(this).empty();
@@ -705,7 +765,7 @@ function populate_selects_in_forms(formId){
 						$option=$('<option>')
 						.val(val[keyName])
 						.text(val[displayField])
-						.appendTo($this_select);
+						.appendTo('#'+formId+" #"+$this_select);
 					});
 			  }
 		});
@@ -713,6 +773,7 @@ function populate_selects_in_forms(formId){
 }
 // TODO init_edit and init_create need merging
 function init_edit_values(tableName){
+	console.log("init edit values for "+tableName);
 	var keyName=relations[tableName]['key'];
 	var parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
     var parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();

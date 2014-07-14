@@ -7,7 +7,7 @@ import java.text.ParseException;
 @Entity
 @Table(name = "stop_times")
 
-public class StopTimes extends GtfsBase {
+public class StopTimes extends GtfsBase{
 
 String tripId;
 Date arrivalTime;
@@ -42,11 +42,20 @@ public StopTimes(
 		this.shapeDistTraveled=shapeDistTraveled;
 	}
 
-public StopTimes(Hashtable <String,String> record){
+public StopTimes(Hashtable <String,String> record) throws ParseException{
 	this.update(record);
 }
 
-public void update(Hashtable <String,String> record){
+public void update(Hashtable <String,String> record) throws ParseException{
+	if (
+			record.get("arrivalTime") == null ||
+			record.get("arrivalTime").isEmpty() ||
+			record.get("departureTime") == null ||
+			record.get("departureTime").isEmpty()
+			){
+		throw new ParseException("Arrival times not set",0);
+	}
+			
 		this.tripId=record.get("tripId");
 		try {
 			this.arrivalTime=new SimpleDateFormat("HH:mm:ss",Locale.getDefault()).parse(record.get("arrivalTime"));

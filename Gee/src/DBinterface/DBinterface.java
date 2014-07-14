@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
+import org.hibernate.exception.ConstraintViolationException;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -456,11 +458,15 @@ public class DBinterface {
      Integer recordId = null;
  
      try{
-         Object hibernateRecord = (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);           
+         Object hibernateRecord;
+         try {
+         hibernateRecord= (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);   
+         } catch (InvocationTargetException e){
+        	 return 0;
+         }
          recordId = (Integer) session.save(hibernateRecord);
       }catch (HibernateException|
               ClassNotFoundException|
-              InvocationTargetException|
               NoSuchMethodException|
               IllegalAccessException|
               InstantiationException e) {

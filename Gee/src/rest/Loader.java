@@ -48,6 +48,14 @@ public class Loader extends Rest {
 			response.setContentType("application/zip, application/octet-stream");
 			response.getOutputStream().write(gtfs.runDumper());
 			break;
+		case "zap":
+			response.setContentType("text/html");
+			System.err.println("RUNNING ZAPPER");
+			gtfs.runZapper();
+			PrintWriter out = response.getWriter();
+			out.println("[]");
+
+			break;
 		}
 	}
 

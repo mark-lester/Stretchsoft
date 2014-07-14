@@ -46,24 +46,43 @@ public class Entity extends Rest {
 		response.setContentType("text/html");
 		System.err.print("In GET database="+databaseName+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
-		String query="FROM "+request.getParameter("entity");
+		String query="FROM "+request.getParameter("entity")+" as child_table";
+		
+		//join_table - table to join, e.g. Trips
+		//join_key
+		if (request.getParameter("join_table") != null){
+			query += ","+request.getParameter("join_table")+" as parent_table";
+		}
 		Session session = gtfs.factory.openSession();
-
+		if (request.getParameter("join_table") != null || request.getParameter("field") != null){
+			query+=" WHERE ";			
+		}
+		if (request.getParameter("join_table") != null){
+			query += "child_table."+request.getParameter("join_key")+"="+
+					"parent_table."+request.getParameter("join_key");
+		}
+		
 		if (request.getParameter("field") != null){
-			query+=" WHERE "+request.getParameter("field")+"='"+request.getParameter("value")+"'";
+			if (request.getParameter("join_table")!=null){
+				query +=" AND parent_table.";
+			} else {
+				query +=" child_table.";
+			}
+			query+=request.getParameter("field")+"='"+request.getParameter("value")+"'";
 		}
 		/*
 		if (request.getParameter("secondfield") != null){
 			query+=" AND "+request.getParameter("secondfield")+"='"+request.getParameter("secondvalue")+"'";
 		}
 		*/
+		
 		if (request.getParameter("order") != null){
-			query+=" ORDER BY "+request.getParameter("order");
+			query+=" ORDER BY child_table."+request.getParameter("order");
 		}
 		System.err.print("Want query for "+query+"\n"); 
 		
 		Object entities[] = session.createQuery(query).list().toArray();
-	
+		
 		try {
 			PrintWriter out = response.getWriter();
 			out.println(mapper.writeValueAsString(entities));
