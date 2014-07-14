@@ -153,7 +153,6 @@ function getTableDataInner(tableName){
 					count=0;
 					var subdata=[];
 					$.each( data, function( key, values ) {
-						console.log("JOIN BLOCK key="+key+" value="+values);
 						subdata[count++]=values[0];
 					});
 					data=subdata;
@@ -163,7 +162,6 @@ function getTableDataInner(tableName){
 					display_data=[];
 					for (index in relations[tableName]['display']){
 						display_field=relations[tableName]['display'][index];
-//						console.log("pushing "+display_field+" = "+values[display_field]+"\n");
 						display_data.push(values[display_field]);
 					}
 					var $option=$('<option>').val(values[keyName]).text(
@@ -520,7 +518,6 @@ function initDialogs(tableName){
 // This should perhaps be moved into the DB interface on the server. 
 function postEditHandler(tableName,record){
 	var dfd=new $.Deferred();
-	console.log("In post edit handler table="+tableName+ " action="+record['action']);
 	switch (tableName){
 		case 'Instance':
 			if (record['action'] == 'delete') {
@@ -660,7 +657,6 @@ function SetupMenu(){
 			    var datastring = JSON.stringify(values);
 				console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+" datalength="+datastring.length+"\n");
 				$url= "/Gee/Loader";
-				//console.log("loader about to ajax\n"+datastring+"\n");
 				$.ajax({
 					method:"POST",
 					dataType: 'JSON',
@@ -740,15 +736,11 @@ function export_gtfs(){
 
 //  this is just for any select lists inside the edit/create forms
 function populate_selects_in_forms(formId){
-	console.log("finding selects for "+formId);
 	var $selects = $('#'+formId+' select');
 
 	$selects.each(function(){
-		$this_select=this.id;
-		console.log("got select "+$this_select);
-		
+		$this_select=this.id;		
 		tableName=$('#'+formId+" #"+$this_select).attr('table');
-		console.log("got tableName "+tableName);
 		keyName=relations[tableName]['key'];
 		displayField=relations[tableName]['display'][0];
 		$(this).empty();
@@ -773,7 +765,6 @@ function populate_selects_in_forms(formId){
 }
 // TODO init_edit and init_create need merging
 function init_edit_values(tableName){
-	console.log("init edit values for "+tableName);
 	var keyName=relations[tableName]['key'];
 	var parentTable = $('#dialog-edit-'+tableName+'-form input[id=parentTable]').val();
     var parentKey = $('#dialog-edit-'+tableName+'-form input[id=parentKey]').val();
@@ -980,18 +971,29 @@ function drawStops(){
 			}
 	);
 }
+var shape_points=[];
+var station_points=[];
 
 function drawTrip(tripId){
 	var latlngs=[];
 	var i=0;
-	console.log("drawing a trip for "+tripId);
 	// TODO fix Mapdata?action=stops to retyurn a labelled record, and not have to go val[0,1,...]
+	// Entity is not cool enough to do the above
 	stopTimesUrl= "/Gee/Mapdata?action=stops&tripId="+tripId;
-	$.getJSON(stopTimesUrl, 
+	shapePointsUrl="/Gee/Entity?entity=Shapes&field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
+	tripStationsLayer.clearLayers();
+    shape_points=[];
+    station_points=[];
+	var shape_do = $.getJSON(shapePointsUrl, 
 			function( data ) {
-				tripStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
-					console.log("about to make a bold train");
+					shape_points.push([val[0]['shapePtLat'],val[0]['shapePtLon']]);
+				});
+		});
+	
+	var stops_do=$.getJSON(stopTimesUrl, 
+			function( data ) {
+				$.each( data, function( key, val ) {
 					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon}).addTo(map);
 					mapobjectToValue[L.stamp(mapobject)]=val[2];
 
@@ -1001,37 +1003,25 @@ function drawTrip(tripId){
 					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
-					console.log("made a bold train");
 					tripStationsLayer.addLayer(mapobject);
-
-					/* too UGLY
-					// this is an array of the leaflet objects so we can zap them next time
-					var myIcon = L.divIcon({ 
-					    iconSize: new L.Point(80,15), 
-					    html: val[2] +":" +val[4]
-					});
-					mapobject = L.marker([val[0]-0.002,val[1]],{icon:myIcon}).addTo(map);
-					*/
-					
-					// this is just an array for the polyline function
-					latlngs.push([val[0],val[1]]);
-					tripStationsLayer.addLayer(mapobject);
-				});
-				mapobject=L.polyline(latlngs,  {
-					color: 'red'/*,
-					fillColor: 'red',
-					fillOpacity: 1*/
+					station_points.push([val[0],val[1]]);
 				});
 
-				mapobject.on("click",function(e) {
-				    $( "#dialog-edit-TripBlock").dialog( "open" );
-				});
+			});
+	$.when(shape_do,stops_do).done(function(){
+		mapobject=L.polyline( shape_points.length ? shape_points : station_points,  {
+			color: 'red'/*,
+			fillColor: 'red',
+			fillOpacity: 1*/
+		});
 
-				map.fitBounds(latlngs);
-				tripStationsLayer.addLayer(mapobject);
-				tripStationsLayer.bringToFront();
-	}
-	);
+		mapobject.on("click",function(e) {
+		    $( "#dialog-edit-TripBlock").dialog( "open" );
+		});
+		map.fitBounds(station_points);
+		tripStationsLayer.addLayer(mapobject);
+		tripStationsLayer.bringToFront();		
+	});	
 }
 
 
