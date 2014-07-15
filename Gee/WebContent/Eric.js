@@ -514,6 +514,36 @@ function initDialogs(tableName){
 	});
 }
 
+function update_entity(tableName,values){
+	var $url="/Gee/"+relations[tableName]['method'];
+	values['entity']=tableName;
+	values['action']='update';
+	Object.keys(values).forEach(function(key){
+		values[key]=values[key]+"";		
+	});
+	
+	var datastring = JSON.stringify(values);
+	console.log("datastring = "+datastring);
+	return $.ajax({
+		method:"POST",
+		dataType: 'JSON',
+		data: {values: datastring},
+		url: $url,
+		success: function(response){
+			postEditHandler(tableName,values).done( function(){
+				getTableData(tableName).done(function (){
+					// fetches the table with potientiall new row
+					// set the select list value, and refresh 
+					$('#select-'+tableName).val(values[relations[tableName]['key']]);
+					refreshChildren(tableName);
+					}); 
+				}
+			);
+		}
+	});
+}
+
+
 // After we've added or edited a stoptime, we (potentially) need to "heal" the sort order to match time. 
 // This should perhaps be moved into the DB interface on the server. 
 function postEditHandler(tableName,record){
@@ -903,6 +933,13 @@ function MapSetUp(){
 	    popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
 	});
 
+	shapenodeIcon = L.icon({
+	    iconUrl: 'img/node.png',
+	    iconSize:     [22, 22], // size of the icon
+	    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+	    popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+	});
+
 
 	baseMaps={
 		    "OSM": baselayer
@@ -942,35 +979,28 @@ function drawStops(){
 			function( data ) {
 				allStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
-	//				alert("want to stick a circle at "+val['stopLat']+" : "+val['stopLon']);
 					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon}).addTo(map);
-/*
-					
-					mapobject=L.circle([val['stopLat'],val['stopLon']], 100, {
-						color: 'red',
-						fillColor: '#f03',
-						fillOpacity: 0.5
-					})
-					.on("click",function(e) {
-					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
-					    $( "#dialog-edit-StopTimes").data("edit_flag",false);
-					    $( "#dialog-edit-StopTimes").dialog( "open" );
-					});
-	*/				
-
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					allStationsLayer.addLayer(mapobject);
-					/*
-					var mapobject = L.marker(val['stopLat']+0.0001,val['stopLon']).bindLabel(val['stopName'], { noHi99999999999999999999999999de: true })
-					.addTo(map)
-					.showLabel();
-					allStationsLayer.addLayer(mapobject);
-					*/
 				});
 				allStationsLayer.bringToBack();
 			}
 	);
 }
+function update_shape_point(hibernateId,coords){
+	shapePointUrl="/Gee/Entity?entity=Shapes&field=hibernateId&value="+hibernateId;
+	return $.getJSON(shapePointUrl, 
+			function( data ) {
+				$.each( data, function( key, values ) {
+					values['shapePtLat']=coords['lat'];
+					values['shapePtLon']=coords['lng'];
+					values['hibernateId']=hibernateId; // we've got somer integer/string mismatch
+					console.log("setting shape point lat="+values['shapePtLat'] + " for " + values['hibernateId']);
+					update_entity('Shapes',values);
+					});
+			});		
+}
+
 var shape_points=[];
 var station_points=[];
 
@@ -988,13 +1018,33 @@ function drawTrip(tripId){
 			function( data ) {
 				$.each( data, function( key, val ) {
 					shape_points.push([val[0]['shapePtLat'],val[0]['shapePtLon']]);
+					mapobject=L.marker([val[0]['shapePtLat'],val[0]['shapePtLon']], {icon: shapenodeIcon, draggable : true});
+					mapobjectToValue[L.stamp(mapobject)]=val[0]['hibernateId'];
+					mapobject.on('dragend', function(e) {
+					    var marker = e.target;  // you could also simply access the marker through the closure
+					    var result = marker.getLatLng();  // but using the passed event is cleaner
+					    $.when(update_shape_point(mapobjectToValue[L.stamp(e.target)],result)).done(function(){
+					    	drawTrip(tripId);
+					    });
+					    
+					    console.log(result);
+					});
+					tripStationsLayer.addLayer(mapobject);
+					mapobject.on("click",function(e) {
+					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
+					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
+					    $( "#dialog-edit-StopTimes").dialog( "open" );
+					});
+
 				});
 		});
 	
 	var stops_do=$.getJSON(stopTimesUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
-					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon}).addTo(map);
+					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon});
+					tripStationsLayer.addLayer(mapobject);
 					mapobjectToValue[L.stamp(mapobject)]=val[2];
 
 					mapobject.on("click",function(e) {
