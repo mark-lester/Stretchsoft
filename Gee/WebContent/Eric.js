@@ -78,7 +78,9 @@ function refreshChildren(tableName){
 function postRefresh(tableName){
 	switch(tableName){
 	case 'Stops':
-		drawStops();
+		drawStops().done(function(){
+			drawTrip($('#select-Trips').val());			
+		});
 		break;
 	case 'StopTimes':
 		drawTrip($('#select-Trips').val());
@@ -923,14 +925,14 @@ function MapSetUp(){
 	    iconUrl: 'img/steamtrain.png',
 	    iconSize:     [44, 44], // size of the icon
 	    iconAnchor:   [22, 44], // point of the icon which will correspond to marker's location
-	    popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
+	    popupAnchor:  [0, -44] // point from which the popup should open relative to the iconAnchor
 	});
 
 	trainboldIcon = L.icon({
 	    iconUrl: 'img/steamtrain-bold.png',
 	    iconSize:     [44, 44], // size of the icon
 	    iconAnchor:   [22, 44], // point of the icon which will correspond to marker's location
-	    popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
+	    popupAnchor:  [0, -44] // point from which the popup should open relative to the iconAnchor
 	});
 
 	shapenodeIcon = L.icon({
@@ -970,23 +972,58 @@ function MapSetUp(){
 	});
 }
 
+
 function drawStops(){
 	var i=0;
+	
+	mapobjectToValue=[];
+	valueToMapobject=[];
 	allStationsLayer.clearLayers();
 
 	mapurl= "/Gee/Entity?entity=Stops";
-	$.getJSON(mapurl, 
+	return $.getJSON(mapurl, 
 			function( data ) {
 				allStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
-					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon}).addTo(map);
+					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon, draggable: true}).addTo(map);
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
+					valueToMapobject[val['stopId']]=mapobject;
 					allStationsLayer.addLayer(mapobject);
+					mapobject.on('dragend', function(e) {
+					    var marker = e.target;  // you could also simply access the marker through the closure
+					    var result = marker.getLatLng();  // but using the passed event is cleaner
+					    update_station(mapobjectToValue[L.stamp(e.target)],result).done(function(){
+						    drawTrip($('#select-Trips').val());							    	
+					    });
+					});
+					
+					mapobject.on('mouseover', function(e) {
+						e.target.bindPopup(val['stopName']).openPopup();
+						});
+					mapobject.on("dblclick", function(e){
+		    			$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+		    			$( "#dialog-edit-StopTimes").data("edit_flag",false);
+		    			$( "#dialog-edit-StopTimes").dialog( "open" );
+		    			});
 				});
 				allStationsLayer.bringToBack();
+				console.log("DONE PRINTING STATIONS");
 			}
 	);
 }
+
+function update_station(stopId,coords){
+	stationUrl="/Gee/Entity?entity=Stops&field=stopId&value="+stopId;
+	return $.getJSON(stationUrl, 
+			function( data ) {
+				$.each( data, function( key, values ) {
+					values['stopLat']=coords['lat'];
+					values['stopLon']=coords['lng'];
+					update_entity('Stops',values);
+					});
+			});		
+}
+
 function update_shape_point(hibernateId,coords){
 	shapePointUrl="/Gee/Entity?entity=Shapes&field=hibernateId&value="+hibernateId;
 	return $.getJSON(shapePointUrl, 
@@ -994,8 +1031,6 @@ function update_shape_point(hibernateId,coords){
 				$.each( data, function( key, values ) {
 					values['shapePtLat']=coords['lat'];
 					values['shapePtLon']=coords['lng'];
-					values['hibernateId']=hibernateId; // we've got somer integer/string mismatch
-					console.log("setting shape point lat="+values['shapePtLat'] + " for " + values['hibernateId']);
 					update_entity('Shapes',values);
 					});
 			});		
@@ -1003,9 +1038,8 @@ function update_shape_point(hibernateId,coords){
 
 var shape_points=[];
 var station_points=[];
-
+var trip_stops=[];
 function drawTrip(tripId){
-	var latlngs=[];
 	var i=0;
 	// TODO fix Mapdata?action=stops to retyurn a labelled record, and not have to go val[0,1,...]
 	// Entity is not cool enough to do the above
@@ -1026,28 +1060,34 @@ function drawTrip(tripId){
 					    $.when(update_shape_point(mapobjectToValue[L.stamp(e.target)],result)).done(function(){
 					    	drawTrip(tripId);
 					    });
-					    
-					    console.log(result);
 					});
 					tripStationsLayer.addLayer(mapobject);
-					mapobject.on("click",function(e) {
-					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
-					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
-					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
-					    $( "#dialog-edit-StopTimes").dialog( "open" );
-					});
-
 				});
 		});
 	
+    for (i=0;i < trip_stops.length;i++){
+    	trip_stops[i].on("dblclick", function(e){
+    			$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+    			$( "#dialog-edit-StopTimes").data("edit_flag",false);
+    			$( "#dialog-edit-StopTimes").dialog( "open" );
+    			});
+    	trip_stops[i].setIcon(trainIcon);
+    }
+    trip_stops=[];
+	console.log("started printing trip");
+
 	var stops_do=$.getJSON(stopTimesUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
-					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon});
+//					console.log("stopId is supposed ot be "+val[2]);
+					mapobject=valueToMapobject[val[2]];
+//					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon});
+					mapobject.setIcon(trainboldIcon);
 					tripStationsLayer.addLayer(mapobject);
-					mapobjectToValue[L.stamp(mapobject)]=val[2];
+//					mapobjectToValue[L.stamp(mapobject)]=val[2];
+					trip_stops.push(mapobject);
 
-					mapobject.on("click",function(e) {
+					mapobject.on("dblclick",function(e) {
 					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
