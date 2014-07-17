@@ -441,7 +441,7 @@ public class DBinterface {
          return true;
      }
 
- public int createRecord(String className,Hashtable <String,String> record){
+ public int createRecord(String className,Hashtable <String,String> record) throws HibernateException{
      Integer recordId = null;
 //     className = "tables."+className;
      Session session = factory.openSession();
@@ -454,7 +454,7 @@ public class DBinterface {
  // hived this into an inner method so we can do mass inserts on one session, and not commit every line else it takes yonks
  // we dont really need to bother doing this for update,
  // but if we are going to allow "zap database" then delete could do with the same
- public int createRecordInner(Session session,Transaction tx, String className,Hashtable <String,String> record){
+ public int createRecordInner(Session session,Transaction tx, String className,Hashtable <String,String> record) throws HibernateException{
      Integer recordId = null;
  
      try{
@@ -465,7 +465,7 @@ public class DBinterface {
         	 return 0;
          }
          recordId = (Integer) session.save(hibernateRecord);
-      }catch (HibernateException|
+      }catch (
               ClassNotFoundException|
               NoSuchMethodException|
               IllegalAccessException|
@@ -476,7 +476,7 @@ public class DBinterface {
       return recordId;
  }
 
- public int updateRecord(String entityName,Hashtable <String,String> inputRecord){
+ public int updateRecord(String entityName,Hashtable <String,String> inputRecord) throws HibernateException{
 //     entityName = "tables."+entityName;
      int hibernateId = Integer.parseInt(inputRecord.get("hibernateId"));
      Session session = factory.openSession();
@@ -504,7 +504,7 @@ public class DBinterface {
  }
 
 
- public int deleteRecord(String className,Hashtable <String,String> record){
+ public int deleteRecord(String className,Hashtable <String,String> record) throws HibernateException{
 //     className = "tables."+className;
      int hibernateId = Integer.parseInt(record.get("hibernateId"));
      Session session = factory.openSession();
@@ -515,7 +515,7 @@ public class DBinterface {
              (Object)session.get(Class.forName(className),hibernateId);
          session.delete(hibernateRecord);
          tx.commit();
-     }catch (HibernateException|
+     }catch (
              ClassNotFoundException e) {
          if (tx!=null) tx.rollback();
              e.printStackTrace();

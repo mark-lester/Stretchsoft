@@ -448,13 +448,26 @@ function initDialogs(tableName){
 								// set the select list value, and refresh 
 								$('#select-'+tableName).val(values[relations[tableName]['key']]);
 								refreshChildren(tableName);
-								}); 
-							}
-						);
+							}); 
+							$( this ).dialog( "close" );
+						});
+					 },
+					error: function (xhr, ajaxOptions, thrownError) {
+						if (xhr.status == 404){
+					        alert(jQuery.parseJSON(xhr.responseText)['message']);
+					      } else {
+					    	alert("We have a problem Houston:- <br>"+
+					    			xhr.status + " - "+thrownError+"<br>"+
+					    			xhr.responseText);
+							$( this ).dialog( "close" );
+					      } 
 					}
+					 
+				}).done(function(){
+					postRefresh(tableName);
 				});
 				
-				$( this ).dialog( "close" );
+				
 			    
 			},
 			Cancel: function() {
@@ -504,7 +517,11 @@ function initDialogs(tableName){
 							refreshTable(tableName);
 							}
 						);
-					}
+					},
+					error: function (xhr, ajaxOptions, thrownError) {
+					        alert(xhr.status);
+					        alert(thrownError);
+					      }
 				});
 				$( this ).dialog( "close" );
 			    
@@ -1058,6 +1075,7 @@ function drawTrip(tripId){
 					    var marker = e.target;  // you could also simply access the marker through the closure
 					    var result = marker.getLatLng();  // but using the passed event is cleaner
 					    $.when(update_shape_point(mapobjectToValue[L.stamp(e.target)],result)).done(function(){
+					    	// dont bother refocusing, we are already focused!
 					    	drawTrip(tripId);
 					    });
 					});
@@ -1093,6 +1111,14 @@ function drawTrip(tripId){
 					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
+					mapobject.on('mouseover', function(e) {
+						var popup_val=e.target.getPopup().getContent();
+						var matches= popup_val.match("/(.*)\<?/");
+						pcupup_val = matches[0] + "<br> A:"+val[3]+ " D:"+val[4];
+						e.target.unbindPopup();
+						e.target.bindPopup(popup_val).openPopup();
+						});
+
 					tripStationsLayer.addLayer(mapobject);
 					station_points.push([val[0],val[1]]);
 				});
@@ -1108,7 +1134,9 @@ function drawTrip(tripId){
 		mapobject.on("click",function(e) {
 		    $( "#dialog-edit-TripBlock").dialog( "open" );
 		});
-		map.fitBounds(station_points);
+		if (1){
+			map.fitBounds(station_points);			
+		}
 		tripStationsLayer.addLayer(mapobject);
 		tripStationsLayer.bringToFront();		
 	});	

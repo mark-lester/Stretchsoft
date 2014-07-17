@@ -48,7 +48,7 @@ DROP TABLE IF EXISTS `instance`;
 
 CREATE TABLE `instance` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	database_name VARCHAR(255),
+	database_name VARCHAR(255)  NOT NULL UNIQUE KEY ,
 	description VARCHAR(255),	
 	owner_user_id VARCHAR(255) NOT NULL,
 	public_read INTEGER,
@@ -67,7 +67,7 @@ DROP TABLE IF EXISTS `users`; /* user is a keyword, so have to use plural */
 
 CREATE TABLE `users` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	user_id VARCHAR(255) NOT NULL,
+	user_id VARCHAR(255)  NOT NULL UNIQUE KEY,
 	login_type VARCHAR(255),
 	user_name VARCHAR(255),
 	email VARCHAR(255)

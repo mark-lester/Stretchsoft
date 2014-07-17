@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS `agency`;
 
 CREATE TABLE `agency` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	agency_id VARCHAR(255),
+	agency_id VARCHAR(255) NOT NULL UNIQUE KEY,
 	agency_name VARCHAR(255) NOT NULL,
 	agency_url VARCHAR(255) NOT NULL,
 	agency_timezone VARCHAR(255) NOT NULL,

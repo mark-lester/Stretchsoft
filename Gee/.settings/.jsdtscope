@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="js/jquery.timepicker.min.js|js/jquery.validate.min.js|js/leaflet.js" kind="src" path="WebContent"/>
+	<classpathentry excluding="js/jquery.timepicker.min.js|js/jquery.validate.min.js|js/leaflet.js" including="js/jquery-ui.js" kind="src" path="WebContent"/>
 	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.WebProject">
 		<attributes>

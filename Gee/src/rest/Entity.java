@@ -18,7 +18,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 //import com.fasterxml.jackson.core.JsonGenerationException;
 //import com.fasterxml.jackson.databind.*;
 import org.hibernate.Session; 
-
+import org.hibernate.HibernateException;
 /**
  * Servlet implementation class Entity
  */
@@ -119,7 +119,9 @@ public class Entity extends Rest {
 		if (action == null){
 			action="";
 		}
-		switch (action){
+		
+		try{
+			switch (action){
 			case "delete":
 				recordId = gtfs.deleteRecord(className,record);
 			break;
@@ -132,6 +134,16 @@ public class Entity extends Rest {
 			default:
 				recordId = gtfs.createRecord(className,record);
 			break;
+			}
+			
+		}catch (HibernateException e){
+			response.setStatus(404);
+			response.setContentType("text/html");
+			Hashtable<String,String> values = new Hashtable<String,String>();
+			values.put("message", e.getMessage());
+			PrintWriter out = response.getWriter();
+			out.println(mapper.writeValueAsString(values));
+			return;
 		}
 
 		response.setContentType("text/html");
