@@ -104,10 +104,12 @@ public class User extends Rest {
 		String className = "admin."+entity;
 		int recordId=0;
 		String action=record.get("action");
+		
 		switch (entity){
 		case "Instance":// you can only change DB instance if you are an admin
 			record.put("ownerUserId", userId);
 			if (!admin.verifyAdminAccess(record.get("databaseName"),userId)){
+				Print404(response,"You are not an Admin of this database");
 				System.err.print("Access Violation on <Instance> For "+userId+" database="+record.get("databaseName")+"\n"); 
 				return;
 			}
@@ -118,6 +120,7 @@ public class User extends Rest {
 		case "Access":  // you can only change access rights to a DB if you are an admin
 			if (!admin.verifyAdminAccess(record.get("databaseName"),userId)){
 				System.err.print("Access Violation on <"+className+"> For "+userId+" database="+record.get("databaseName")+"\n"); 
+				Print404(response,"You are not an Admin of this database");
 				return;
 			}
 			break;
@@ -174,4 +177,5 @@ public class User extends Rest {
 			e.printStackTrace();	 
 		}
 	}
+
 }

@@ -47,6 +47,10 @@ public class Entity extends Rest {
 		System.err.print("In GET database="+databaseName+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity")+" as child_table";
+		if (!admin.verifyReadAccess(databaseName,userId)){
+			Print404(response,"You do not have read permission for this database");
+			return;
+		}
 		
 		//join_table - table to join, e.g. Trips
 		//join_key
@@ -108,12 +112,20 @@ public class Entity extends Rest {
 		System.err.print("In POST database="+databaseName+" got "+json+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
+		if (!admin.verifyWriteAccess(databaseName,userId)){
+			Print404(response,"You do not have write permission for this database");
+			return;
+		}
 		
 		String className = record.get("entity");
 		className = "tables."+className;
 		System.err.print("In POST className "+className+" action="+record.get("action")+"\n"); 
 		int recordId=0;
 		String action=record.get("action");
+		if (!admin.verifyReadAccess(record.get("databaseName"),userId)){
+			Print404(response,"You do not have read permission for this database");
+			return;
+		}
 		
 		// fussy old java doesnt like null as the switch arg, 
 		if (action == null){

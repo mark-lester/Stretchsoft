@@ -1,5 +1,7 @@
 package rest;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import javax.crypto.Mac;
@@ -131,5 +133,14 @@ public class Rest extends HttpServlet {
 		
 		return gtfsStore.get(databaseName);
 	}
+	public void Print404(HttpServletResponse response,String message) throws IOException{
+		ObjectMapper mapper = new ObjectMapper();
+		Hashtable<String,String> values = new Hashtable<String,String>();
+		values.put("message", message);
+		response.setStatus(404);
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
+		out.println(mapper.writeValueAsString(values));
+		}
 
 }
