@@ -56,31 +56,33 @@ public class Admin extends DBinterface {
 		String query = null;
 		Users user=null;
 		System.err.println("In getUser"); 
-		try {
-			semaphore.acquire();
-			System.err.println("got semaphore"); 
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
 		Object entities[] = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
-		session.close();
-/*		if (entities.length > 1){
-			// ASSERTION FAILURE
-			return null;
-		} else*/ 
 		if (entities.length > 0) {
 			user = (Users)entities[0];
 			userId = user.getuserId();
 		} else {
-			System.err.println("making record"); 
-			int recordId = createRecord("admin.Users",record);
-			userId = record.get("userId");
-		    //return getUser(record,recursion_count+1);
+			// when the user first arrives, with parallel requests we end up with two use records
+			// hence this mess.
+			try {
+				semaphore.acquire();
+				System.err.println("got semaphore"); 
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+			entities = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
+			if (entities.length > 0) {
+				user = (Users)entities[0];
+				userId = user.getuserId();
+			} else {
+				int recordId = createRecord("admin.Users",record);
+				userId = record.get("userId");
+				System.err.println("released semaphore");
+			}
+			semaphore.release();
 		}
-		semaphore.release();
-		System.err.println("released semaphore"); 
+		session.close();
 		return userId;
 	}
 	
