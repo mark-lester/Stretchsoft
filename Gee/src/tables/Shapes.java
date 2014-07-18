@@ -39,7 +39,10 @@ public void update(Hashtable <String,String> record){
 		this.shapePtLat=Double.parseDouble(record.get("shapePtLat"));
 		this.shapePtLon=Double.parseDouble(record.get("shapePtLon"));
 		this.shapePtSequence=Integer.parseInt(record.get("shapePtSequence"));
-		this.shapeDistTraveled=Double.parseDouble(record.get("shapeDistTraveled"));
+		if (record.get("shapeDistTraveled") != null &&
+				!record.get("shapeDistTraveled").isEmpty()){
+			this.shapeDistTraveled=Double.parseDouble(record.get("shapeDistTraveled"));			
+		}
 	}
 
 public Hashtable <String,String> hash(){

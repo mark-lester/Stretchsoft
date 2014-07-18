@@ -36,7 +36,6 @@ function refreshAll(){
 	    	continue;
 	    deferreds.push(refreshTable(tableName));  
 	}
-	console.log("I have "+deferreds.length+" dfds");
 	$.when(deferreds).done(function(){
 		console.log("resolving the refresh all dfd");
 		dfd.resolve();
@@ -45,18 +44,15 @@ function refreshAll(){
 }
 
 function refreshTable(tableName){
-	console.log("refreshing "+tableName);
 	var dfd = new $.Deferred();
 	
 	var gt_dfd=getTableData(tableName);
 	gt_dfd.done(function (){
-		console.log("got data refreshing "+tableName);
 		var deferreds=refreshChildren(tableName);
 		$.when(deferreds).done(function(){
 			postRefresh(tableName);
 
 			dfd.resolve();
-			console.log("releasing dfd for refreshing "+tableName);
 		});
 	});
 	
@@ -383,9 +379,6 @@ function initDialogs(tableName){
 				init_edit_values(tableName);
 				
 				$(".ui-dialog-titlebar").css(	"background-color", "green");
-//				$(".ui-widget-header").css("background-color", "green");
-//				$(".ui-dialog-titlebar").attr("style","background-color: green;");
-				console.log("set the title bar to green x 1");
 			} else {
 				$(".edit-dialog.ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
 				init_create_values(tableName);
@@ -542,7 +535,6 @@ function update_entity(tableName,values){
 	});
 	
 	var datastring = JSON.stringify(values);
-	console.log("datastring = "+datastring);
 	return $.ajax({
 		method:"POST",
 		dataType: 'JSON',
@@ -980,7 +972,7 @@ function MapSetUp(){
 
 		  }
 	});
-	map.on('click',function(e) {
+	map.on('dblclick',function(e) {
 	    $( "#dialog-edit-Stops").data("edit_flag",false);
 	    $( "#dialog-edit-Stops-form").data("stopLat",e.latlng.lat);
 	    $( "#dialog-edit-Stops-form").data("stopLon",e.latlng.lng);
@@ -1024,7 +1016,6 @@ function drawStops(){
 		    			});
 				});
 				allStationsLayer.bringToBack();
-				console.log("DONE PRINTING STATIONS");
 			}
 	);
 }
@@ -1056,21 +1047,46 @@ function update_shape_point(hibernateId,coords){
 var shape_points=[];
 var station_points=[];
 var trip_stops=[];
+var shapeSequence={};
 function drawTrip(tripId){
 	var i=0;
 	// TODO fix Mapdata?action=stops to retyurn a labelled record, and not have to go val[0,1,...]
 	// Entity is not cool enough to do the above
 	stopTimesUrl= "/Gee/Mapdata?action=stops&tripId="+tripId;
 	shapePointsUrl="/Gee/Entity?entity=Shapes&field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
-	tripStationsLayer.clearLayers();
     shape_points=[];
     station_points=[];
+    
+    // remove the last trip
+    for (i=0;i < trip_stops.length;i++){
+    	trip_stops[i].on("dblclick", function(e){
+    			$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+    			$( "#dialog-edit-StopTimes").data("edit_flag",false);
+    			$( "#dialog-edit-StopTimes").dialog( "open" );
+    			});
+    	trip_stops[i].setIcon(trainIcon);
+    	var popup_val=null;
+    	if (trip_stops[i].getPopup() != null && 
+    			(popup_val=trip_stops[i].getPopup().getContent()) != null){
+    		var matches= popup_val.match("/(.*)</");
+    		if (matches != null && matches.length>0){
+    			popup_val = matches[0];
+    		}    		
+    	}
+		trip_stops[i].unbindPopup();
+		trip_stops[i].bindPopup(popup_val).openPopup();
+    }
+	tripStationsLayer.clearLayers();
+
+    
 	var shape_do = $.getJSON(shapePointsUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
+					shapeId = val[0]['shapeId'];
 					shape_points.push([val[0]['shapePtLat'],val[0]['shapePtLon']]);
 					mapobject=L.marker([val[0]['shapePtLat'],val[0]['shapePtLon']], {icon: shapenodeIcon, draggable : true});
 					mapobjectToValue[L.stamp(mapobject)]=val[0]['hibernateId'];
+					tripStationsLayer.addLayer(mapobject);
 					mapobject.on('dragend', function(e) {
 					    var marker = e.target;  // you could also simply access the marker through the closure
 					    var result = marker.getLatLng();  // but using the passed event is cleaner
@@ -1079,30 +1095,20 @@ function drawTrip(tripId){
 					    	drawTrip(tripId);
 					    });
 					});
-					tripStationsLayer.addLayer(mapobject);
-				});
+					mapobject.on('dblclick', function(e) {
+						$.when(delete_shape_point(mapobjectToValue[L.stamp(e.target)])).done(function(){
+							drawTrip(tripId);							
+						}); 
+					});
+				});		
 		});
 	
-    for (i=0;i < trip_stops.length;i++){
-    	trip_stops[i].on("dblclick", function(e){
-    			$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
-    			$( "#dialog-edit-StopTimes").data("edit_flag",false);
-    			$( "#dialog-edit-StopTimes").dialog( "open" );
-    			});
-    	trip_stops[i].setIcon(trainIcon);
-    }
-    trip_stops=[];
-	console.log("started printing trip");
-
 	var stops_do=$.getJSON(stopTimesUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
-//					console.log("stopId is supposed ot be "+val[2]);
 					mapobject=valueToMapobject[val[2]];
-//					mapobject=L.marker([val[0],val[1]], {icon: trainboldIcon});
 					mapobject.setIcon(trainboldIcon);
 					tripStationsLayer.addLayer(mapobject);
-//					mapobjectToValue[L.stamp(mapobject)]=val[2];
 					trip_stops.push(mapobject);
 
 					mapobject.on("dblclick",function(e) {
@@ -1112,9 +1118,15 @@ function drawTrip(tripId){
 					    $( "#dialog-edit-StopTimes").dialog( "open" );
 					});
 					mapobject.on('mouseover', function(e) {
-						var popup_val=e.target.getPopup().getContent();
-						var matches= popup_val.match("/(.*)\<?/");
-						pcupup_val = matches[0] + "<br> A:"+val[3]+ " D:"+val[4];
+						var popup_val="UNSET";
+						if (e.target.getPopup() != null && e.target.getPopup().getContent() != null){
+							popup_val=e.target.getPopup().getContent();
+							var matches= popup_val.match("/(.*)</");
+							if (matches != null && matches.length>0){
+								popup_val = matches[0];							
+							}
+						}
+						popup_val += "<br> A:"+val[3]+ " D:"+val[4];							
 						e.target.unbindPopup();
 						e.target.bindPopup(popup_val).openPopup();
 						});
@@ -1124,24 +1136,125 @@ function drawTrip(tripId){
 				});
 
 			});
+	
+	
+	shapeSequence=[];
 	$.when(shape_do,stops_do).done(function(){
-		mapobject=L.polyline( shape_points.length ? shape_points : station_points,  {
-			color: 'red'/*,
-			fillColor: 'red',
-			fillOpacity: 1*/
-		});
-
-		mapobject.on("click",function(e) {
-		    $( "#dialog-edit-TripBlock").dialog( "open" );
-		});
-		if (1){
-			map.fitBounds(station_points);			
+		if (shape_points.length > 0){
+			for (i=0;i<shape_points.length-1;i++){
+				mapobject=L.polyline( [shape_points[i],shape_points[i+1]],{
+					color: 'blue'/*,
+					fillColor: 'red',
+					fillOpacity: 1*/
+				});
+				shapeSequence[L.stamp(mapobject)]=i+1;
+				mapobject.on("dblclick",function(e) {
+				    add_shape_point_after(shapeSequence[L.stamp(e.target)], shapeId,[e.latlng.lat,e.latlng.lng] );
+				});
+				tripStationsLayer.addLayer(mapobject);
+			}
+		} else {
+			mapobject=L.polyline( station_points,  {
+				color: 'red'/*,
+				fillColor: 'red',
+				fillOpacity: 1*/
+			});
+			tripStationsLayer.addLayer(mapobject);
+			mapobject.on("dblclick",function(e) {
+				create_shape_from_trip(tripId);
+			});			
 		}
-		tripStationsLayer.addLayer(mapobject);
+
+		map.fitBounds(station_points);			
+		
 		tripStationsLayer.bringToFront();		
 	});	
 }
 
+function delete_shape_point(hibernateId){
+	var $url="/Gee/Mapdata";
+	var values={};
+	values['action']='delete_shape_point';
+	values['hibernateId']=""+hibernateId;
+	values['shapeId']=shapeId;
+    var datastring = JSON.stringify(values);
+
+	return $.ajax({
+		method:"POST",
+		url: $url,
+		dataType: 'JSON',
+		data: {values: datastring},
+		success: function(response){
+			drawTrip($('#select-Trips').val());
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status == 404){
+		        alert(jQuery.parseJSON(xhr.responseText)['message']);
+		      } else {
+		    	alert("We have a problem Houston:- <br>"+
+		    			xhr.status + " - "+thrownError+"<br>"+
+		    			xhr.responseText);
+		      } 
+		}
+	});
+}
+
+function add_shape_point_after(after, shapeId, coords){
+	var $url="/Gee/Mapdata";
+	var values={};
+	values['after']=""+after;
+	values['action']='add_shape_point_after';
+	values['shapeId']=shapeId;
+	values['shapePtLat']=""+coords[0];
+	values['shapePtLon']=""+coords[1];
+			
+    var datastring = JSON.stringify(values);
+	return $.ajax({
+		method:"POST",
+		dataType: 'JSON',
+		data: {values: datastring},
+		url: $url,
+		success: function(response){
+			drawTrip($('#select-Trips').val());
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status == 404){
+		        alert(jQuery.parseJSON(xhr.responseText)['message']);
+		      } else {
+		    	alert("We have a problem Houston:- <br>"+
+		    			xhr.status + " - "+thrownError+"<br>"+
+		    			xhr.responseText);
+		      } 
+		}
+	});
+}
+
+function create_shape_from_trip(tripId){
+	var $url="/Gee/Mapdata";
+	values={};
+	values['action']='create_shape_from_trip';
+	values['tripId']=tripId;
+    var datastring = JSON.stringify(values);
+	return $.ajax({
+		method:"POST",
+		dataType: 'JSON',
+		data: {values: datastring},
+		url: $url,
+		success: function(response){
+			drawTrip($('#select-Trips').val());
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status == 404){
+		        alert(jQuery.parseJSON(xhr.responseText)['message']);
+		      } else {
+		    	alert("We have a problem Houston:- <br>"+
+		    			xhr.status + " - "+thrownError+"<br>"+
+		    			xhr.responseText);
+		      } 
+		}
+	});
+	
+}
 
 // FACEBOOK LOGIN
 

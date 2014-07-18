@@ -462,6 +462,7 @@ public class DBinterface {
          try {
          hibernateRecord= (Object) Class.forName(className).getConstructor(Hashtable.class).newInstance(record);   
          } catch (InvocationTargetException e){
+        	 e.printStackTrace();
         	 return 0;
          }
          recordId = (Integer) session.save(hibernateRecord);
