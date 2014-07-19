@@ -101,8 +101,9 @@ public class Admin extends DBinterface {
 		if (instance.getownerUserId().equals(userId)){
 			return true;
 		}
-		
+		session = factory.openSession();
 		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"' and adminFlag='1'").list().toArray();
+		session.close();
 		if (access.length == 0){ // no access 
 			return false;	
 		}
@@ -125,7 +126,9 @@ public class Admin extends DBinterface {
 			return true;
 		}
 		
+		session = factory.openSession();
 		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"'").list().toArray();
+		session.close();
 		if (access.length == 0){ // no access 
 			return false;	
 		}		
@@ -148,8 +151,9 @@ public class Admin extends DBinterface {
 		if (instance.getownerUserId().equals(userId)  || instance.getpublicWrite()==1){
 			return true;
 		}
-		
+		session = factory.openSession();
 		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"' and writeFlag='1'").list().toArray();
+		session.close();
 		if (access.length == 0){ // no access 
 			return false;	
 		}

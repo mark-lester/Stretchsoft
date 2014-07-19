@@ -136,6 +136,7 @@ public class Rest extends HttpServlet {
 		
 		return gtfsStore.get(databaseName);
 	}
+	
 	public void Print404(HttpServletResponse response,String message) throws IOException{
 		ObjectMapper mapper = new ObjectMapper();
 		Hashtable<String,String> values = new Hashtable<String,String>();

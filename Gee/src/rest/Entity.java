@@ -59,7 +59,6 @@ public class Entity extends Rest {
 		if (request.getParameter("join_table") != null){
 			query += ","+request.getParameter("join_table")+" as parent_table";
 		}
-		Session session = gtfs.factory.openSession();
 		if (request.getParameter("join_table") != null || request.getParameter("field") != null){
 			query+=" WHERE ";			
 		}
@@ -87,8 +86,9 @@ public class Entity extends Rest {
 		}
 //		System.err.print("Want query for "+query+"\n"); 
 		
+		Session session = gtfs.factory.openSession();
 		Object entities[] = session.createQuery(query).list().toArray();
-		
+		session.close();
 		try {
 			PrintWriter out = response.getWriter();
 			out.println(mapper.writeValueAsString(entities));
@@ -99,7 +99,6 @@ public class Entity extends Rest {
 		} catch (IOException e) {
 			e.printStackTrace();	 
 		}
-		session.close();
 	}
 
 	/**

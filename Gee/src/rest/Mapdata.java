@@ -49,6 +49,7 @@ public class Mapdata extends Rest {
 	 */
    
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Session session = null;
 		String userId = getUserId(request,response);
 		if (userId == null){
 			System.err.print("Failed to get access in Mapdata\n"); 
@@ -58,7 +59,6 @@ public class Mapdata extends Rest {
 
 		response.setContentType("text/html");
 		ObjectMapper mapper = new ObjectMapper();
-		Session session = gtfs.factory.openSession();
 		response.setContentType("text/html");
 		MapCoords mapCoords = new MapCoords();
 		Criteria criteria;
@@ -88,36 +88,39 @@ public class Mapdata extends Rest {
 
 		switch (action){
 		case "bounds":
-		criteria = session
-			.createCriteria(Stops.class)
-			.setProjection(Projections.max("stopLat"));
-		mapCoords.maxLat = (Float)criteria.uniqueResult();
-			
-		criteria = session
-				.createCriteria(Stops.class)
-				.setProjection(Projections.min("stopLat"));
-		mapCoords.minLat = (Float)criteria.uniqueResult();
+				session = gtfs.factory.openSession();
 
-		criteria = session
-				.createCriteria(Stops.class)
-				.setProjection(Projections.max("stopLon"));
-		mapCoords.maxLon = (Float)criteria.uniqueResult();
+				criteria = session
+					.createCriteria(Stops.class)
+					.setProjection(Projections.max("stopLat"));
+				mapCoords.maxLat = (Float)criteria.uniqueResult();
+					
+				criteria = session
+						.createCriteria(Stops.class)
+						.setProjection(Projections.min("stopLat"));
+				mapCoords.minLat = (Float)criteria.uniqueResult();
 
-		criteria = session
-				.createCriteria(Stops.class)
-				.setProjection(Projections.min("stopLon"));
-		mapCoords.minLon = (Float)criteria.uniqueResult();
-				
-		try {
-			PrintWriter out = response.getWriter();
-			out.println(mapper.writeValueAsString(mapCoords));
-		} catch (JsonGenerationException e) {
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();	 
-		}
+				criteria = session
+						.createCriteria(Stops.class)
+						.setProjection(Projections.max("stopLon"));
+				mapCoords.maxLon = (Float)criteria.uniqueResult();
+
+				criteria = session
+						.createCriteria(Stops.class)
+						.setProjection(Projections.min("stopLon"));
+				mapCoords.minLon = (Float)criteria.uniqueResult();
+						
+				session.close();
+				try {
+					PrintWriter out = response.getWriter();
+					out.println(mapper.writeValueAsString(mapCoords));
+				} catch (JsonGenerationException e) {
+					e.printStackTrace();
+				} catch (JsonMappingException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();	 
+				}
 		break;
 		// end case "bounds"
 		
@@ -130,7 +133,9 @@ public class Mapdata extends Rest {
 					" order by t2.stopSequence";
 			System.err.print("Mapdata Want query for "+query+"\n"); 
 
+			session = gtfs.factory.openSession();
 			Object entities[] = session.createQuery(query).list().toArray();
+			session.close();
 			try {
 				PrintWriter out = response.getWriter();
 				out.println(mapper.writeValueAsString(entities));
@@ -151,6 +156,7 @@ public class Mapdata extends Rest {
 			query="from StopTimes where tripId='"+tripId+"' order by departureTime";
 			System.err.print("Mapdata Want query for "+query+"\n"); 
 
+			session = gtfs.factory.openSession();
 			Object stoptimes[] = session.createQuery(query).list().toArray();
 			int stopSequence=1;
 			for (Object record :stoptimes){
@@ -159,6 +165,7 @@ public class Mapdata extends Rest {
 				rec.setstopSequence(stopSequence++);
 			    tx.commit();
 			}
+			session.close();
 			
 			try {
 				PrintWriter out = response.getWriter();
@@ -179,6 +186,7 @@ public class Mapdata extends Rest {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Session session = null;
 		String userId = getUserId(request,response);
 		if (userId == null){
 			return; // your cookie doesnt add up
@@ -197,7 +205,6 @@ public class Mapdata extends Rest {
 			Print404(response,"You do not have write permission for this database");
 			return;
 		}
-		Session session = gtfs.factory.openSession();
 
 		String className = "tables.Shapes";
 		String action=record.get("action");
@@ -225,7 +232,7 @@ public class Mapdata extends Rest {
 							Integer.parseInt(record.get("after"))+1
 							)
 					);
-		    gtfs.createRecord(className,record);				
+		    gtfs.createRecord(className,record);
 			break;
 
 		case "delete_shape_point":
@@ -243,8 +250,9 @@ public class Mapdata extends Rest {
 				e.printStackTrace();
 			}
 			query="from Shapes WHERE shapeId='"+record.get("shapeId")+"'";
-
+			session = gtfs.factory.openSession();
 			results = session.createQuery(query).list().toArray();
+			session.close();
 			if (results.length > 1){
 				break;
 			}
@@ -271,14 +279,18 @@ public class Mapdata extends Rest {
 		
 		case "create_shape_from_trip":
 			query="from Trips where tripId='"+record.get("tripId")+"'";
+			session = gtfs.factory.openSession();
 			results = session.createQuery(query).list().toArray();
+			session.close();
 			if (results.length < 1){
 				break;
 			}
 			Trips generating_trip=(Trips)results[0];
 			String shapeId = ((Trips)results[0]).getshapeId();
 			query="from Shapes where shapeId='"+shapeId+"'";
+			session = gtfs.factory.openSession();
 			results = session.createQuery(query).list().toArray();
+			session.close();
 			if (results.length > 0){
 				Print404(response,"There is already a shape for this trip, delete it first");
 				break;
@@ -290,7 +302,9 @@ public class Mapdata extends Rest {
 					" and b.tripId='"+record.get("tripId")+
 					"' order by b.stopSequence";
 
+			session = gtfs.factory.openSession();
 			Iterator<Object> stopsAndstopTimes = session.createQuery(query).list().iterator();
+			session.close();
 			Integer sequence=1;
 			shapeId=null;
 			while ( stopsAndstopTimes.hasNext() ) {

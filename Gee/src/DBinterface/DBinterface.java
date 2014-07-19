@@ -403,6 +403,8 @@ public class DBinterface {
              } catch (SecurityException e) {
                  // TODO Auto-generated catch block
                  e.printStackTrace();
+             } finally {
+                 session.close();            	 
              }
              return true;
          }
