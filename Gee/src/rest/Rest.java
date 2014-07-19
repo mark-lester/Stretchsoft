@@ -21,8 +21,8 @@ import DBinterface.Gtfs;
 import javax.servlet.http.HttpServlet;
 
 public class Rest extends HttpServlet {
-	public Gtfs gtfs=null;
-	public Admin admin=null;
+	public static Gtfs gtfs=null;
+	public static Admin admin=null;
 	public String databaseName="gtfs";  //should really be null
 	public static Hashtable <String,Gtfs> gtfsStore=null;
 	
@@ -46,6 +46,7 @@ public class Rest extends HttpServlet {
 	    super.init(config);
 	    System.err.println("getting facebook secret");
 	    FACEBOOK_SECRET = config.getInitParameter("FACEBOOK_SECRET");
+	    FACEBOOK_SECRET = "2a20c183f3998aa8313671322990d777";
 	}
 	
 	public String getUserId(HttpServletRequest request, HttpServletResponse response){
@@ -57,9 +58,9 @@ public class Rest extends HttpServlet {
 		String userId=null;
 
 		Base64 codec = new Base64();
-		 System.err.println("IN GET USER ID\n");
+//		 System.err.println("IN GET USER ID\n");
 		for (Cookie cookie : cookies) {
-			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
+//			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
 	        if (cookie.getName().equals("fbsr_287612631394075")){
 	        	signed_request = cookie.getValue();
 	        }
@@ -70,7 +71,7 @@ public class Rest extends HttpServlet {
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
-		System.err.println("databaseName="+databaseName+"\n");
+		System.err.println("databaseName="+databaseName);
 		
 		if (signed_request != null){
 			String[] sr_parts = signed_request.split("\\.",2);
@@ -83,8 +84,8 @@ public class Rest extends HttpServlet {
 
 	        payload = codec.decode(encodedPayload);
 	        String payload_string = new String(payload);
-	        System.err.print("payload = " + payload_string + "\n");
-	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
+//	        System.err.print("payload = " + payload_string + "\n");
+//	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
 	     
 	        sig = new String(codec.decode(encoded_sig));
 	        try {	  
@@ -110,12 +111,14 @@ public class Rest extends HttpServlet {
 	    	    return null;
 	    	} 
 		}
+		
 		Hashtable <String,String> record = new Hashtable <String,String>();	
 		record.put("userId", userId);
 		// we can add email and nice name when we've worked out how to get them
 		admin.getUser(record);
+	
 		
-		if (databaseName == null){//we dont have a database cookie set, so choose the default, "gtfs"
+		if (databaseName == null){//we dont have a database  set, so choose the default, "gtfs"
 			databaseName = "gtfs";
 		    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
 		    response.addCookie(cookie1); 

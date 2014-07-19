@@ -71,6 +71,7 @@ public class DBinterface {
     public SAXParserFactory spf;
     public SAXParser saxParser;
     public XMLReader xmlReader;
+    public static int session_count=0;
 
 //    public Transaction tx = null;
 //    public Session session = null;
@@ -230,8 +231,7 @@ public class DBinterface {
         return bos.toByteArray();  
     }
     
-    public SessionFactory configureSessionFactory() throws HibernateException {
-    	
+    public SessionFactory configureSessionFactory() throws HibernateException { 	
         Configuration configuration = new Configuration();   
          configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
@@ -245,6 +245,8 @@ public class DBinterface {
                 buildServiceRegistry();   
         
         sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+        System.err.println("yet another session factory for "+databaseName+" count="+
+        Integer.toString(++session_count));
         return sessionFactory;
     }
     
@@ -340,7 +342,7 @@ public class DBinterface {
                  System.err.println("Failed reading csv file for "+tableName+" :" + ex);       
              }
              tx.commit();
-            
+             session.close();
              return true;
          }
 
@@ -494,13 +496,15 @@ public class DBinterface {
          System.err.println("just called update");
          recordId = (Integer) session.save(hibernateRecord);
          tx.commit();
-     }catch(
-             ClassNotFoundException|
+     } catch (ClassNotFoundException|
              NoSuchMethodException|
              InvocationTargetException|
              IllegalAccessException e) {
          System.err.println(e.toString());
-     }  
+     } finally {
+         session.close();    	 
+     }
+
      return recordId;
  }
 

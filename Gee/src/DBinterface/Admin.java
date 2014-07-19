@@ -13,6 +13,7 @@ import admin.*;
 
 public class Admin extends DBinterface {
 	   private static final Semaphore semaphore= new Semaphore(1);
+	   static int call_count=0;
 /*
  * GetUser userId
  * 	  check user exists, if not then implicitly create user.
@@ -55,9 +56,10 @@ public class Admin extends DBinterface {
 	   
 		String query = null;
 		Users user=null;
-		System.err.println("In getUser baby"); 
+		call_count++;
+		System.err.println("In getUser baby "+call_count); 
 		Object entities[] = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
-		System.err.println("done query baby"); 
+		System.err.println("done query baby "+call_count); 
 		session.flush();
 		session.close();
 		if (entities.length > 0) {
@@ -75,7 +77,9 @@ public class Admin extends DBinterface {
 				e.printStackTrace();
 				return null;
 			}
+			session=factory.openSession();
 			entities = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
+			session.close();
 			if (entities.length > 0) {
 				user = (Users)entities[0];
 				userId = user.getuserId();
@@ -87,7 +91,7 @@ public class Admin extends DBinterface {
 			semaphore.release();
 		}
 //		session.close();
-		System.err.print("done getuser baby");
+		System.err.println("done getuser baby "+call_count);
 		return userId;
 	}
 	

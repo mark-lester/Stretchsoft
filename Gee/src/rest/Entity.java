@@ -39,12 +39,14 @@ public class Entity extends Rest {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		String userId = getUserId(request,response);
+		String userId = null;
+		
+		userId=getUserId(request,response);
 		if (userId == null){
 			return; // your cookie doesnt add up
 		}
 		response.setContentType("text/html");
-		System.err.print("In GET database="+databaseName+"\n"); 
+//		System.err.print("In GET database="+databaseName+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity")+" as child_table";
 		if (!admin.verifyReadAccess(databaseName,userId)){
@@ -83,7 +85,7 @@ public class Entity extends Rest {
 		if (request.getParameter("order") != null){
 			query+=" ORDER BY child_table."+request.getParameter("order");
 		}
-		System.err.print("Want query for "+query+"\n"); 
+//		System.err.print("Want query for "+query+"\n"); 
 		
 		Object entities[] = session.createQuery(query).list().toArray();
 		
