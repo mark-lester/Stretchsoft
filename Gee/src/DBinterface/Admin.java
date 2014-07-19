@@ -55,12 +55,16 @@ public class Admin extends DBinterface {
 	   
 		String query = null;
 		Users user=null;
-		System.err.println("In getUser"); 
+		System.err.println("In getUser baby"); 
 		Object entities[] = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
+		System.err.println("done query baby"); 
+		session.flush();
+		session.close();
 		if (entities.length > 0) {
 			user = (Users)entities[0];
-			userId = user.getuserId();
+			userId =record.get("userId");
 		} else {
+			System.err.println("need to make a new user"); 
 			// when the user first arrives, with parallel requests we end up with two use records
 			// hence this mess.
 			try {
@@ -82,7 +86,8 @@ public class Admin extends DBinterface {
 			}
 			semaphore.release();
 		}
-		session.close();
+//		session.close();
+		System.err.print("done getuser baby");
 		return userId;
 	}
 	
