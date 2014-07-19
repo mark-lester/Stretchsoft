@@ -40,6 +40,7 @@ public class Admin extends DBinterface {
 	private static String sql_commands=null;
     
 	public Admin(){
+		
 		super("/home/Gee/config/admin","admin");
 	}
 	
@@ -56,22 +57,16 @@ public class Admin extends DBinterface {
 	   
 		String query = null;
 		Users user=null;
-		call_count++;
-		System.err.println("In getUser baby "+call_count); 
 		Object entities[] = session.createQuery("from Users where userId ='"+record.get("userId")+"'").list().toArray();
-		System.err.println("done query baby "+call_count); 
-		session.flush();
 		session.close();
 		if (entities.length > 0) {
 			user = (Users)entities[0];
 			userId =record.get("userId");
 		} else {
-			System.err.println("need to make a new user"); 
 			// when the user first arrives, with parallel requests we end up with two use records
 			// hence this mess.
 			try {
 				semaphore.acquire();
-				System.err.println("got semaphore"); 
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -86,20 +81,18 @@ public class Admin extends DBinterface {
 			} else {
 				int recordId = createRecord("admin.Users",record);
 				userId = record.get("userId");
-				System.err.println("released semaphore");
 			}
 			semaphore.release();
 		}
-//		session.close();
-		System.err.println("done getuser baby "+call_count);
 		return userId;
 	}
 	
 	public Boolean verifyAdminAccess(String databaseName,String userId){
 		Instance instance=null;
 	    Session session = factory.openSession();
-
+	    
 		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		session.close();
 		if (instances.length == 0){
 			// non existent DB, grant access
 			return true;	
@@ -122,6 +115,7 @@ public class Admin extends DBinterface {
 	    Session session = factory.openSession();
 
 		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		session.close();
 		if (instances.length == 0){
 			// non existent DB, grant access
 			return true;	
@@ -134,8 +128,7 @@ public class Admin extends DBinterface {
 		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"'").list().toArray();
 		if (access.length == 0){ // no access 
 			return false;	
-		}
-		
+		}		
 		
 		// else yes, we have read rights
 		return false;
@@ -146,6 +139,7 @@ public class Admin extends DBinterface {
 	    Session session = factory.openSession();
 
 		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		session.close();
 		if (instances.length == 0){
 			// non existent DB, grant access
 			return true;	
@@ -172,6 +166,7 @@ public class Admin extends DBinterface {
 
 		Object entities[] = session.createQuery("from Instance where ownerId ='"+record.get("userId")+
 				"' and databaseName='"+record.get("databaseName")+"'").list().toArray();
+		session.close();
 		if (entities.length > 1){
 			// ASSERTION FAILURE
 			return null;

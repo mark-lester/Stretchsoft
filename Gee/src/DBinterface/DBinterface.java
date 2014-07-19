@@ -1,16 +1,13 @@
 package DBinterface;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.ParseException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,11 +18,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.Map;
 import java.util.Iterator;
 import java.util.zip.ZipInputStream;
-import java.io.ByteArrayInputStream;
-import org.apache.commons.lang.ArrayUtils;
 import java.util.zip.*;
 import java.io.ByteArrayOutputStream;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,13 +31,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
-import org.hibernate.exception.ConstraintViolationException;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.SessionFactory;
-import org.hibernate.service.*;
 import org.hibernate.cfg.Configuration;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -54,8 +43,6 @@ import com.csvreader.CsvWriter;
 import sax.HibernateConfig;
 import sax.TableMap;
 import DBinterface.StringOutputStream;
-import org.hibernate.service.jdbc.connections.internal.C3P0ConnectionProvider;
-//import com.mysql.jdbc.Driver;
 
 
 public class DBinterface {
@@ -245,8 +232,6 @@ public class DBinterface {
                 buildServiceRegistry();   
         
         sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-        System.err.println("yet another session factory for "+databaseName+" count="+
-        Integer.toString(++session_count));
         return sessionFactory;
     }
     
@@ -271,8 +256,7 @@ public class DBinterface {
             hibernateConfig.tableMaps.put(resourceFile, tableMap);
         }   
         System.out.println("HIBERNATE CONECTION STUFF :"+hibernateConfig.properties.get("hibernate.connection.url")+":\n");       
-
-       
+    
         return hibernateConfig;
     }
       
@@ -489,11 +473,9 @@ public class DBinterface {
          Class<?> cls = Class.forName(entityName);
          Method m = cls.getMethod("update", inputRecord.getClass());
          Transaction tx = session.beginTransaction();
-         System.err.println("In update record for class="+entityName);       
 
          Object hibernateRecord = (Object)session.get(cls,hibernateId);
          m.invoke(hibernateRecord,inputRecord);
-         System.err.println("just called update");
          recordId = (Integer) session.save(hibernateRecord);
          tx.commit();
      } catch (ClassNotFoundException|
