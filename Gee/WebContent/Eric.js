@@ -152,7 +152,7 @@ function getTableDataInner(tableName){
 					count=0;
 					var subdata=[];
 					$.each( data, function( key, values ) {
-						subdata[count++]=values[0];
+						subdata[count++]=$.extend(values[0], values[1]); 
 					});
 					data=subdata;
 				}
@@ -175,7 +175,7 @@ function getTableDataInner(tableName){
 				){
 					$("#select-"+tableName).val(save_select_row);
 				} else {
-					console.log("the save select row isnt in the list anymore, it says")
+//					console.log("the save select row isnt in the list anymore, it says")
 				}
 				dfd.resolve();
 			}
@@ -267,17 +267,14 @@ function get_permissions(databaseName){
 		dataType: 'JSON',
 		url: $url,
 		success: function(response){
-			console.log("got permissions for "+databaseName);
+			database_permissions={};
 			database_permissions=response;
 		 },
 		error: function (xhr, ajaxOptions, thrownError) {
 			if (xhr.status == 404){
 		        alert(jQuery.parseJSON(xhr.responseText)['message']);
 		      } else {
-		    	alert("We have a problem Houston:- <br>"+
-		    			xhr.status + " - "+thrownError+"<br>"+
-		    			xhr.responseText);
-				$( this ).dialog( "close" );
+			    	alert("We have a problem Houston:-The authorities have been informed");
 		      } 
 		}
 		 
@@ -406,12 +403,11 @@ function initDialogs(tableName){
 		open : function (event,ui){
 			$('#dialog-edit-'+tableName+'-form').validate().form();
 			if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
-				init_edit_values(tableName);
-				
-				$(".ui-dialog-titlebar").css(	"background-color", "green");
+				init_edit_values(tableName);	
+				$(".ui-dialog-titlebar").css("background-color", "green");
 			} else {
-				$(".edit-dialog.ui-widget-header").css("background-color", "blue");//						$(".edit-dialog .ui-widget-content").css("background-color", "blue");
 				init_create_values(tableName);
+				$(".ui-dialog-titlebar").css("background-color", "blue");
 			}
 		},
 		autoOpen: false, 
@@ -958,7 +954,7 @@ var overlayMaps = {
 
 var trainIcon;
 function MapSetUp(){
-	map = L.map('map');
+	map = L.map('map', { zoomControl:false });
 	osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	baselayer = L.tileLayer(osm_tiles, {
 		maxZoom: 18,
@@ -1308,9 +1304,7 @@ function create_shape_from_trip(tripId){
 			if (xhr.status == 404){
 		        alert(jQuery.parseJSON(xhr.responseText)['message']);
 		      } else {
-		    	alert("We have a problem Houston:- <br>"+
-		    			xhr.status + " - "+thrownError+"<br>"+
-		    			xhr.responseText);
+			    	alert("We have a problem Houston:-The authorities have been informed");
 		      } 
 		}
 	});

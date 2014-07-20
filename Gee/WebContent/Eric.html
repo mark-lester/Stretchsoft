@@ -11,17 +11,12 @@
 <link rel="stylesheet" href="css/leaflet.css" />
 <script src="js/leaflet.js"></script>
 <script src="js/jquery.uniform.js"></script>
-
-
-
-
 <!-- Bootstrap UI stuff -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="css/bootstrap.min.css">
 
 <!-- Optional theme -->
 <link rel="stylesheet" href="css/bootstrap-theme.min.css">
-
 
 <link rel="stylesheet" href="css/vader/jquery-ui-1.10.4.css">
 <script src="js/leaflet.js"></script>
@@ -453,10 +448,10 @@ you will lose all the routes, trips and stoptimes if you do
 <fieldset>
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Trips" type=hidden>
-	<input id="parentKey" value="tripId">
+	<input id="parentKey" value="tripId" type=hidden>
 	
-  	<label for="shapeId">Trip ID</label>
-    <input id="shapeId" name="shapeId" size=10 maxlength=10 required joinkey><br>
+  	<label for="shapeId">Shape ID</label>
+    <input id="shapeId" name="shapeId" size=10 maxlength=10 required key joinkey><br>
   	<label for="shapePtLat">Lat </label>
     <input id="shapePtLat" name="shapePtLat" size=10 maxlength=10 required display><br>
   	<label for="shapePtLon">Lat </label>
