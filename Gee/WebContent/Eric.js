@@ -12,6 +12,7 @@ function MainSetup(){
 		initTables();
 		
 		$("#interface").show();
+		$("#menu").show();
 		$("#welcome").hide();
 		refreshAll();
 		$.when().done(function(){
@@ -499,6 +500,7 @@ function initDialogs(tableName){
 		open : function (event,ui){
 			// there should only by one "do you wanna delete this field
 			// set it to whatever the select text is
+			$(".ui-dialog-titlebar").css("background-color", "red");
 			$('#dialog-delete-'+tableName+'-form :input')
 				.val($('#select-'+tableName+' option:selected').text());
 			

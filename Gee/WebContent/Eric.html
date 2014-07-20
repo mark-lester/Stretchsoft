@@ -68,6 +68,7 @@ hr { color: #7FA423;
     <a class="navbar-brand" href="#">Welcome to Gee</a>
     </div>
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <div id="menu" name="menu">
       <ul class="nav navbar-nav">
      	 <li class="active">
           <form action="#">
@@ -89,6 +90,9 @@ hr { color: #7FA423;
         	<button class="btn btn-default navbar-btn btn-xs" name="zap_gtfs" id="zap_gtfs">Clear GTFS</button>
     	  </form>
         </li>
+        </ul>
+      </div>
+        <ul  class="nav navbar-nav">
      	 <li class="active">
           <form action="/Gee/Help.html">
         	<button class="btn btn-default navbar-btn btn-xs" name="help" id="help">Help</button>
@@ -501,6 +505,8 @@ you will lose all the routes, trips and stoptimes if you do
 
 $("#template-select").hide();
 $("#interface").hide();
+$("#menu").hide();
+
 $("#welcome").show();
 
 MainSetup();
