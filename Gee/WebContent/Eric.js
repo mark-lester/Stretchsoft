@@ -123,6 +123,7 @@ function getTableDataInner(tableName){
 	    } 
 		if (tableName == 'Instance'){
 			save_select_row = getCookie("gee_databasename");
+			get_permissions(save_select_row);
 			console.log("catching databasename "+save_select_row);
 		}
 
@@ -258,6 +259,31 @@ function initTables(){
 	}
 }
 
+function get_permissions(databaseName){
+	console.log("getting permissions for "+databaseName);
+	var $url="/Gee/User?entity=Permissions&databaseName="+databaseName;
+	return $.ajax({
+		method:"GET",
+		dataType: 'JSON',
+		url: $url,
+		success: function(response){
+			console.log("got permissions for "+databaseName);
+			database_permissions=response;
+		 },
+		error: function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status == 404){
+		        alert(jQuery.parseJSON(xhr.responseText)['message']);
+		      } else {
+		    	alert("We have a problem Houston:- <br>"+
+		    			xhr.status + " - "+thrownError+"<br>"+
+		    			xhr.responseText);
+				$( this ).dialog( "close" );
+		      } 
+		}
+		 
+	});	
+}
+
 function initSelectForm(tableName){
 	var $template=$("#template-select").clone();
 	$template.attr('id','container-'+tableName);
@@ -269,11 +295,15 @@ function initSelectForm(tableName){
 		.attr('id',"select-"+tableName)
 		.attr('name',"select-"+tableName)
 		.change(function (){
+			pdfd=null;
 			if (tableName == 'Instance'){
 				console.log("setting db to "+$("#select-"+tableName).val());
-				setCookie('gee_databasename',$("#select-"+tableName).val());				
+				setCookie('gee_databasename',$("#select-"+tableName).val());	
+				pdfd=get_permissions($("#select-Instance").val());
 			}
-			refreshTable(tableName);
+			$.when(pdfd).done(function(){
+				refreshTable(tableName);				
+			});
 		});
 
 	$template.find('#template-opener-add')
@@ -512,9 +542,8 @@ function initDialogs(tableName){
 						);
 					},
 					error: function (xhr, ajaxOptions, thrownError) {
-					        alert(xhr.status);
-					        alert(thrownError);
-					      }
+						alert("We have a problem Houston:-The authorities have been informed");
+					}
 				});
 				$( this ).dialog( "close" );
 			    
@@ -550,6 +579,9 @@ function update_entity(tableName,values){
 					}); 
 				}
 			);
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			alert("We have a problem Houston:-The authorities have been informed");
 		}
 	});
 }
@@ -580,7 +612,11 @@ function postEditHandler(tableName,record){
 				  dataType: 'json',
 						success: function(response){
 							dfd.resolve();
+							},
+						error: function (xhr, ajaxOptions, thrownError) {
+								alert("We have a problem Houston:-The authorities have been informed");
 							}
+
 				  }
 			);
 			dfd.done(function(){
@@ -701,11 +737,10 @@ function SetupMenu(){
 				$.ajax({
 					method:"POST",
 					dataType: 'JSON',
-					async: false,
 					data:  {values : datastring},
 					url: $url,
 					success: function(response){
-						console.log("finished loading GTFS");
+						alert("finished loading GTFS");
 						refreshAll();
 						}
 				});
@@ -743,7 +778,6 @@ function SetupMenu(){
 				$.ajax({
 					method:"GET",
 					dataType: 'JSON',
-					async: false,
 					data:  {values : datastring},
 					url: $url,
 					success: function(response){
@@ -1002,6 +1036,7 @@ function drawStops(){
 					    var marker = e.target;  // you could also simply access the marker through the closure
 					    var result = marker.getLatLng();  // but using the passed event is cleaner
 					    update_station(mapobjectToValue[L.stamp(e.target)],result).done(function(){
+					    	drawStops();
 						    drawTrip($('#select-Trips').val());							    	
 					    });
 					});
@@ -1020,29 +1055,6 @@ function drawStops(){
 	);
 }
 
-function update_station(stopId,coords){
-	stationUrl="/Gee/Entity?entity=Stops&field=stopId&value="+stopId;
-	return $.getJSON(stationUrl, 
-			function( data ) {
-				$.each( data, function( key, values ) {
-					values['stopLat']=coords['lat'];
-					values['stopLon']=coords['lng'];
-					update_entity('Stops',values);
-					});
-			});		
-}
-
-function update_shape_point(hibernateId,coords){
-	shapePointUrl="/Gee/Entity?entity=Shapes&field=hibernateId&value="+hibernateId;
-	return $.getJSON(shapePointUrl, 
-			function( data ) {
-				$.each( data, function( key, values ) {
-					values['shapePtLat']=coords['lat'];
-					values['shapePtLon']=coords['lng'];
-					update_entity('Shapes',values);
-					});
-			});		
-}
 
 var shape_points=[];
 var station_points=[];
@@ -1068,9 +1080,9 @@ function drawTrip(tripId){
     	var popup_val=null;
     	if (trip_stops[i].getPopup() != null && 
     			(popup_val=trip_stops[i].getPopup().getContent()) != null){
-    		var matches= popup_val.match("/(.*)</");
-    		if (matches != null && matches.length>0){
-    			popup_val = matches[0];
+    		var matches= popup_val.match(/(.*)</);
+    		if (matches != null){
+    			popup_val = matches[1];
     		}    		
     	}
 		trip_stops[i].unbindPopup();
@@ -1121,10 +1133,10 @@ function drawTrip(tripId){
 						var popup_val="UNSET";
 						if (e.target.getPopup() != null && e.target.getPopup().getContent() != null){
 							popup_val=e.target.getPopup().getContent();
-							var matches= popup_val.match("/(.*)</");
-							if (matches != null && matches.length>0){
-								popup_val = matches[0];							
-							}
+							var matches= popup_val.match(/(.*)</);
+							if (matches != null){
+								popup_val = matches[1];							
+							} 
 						}
 						popup_val += "<br> A:"+val[3]+ " D:"+val[4];							
 						e.target.unbindPopup();
@@ -1171,6 +1183,59 @@ function drawTrip(tripId){
 	});	
 }
 
+function update_station(stopId,coords){
+	var $url="/Gee/Entity?entity=Stops&field=stopId&value="+stopId;
+	
+	return $.ajax({
+		method:"GET",
+		url: $url,
+		dataType: 'JSON',
+		success: function(data){
+			$.each( data, function( key, values ) {
+				values['stopLat']=coords['lat'];
+				values['stopLon']=coords['lng'];
+				update_entity('Stops',values);
+				});
+			drawStops();
+			drawTrip($('#select-Trips').val());
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status == 404){
+		        alert(jQuery.parseJSON(xhr.responseText)['message']);
+		      } else {
+		    	alert("We have a problem Houston:-The authorities have been informed");
+		      }
+			drawStops();
+			drawTrip($('#select-Trips').val());
+		}
+	});
+}
+
+function update_shape_point(hibernateId,coords){
+	var $url="/Gee/Entity?entity=Shapes&field=hibernateId&value="+hibernateId;
+	return $.ajax({
+		method:"GET",
+		url: $url,
+		dataType: 'JSON',
+		success: function(data){
+			$.each( data, function( key, values ) {
+				values['shapePtLat']=coords['lat'];
+				values['shapePtLon']=coords['lng'];
+				update_entity('Shapes',values);
+				});
+			drawTrip($('#select-Trips').val());
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status == 404){
+		        alert(jQuery.parseJSON(xhr.responseText)['message']);
+		      } else {
+		    	alert("We have a problem Houston:-The authorities have been informed");
+		      } 
+		}
+	});
+}
+
+
 function delete_shape_point(hibernateId){
 	var $url="/Gee/Mapdata";
 	var values={};
@@ -1191,9 +1256,7 @@ function delete_shape_point(hibernateId){
 			if (xhr.status == 404){
 		        alert(jQuery.parseJSON(xhr.responseText)['message']);
 		      } else {
-		    	alert("We have a problem Houston:- <br>"+
-		    			xhr.status + " - "+thrownError+"<br>"+
-		    			xhr.responseText);
+		    	alert("We have a problem Houston:-The authorities have been informed");
 		      } 
 		}
 	});
@@ -1221,9 +1284,7 @@ function add_shape_point_after(after, shapeId, coords){
 			if (xhr.status == 404){
 		        alert(jQuery.parseJSON(xhr.responseText)['message']);
 		      } else {
-		    	alert("We have a problem Houston:- <br>"+
-		    			xhr.status + " - "+thrownError+"<br>"+
-		    			xhr.responseText);
+		    	alert("We have a problem Houston:-The authorities have been informed");
 		      } 
 		}
 	});

@@ -43,7 +43,6 @@ public class User extends Rest {
 		String userId = getUserId(request,response);
 		response.setContentType("text/html");
 		
-		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM Instance where (ownerUserId='"+userId+"' or publicRead='1')";
 
 		switch (request.getParameter("entity")){
@@ -54,7 +53,10 @@ public class User extends Rest {
 		case "Users": // of a given database
 			query="FROM Access where userId='"+userId+"' ";
 			
-			break;							
+			break;
+		case "Permissions":
+			get_permissions(request,response,userId);
+			return;
 		}
 		if (request.getParameter("field") != null){
 			query+=" AND "+request.getParameter("field")+"='"+request.getParameter("value")+"'";
@@ -76,7 +78,8 @@ public class User extends Rest {
 		System.err.print("Want query for "+query+"\n"); 
 		
 		Object entities[] = session.createQuery(query).list().toArray();
-	
+		session.close();
+		ObjectMapper mapper = new ObjectMapper();
 		try {
 			PrintWriter out = response.getWriter();
 			out.println(mapper.writeValueAsString(entities));
@@ -86,8 +89,30 @@ public class User extends Rest {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();	 
-		}
-		session.close();
+		} 
+	}
+	
+	private void get_permissions(HttpServletRequest request, HttpServletResponse response, String userId){
+		Hashtable<String,String> record=new Hashtable<String,String>();
+		String databaseName = request.getParameter("databaseName");
+		record.put("write",admin.verifyWriteAccess(databaseName,userId) ? "1":"0");
+		record.put("read",admin.verifyReadAccess(databaseName,userId) ? "1":"0");
+		record.put("admin",admin.verifyAdminAccess(databaseName,userId) ? "1":"0");
+		record.put("own",admin.verifyOwnership(databaseName,userId) ? "1":"0");
+		record.put("name",databaseName);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			PrintWriter out = response.getWriter();
+			out.println(mapper.writeValueAsString(record));
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();	 
+		} 
+		return;
 	}
 
 	/**

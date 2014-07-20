@@ -148,11 +148,11 @@ public class Admin extends DBinterface {
 			return true;	
 		}
 		instance = (Instance)instances[0];
-		if (instance.getownerUserId().equals(userId)  || instance.getpublicWrite()==1){
+		if (instance.getownerUserId().equals(userId) || instance.getpublicWrite()==1){
 			return true;
 		}
 		session = factory.openSession();
-		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"' and writeFlag='1'").list().toArray();
+		Object access[] = session.createQuery("from Access where databaseName ='"+databaseName+"'and userId='"+userId+"' and editFlag='1'").list().toArray();
 		session.close();
 		if (access.length == 0){ // no access 
 			return false;	
@@ -163,6 +163,18 @@ public class Admin extends DBinterface {
 		return false;
 	}
 	
+	public Boolean verifyOwnership(String databaseName,String userId){
+		Instance instance=null;
+	    Session session = factory.openSession();
+
+		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		session.close();
+		if (instances.length < 1){
+			return false;
+		}
+		instance = (Instance)instances[0];
+		return instance.getownerUserId().equals(userId);
+	}
 
 	public String getInstance(Hashtable <String,String> record){
 		Instance instance=null;
