@@ -14,7 +14,6 @@ function MainSetup(){
 
 	dfd = new $.Deferred();
 	FBSetup(dfd);
-
 	dfd.done(function(){
 		initDBCookie();
 		initTableRelations();
@@ -23,20 +22,21 @@ function MainSetup(){
 		$("#interface").show();
 		$("#menu").show();
 		$("#welcome").hide();
-		refreshAll();
-		$.when().done(function(){
+		
+		$.when(refreshAll()).done(function(){
 			MapSetUp();
 			SetupMenu();			
 		});
 	});
 }
 
-function initDBCookie(){
-	databaseName=getCookie("gee_databasename");
-	if (!databaseName){
-		databaseName="gtfs";
-		setCookie("gee_databasename",databaseName);
+function getURLParameter(name) {
+	  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
 	}
+
+function initDBCookie(){
+	databaseName=getURLParameter('databaseName') || getCookie("gee_databasename") || "gtfs";
+	setCookie("gee_databasename",databaseName);
 }
 
 function refreshAll(){
@@ -1036,7 +1036,7 @@ function drawStops(){
 	mapobjectToValue=[];
 	valueToMapobject=[];
 	allStationsLayer.clearLayers();
-
+	var all_station_points=[];
 	mapurl= "/Gee/Entity?entity=Stops";
 	return $.getJSON(mapurl, 
 			function( data ) {
@@ -1047,13 +1047,18 @@ function drawStops(){
 					valueToMapobject[val['stopId']]=mapobject;
 					set_event_handlers_for_station_outside_trip(mapobject,val['stopName']);
 					allStationsLayer.addLayer(mapobject);
+					all_station_points.push([val['stopLat'],val['stopLon']])
 				});
 				allStationsLayer.bringToBack();
+				map.fitBounds(all_station_points);
 			}
 	);
 }
 
 function set_event_handlers_for_station_outside_trip(mapobject,stopName){
+	if (mapobject == null){
+		return;
+	}
 	mapobject.on('dragend', function(e) {
 	    var marker = e.target;  // you could also simply access the marker through the closure
 	    var result = marker.getLatLng();  // but using the passed event is cleaner
@@ -1093,6 +1098,9 @@ function set_event_handlers_for_station_outside_trip(mapobject,stopName){
 }
 
 function set_event_handlers_for_station_inside_trip(mapobject,arrive,depart){
+	if (mapobject == null){
+		return;
+	}
 	mapobject.removeEventListener("dblclick");
 	mapobject.on("dblclick",function(e) {
 	    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
@@ -1212,6 +1220,7 @@ function drawTripinner(tripId,dfd){
 			});			
 		}
 		dfd.resolve();
+		console.log("done trip print");
 		map.fitBounds(station_points);	
 		tripStationsLayer.bringToFront();	
 	});	
