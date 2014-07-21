@@ -404,7 +404,7 @@ function initDialogs(tableName){
 		open : function (event,ui){
 			$('#dialog-edit-'+tableName+'-form').validate().form();
 			if ($( "#dialog-edit-"+tableName ).data("edit_flag") == true){
-				init_edit_values(tableName);	
+				init_edit_values(tableName);
 				$(".ui-dialog-titlebar").css("background-color", "green");
 			} else {
 				init_create_values(tableName);
@@ -469,17 +469,15 @@ function initDialogs(tableName){
 								$('#select-'+tableName).val(values[relations[tableName]['key']]);
 								refreshChildren(tableName);
 							}); 
-							$( this ).dialog( "close" );
 						});
+						
 					 },
 					error: function (xhr, ajaxOptions, thrownError) {
 						if (xhr.status == 404){
 					        alert(jQuery.parseJSON(xhr.responseText)['message']);
 					      } else {
-					    	alert("We have a problem Houston:- <br>"+
-					    			xhr.status + " - "+thrownError+"<br>"+
-					    			xhr.responseText);
-							$( this ).dialog( "close" );
+								alert("We have a problem Houston:-The authorities have been informed");
+								$( this ).dialog( "close" );
 					      } 
 					}
 					 
@@ -487,8 +485,12 @@ function initDialogs(tableName){
 					postRefresh(tableName);
 				});
 				
-				
+				$( this ).dialog( "close" );
 			    
+			},
+			"Delete" : function () {
+				 $( this ).dialog( "close" );	
+				 $( "#dialog-delete-"+tableName ).dialog("open");
 			},
 			Cancel: function() {
 				 $( this ).dialog( "close" );
@@ -704,8 +706,6 @@ function SetupMenu(){
 	      alert("Failed to load file");
 	    }
 	  });
-
-
 
 	$("#dialog-import_gtfs" ).dialog({ 
 		open : function (event,ui){
@@ -1029,28 +1029,77 @@ function drawStops(){
 					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon, draggable: true}).addTo(map);
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					valueToMapobject[val['stopId']]=mapobject;
+					set_event_handlers_for_station_outside_trip(mapobject,val['stopName']);
 					allStationsLayer.addLayer(mapobject);
-					mapobject.on('dragend', function(e) {
-					    var marker = e.target;  // you could also simply access the marker through the closure
-					    var result = marker.getLatLng();  // but using the passed event is cleaner
-					    update_station(mapobjectToValue[L.stamp(e.target)],result).done(function(){
-					    	drawStops();
-						    drawTrip($('#select-Trips').val());							    	
-					    });
-					});
-					
-					mapobject.on('mouseover', function(e) {
-						e.target.bindPopup(val['stopName']).openPopup();
-						});
-					mapobject.on("dblclick", function(e){
-		    			$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
-		    			$( "#dialog-edit-StopTimes").data("edit_flag",false);
-		    			$( "#dialog-edit-StopTimes").dialog( "open" );
-		    			});
 				});
 				allStationsLayer.bringToBack();
 			}
 	);
+}
+
+function set_event_handlers_for_station_outside_trip(mapobject,stopName){
+	mapobject.on('dragend', function(e) {
+	    var marker = e.target;  // you could also simply access the marker through the closure
+	    var result = marker.getLatLng();  // but using the passed event is cleaner
+	    update_station(mapobjectToValue[L.stamp(e.target)],result).done(function(){
+	    	$.when(drawStops()).done(function (){
+			    drawTrip($('#select-Trips').val());							    		    		
+	    	});
+	    });
+	});
+
+	mapobject.on("click", function(e){
+		$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+		});
+		
+	mapobject.removeEventListener("dblclick");
+	mapobject.on("dblclick", function(e){
+		$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+		$( "#dialog-edit-StopTimes").data("edit_flag",false);
+		$( "#dialog-edit-StopTimes").dialog( "open" );
+		});
+	
+   	var popup_val=stopName;
+	if (mapobject.getPopup() != null && 
+			(popup_val=mapobject.getPopup().getContent()) != null){
+		var matches= popup_val.match(/(.*)</);
+		if (matches != null){
+			popup_val = matches[1];
+		} 
+		
+		mapobject.unbindPopup();
+	}
+	mapobject.bindPopup(popup_val);
+	mapobject.on('mouseover', function(e) {
+		this.openPopup();
+		});
+	mapobject.setIcon(trainIcon);    
+}
+
+function set_event_handlers_for_station_inside_trip(mapobject,arrive,depart){
+	mapobject.removeEventListener("dblclick");
+	mapobject.on("dblclick",function(e) {
+	    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
+	    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
+	    $( "#dialog-edit-StopTimes").data("edit_flag",true);
+	    $( "#dialog-edit-StopTimes").dialog( "open" );
+	});
+
+	var popup_val=null;
+	if (mapobject.getPopup() != null && mapobject.getPopup().getContent() != null){
+		popup_val=mapobject.getPopup().getContent();
+		var matches= popup_val.match(/(.*)</);
+		if (matches != null){
+			popup_val = matches[1];							
+		} 
+		mapobject.unbindPopup();
+	}
+	popup_val += "<br> A:"+arrive+ " D:"+depart;							
+	mapobject.bindPopup(popup_val);
+	mapobject.on('mouseover', function(e) {
+		this.openPopup();
+	});
+	mapobject.setIcon(trainboldIcon);	
 }
 
 
@@ -1069,26 +1118,11 @@ function drawTrip(tripId){
     
     // remove the last trip
     for (i=0;i < trip_stops.length;i++){
-    	trip_stops[i].on("dblclick", function(e){
-    			$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
-    			$( "#dialog-edit-StopTimes").data("edit_flag",false);
-    			$( "#dialog-edit-StopTimes").dialog( "open" );
-    			});
-    	trip_stops[i].setIcon(trainIcon);
-    	var popup_val=null;
-    	if (trip_stops[i].getPopup() != null && 
-    			(popup_val=trip_stops[i].getPopup().getContent()) != null){
-    		var matches= popup_val.match(/(.*)</);
-    		if (matches != null){
-    			popup_val = matches[1];
-    		}    		
-    	}
-		trip_stops[i].unbindPopup();
-		trip_stops[i].bindPopup(popup_val).openPopup();
+		set_event_handlers_for_station_outside_trip(trip_stops[i]);
+	//	allStationsLayer.addLayer(trip_stops[i]);
     }
-	tripStationsLayer.clearLayers();
-
-    
+    tripStationsLayer.clearLayers();
+	trip_stops=[];
 	var shape_do = $.getJSON(shapePointsUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
@@ -1117,31 +1151,9 @@ function drawTrip(tripId){
 			function( data ) {
 				$.each( data, function( key, val ) {
 					mapobject=valueToMapobject[val[2]];
-					mapobject.setIcon(trainboldIcon);
-					tripStationsLayer.addLayer(mapobject);
 					trip_stops.push(mapobject);
-
-					mapobject.on("dblclick",function(e) {
-					    $( "#select-StopTimes").val(mapobjectToValue[L.stamp(e.target)]);
-					    $( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
-					    $( "#dialog-edit-StopTimes").data("edit_flag",true);
-					    $( "#dialog-edit-StopTimes").dialog( "open" );
-					});
-					mapobject.on('mouseover', function(e) {
-						var popup_val="UNSET";
-						if (e.target.getPopup() != null && e.target.getPopup().getContent() != null){
-							popup_val=e.target.getPopup().getContent();
-							var matches= popup_val.match(/(.*)</);
-							if (matches != null){
-								popup_val = matches[1];							
-							} 
-						}
-						popup_val += "<br> A:"+val[3]+ " D:"+val[4];							
-						e.target.unbindPopup();
-						e.target.bindPopup(popup_val).openPopup();
-						});
-
-					tripStationsLayer.addLayer(mapobject);
+					set_event_handlers_for_station_inside_trip(mapobject,val[3],val[4]);
+					//tripStationsLayer.addLayer(mapobject);
 					station_points.push([val[0],val[1]]);
 				});
 
@@ -1194,8 +1206,9 @@ function update_station(stopId,coords){
 				values['stopLon']=coords['lng'];
 				update_entity('Stops',values);
 				});
-			drawStops();
-			drawTrip($('#select-Trips').val());
+			$.when(drawStops()).done(function(){
+				drawTrip($('#select-Trips').val());				
+			});
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			if (xhr.status == 404){
@@ -1203,8 +1216,9 @@ function update_station(stopId,coords){
 		      } else {
 		    	alert("We have a problem Houston:-The authorities have been informed");
 		      }
-			drawStops();
-			drawTrip($('#select-Trips').val());
+			$.when(drawStops()).done(function(){
+				drawTrip($('#select-Trips').val());				
+			});
 		}
 	});
 }
