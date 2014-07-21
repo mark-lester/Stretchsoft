@@ -272,11 +272,7 @@ function get_permissions(databaseName){
 			database_permissions=response;
 		 },
 		error: function (xhr, ajaxOptions, thrownError) {
-			if (xhr.status == 404){
-		        alert(jQuery.parseJSON(xhr.responseText)['message']);
-		      } else {
-			    	alert("We have a problem Houston:-The authorities have been informed");
-		      } 
+			request_error_alert(xhr);
 		}
 		 
 	});	
@@ -473,12 +469,7 @@ function initDialogs(tableName){
 						
 					 },
 					error: function (xhr, ajaxOptions, thrownError) {
-						if (xhr.status == 404){
-					        alert(jQuery.parseJSON(xhr.responseText)['message']);
-					      } else {
-								alert("We have a problem Houston:-The authorities have been informed");
-								$( this ).dialog( "close" );
-					      } 
+						request_error_alert(xhr);
 					}
 					 
 				}).done(function(){
@@ -542,7 +533,7 @@ function initDialogs(tableName){
 						);
 					},
 					error: function (xhr, ajaxOptions, thrownError) {
-						alert("We have a problem Houston:-The authorities have been informed");
+						request_error_alert(xhr);
 					}
 				});
 				$( this ).dialog( "close" );
@@ -581,9 +572,17 @@ function update_entity(tableName,values){
 			);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			alert("We have a problem Houston:-The authorities have been informed");
+			request_error_alert(xhr);
 		}
 	});
+}
+
+function request_error_alert(xhr){
+	if (xhr.status == 404){
+        alert(jQuery.parseJSON(xhr.responseText)['message']);
+      } else {
+    	alert("Internal Error: An error has been logged");
+      }
 }
 
 
@@ -614,7 +613,7 @@ function postEditHandler(tableName,record){
 							dfd.resolve();
 							},
 						error: function (xhr, ajaxOptions, thrownError) {
-								alert("We have a problem Houston:-The authorities have been informed");
+							request_error_alert(xhr);
 							}
 
 				  }
@@ -1211,11 +1210,7 @@ function update_station(stopId,coords){
 			});
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			if (xhr.status == 404){
-		        alert(jQuery.parseJSON(xhr.responseText)['message']);
-		      } else {
-		    	alert("We have a problem Houston:-The authorities have been informed");
-		      }
+			request_error_alert(xhr);
 			$.when(drawStops()).done(function(){
 				drawTrip($('#select-Trips').val());				
 			});
@@ -1236,13 +1231,10 @@ function update_shape_point(hibernateId,coords){
 				update_entity('Shapes',values);
 				});
 			drawTrip($('#select-Trips').val());
+			refreshTable('Shapes');
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			if (xhr.status == 404){
-		        alert(jQuery.parseJSON(xhr.responseText)['message']);
-		      } else {
-		    	alert("We have a problem Houston:-The authorities have been informed");
-		      } 
+			request_error_alert(xhr);
 		}
 	});
 }
@@ -1263,13 +1255,10 @@ function delete_shape_point(hibernateId){
 		data: {values: datastring},
 		success: function(response){
 			drawTrip($('#select-Trips').val());
+			refreshTable('Shapes');
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			if (xhr.status == 404){
-		        alert(jQuery.parseJSON(xhr.responseText)['message']);
-		      } else {
-		    	alert("We have a problem Houston:-The authorities have been informed");
-		      } 
+			request_error_alert(xhr);
 		}
 	});
 }
@@ -1291,13 +1280,10 @@ function add_shape_point_after(after, shapeId, coords){
 		url: $url,
 		success: function(response){
 			drawTrip($('#select-Trips').val());
+			refreshTable('Shapes');
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			if (xhr.status == 404){
-		        alert(jQuery.parseJSON(xhr.responseText)['message']);
-		      } else {
-		    	alert("We have a problem Houston:-The authorities have been informed");
-		      } 
+			request_error_alert(xhr);
 		}
 	});
 }
@@ -1315,13 +1301,10 @@ function create_shape_from_trip(tripId){
 		url: $url,
 		success: function(response){
 			drawTrip($('#select-Trips').val());
+			refreshTable('Shapes');
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			if (xhr.status == 404){
-		        alert(jQuery.parseJSON(xhr.responseText)['message']);
-		      } else {
-			    	alert("We have a problem Houston:-The authorities have been informed");
-		      } 
+			request_error_alert(xhr);
 		}
 	});
 	
