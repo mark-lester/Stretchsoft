@@ -59,6 +59,7 @@ public class DBinterface {
     public SAXParser saxParser;
     public XMLReader xmlReader;
     public static int session_count=0;
+    public Configuration configuration=null;
 
 //    public Transaction tx = null;
 //    public Session session = null;
@@ -219,7 +220,7 @@ public class DBinterface {
     }
     
     public SessionFactory configureSessionFactory() throws HibernateException { 	
-        Configuration configuration = new Configuration();   
+        configuration = new Configuration();   
          configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
          System.err.println(" USERNAME="+

@@ -175,6 +175,18 @@ public class Admin extends DBinterface {
 		instance = (Instance)instances[0];
 		return instance.getownerUserId().equals(userId);
 	}
+	
+	public Boolean verifyExists(String databaseName){
+		Instance instance=null;
+	    Session session = factory.openSession();
+
+		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
+		session.close();
+		if (instances.length < 1){
+			return false;
+		}
+		return true;
+	}
 
 	public String getInstance(Hashtable <String,String> record){
 		Instance instance=null;
@@ -199,9 +211,9 @@ public class Admin extends DBinterface {
 	    try {
             // Create a connection to the database.
             Connection connection = DriverManager.getConnection(
-            		hibernateConfig.properties.get("hibernate.connection.url"), 
-            		hibernateConfig.properties.get("hibernate.connection.username"), 
-            		hibernateConfig.properties.get("hibernate.connection.password"));
+            		configuration.getProperty("hibernate.connection.url"), 
+            		configuration.getProperty("hibernate.connection.username"), 
+            		configuration.getProperty("hibernate.connection.password"));
             
             PreparedStatement statement =
                     connection.prepareStatement("CREATE DATABASE IF NOT EXISTS "+databaseName);
@@ -238,9 +250,9 @@ public class Admin extends DBinterface {
         try {
             // Create a connection to the database.
             Connection connection = DriverManager.getConnection(
-            		hibernateConfig.properties.get("hibernate.connection.url"), 
-            		hibernateConfig.properties.get("hibernate.connection.username"), 
-            		hibernateConfig.properties.get("hibernate.connection.password"));
+            		configuration.getProperty("hibernate.connection.url"), 
+            		configuration.getProperty("hibernate.connection.username"), 
+            		configuration.getProperty("hibernate.connection.password"));
             
             PreparedStatement statement =
                     connection.prepareStatement("DROP DATABASE IF EXISTS "+databaseName);

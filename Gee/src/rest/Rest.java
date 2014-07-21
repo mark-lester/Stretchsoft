@@ -118,11 +118,12 @@ public class Rest extends HttpServlet {
 		admin.getUser(record);
 	
 		
-		if (databaseName == null){//we dont have a database  set, so choose the default, "gtfs"
+		if (databaseName == null || !admin.verifyExists(databaseName)){//we dont have a database  set, so choose the default, "gtfs"
 			databaseName = "gtfs";
 		    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
 		    response.addCookie(cookie1); 
 		}
+		
 		gtfs = getGtfs(databaseName,userId);
 		
 		return userId;

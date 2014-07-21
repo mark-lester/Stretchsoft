@@ -195,7 +195,7 @@ hr { color: #7FA423;
 <fieldset>
 	<input id="hibernateId" type=hidden>
 	<label for="databaseName">Database Name</label>
-    <input id="databaseName" name="databaseName" size=10 maxlength=10 required key><br>
+    <input id="databaseName" name="databaseName" size=10 maxlength=10 noSpace required key><br>
 	<label for="description">Description </label>
     <input id="description" name="description" size=30 maxlength=100 required display><br>
 	<label for="publicRead">Public Read</label>
@@ -463,7 +463,7 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="shapePtLon">Lat </label>
     <input id="shapePtLon" name="shapePtLon" size=10 maxlength=10 required display><br>
   	<label for="shapePtSequence">Sequence </label>
-    <input id="shapePtSequence" name="shapePtSequence" size=10 maxlength=10 required order><br>
+    <input id="shapePtSequence" name="shapePtSequence" size=10 maxlength=10 required order readonly><br>
   	<label for="shapeDistTravelled">Distance </label>
     <input id="shapeDistTravelled" name="shapeDistTravelled" size=10 maxlength=10 required  display><br>
 </fieldset>

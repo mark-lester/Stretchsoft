@@ -2,12 +2,21 @@ var hid_lookup=[];
 var relations=[];
 var get_table_deffereds=[];
 var GTFS_Upload_file=null;
-
+var rules={};
 function MainSetup(){
+	$(document).ready(function(){
+		  jQuery.validator.addMethod("noSpace", function(value, element) { 
+		  return value.indexOf(" ") < 0 && value != ""; 
+		}, "No space please and don't leave it empty");
+	});
+	
+	
+
 	dfd = new $.Deferred();
 	FBSetup(dfd);
 
 	dfd.done(function(){
+		initDBCookie();
 		initTableRelations();
 		initTables();
 		
@@ -20,6 +29,14 @@ function MainSetup(){
 			SetupMenu();			
 		});
 	});
+}
+
+function initDBCookie(){
+	databaseName=getCookie("gee_databasename");
+	if (!databaseName){
+		databaseName="gtfs";
+		setCookie("gee_databasename",databaseName);
+	}
 }
 
 function refreshAll(){
