@@ -1123,7 +1123,17 @@ var shape_points=[];
 var station_points=[];
 var trip_stops=[];
 var shapeSequence={};
+var drawTrip_dfd = null;
+
 function drawTrip(tripId){
+	console.log("drawTrip request");
+	$.when(drawTrip_dfd).done(function (){
+		drawTrip_dfd = new $.Deferred();
+		drawTripinner(tripId,drawTrip_dfd);
+	});
+}
+
+function drawTripinner(tripId,dfd){
 	var i=0;
 	// TODO fix Mapdata?action=stops to retyurn a labelled record, and not have to go val[0,1,...]
 	// Entity is not cool enough to do the above
@@ -1131,7 +1141,6 @@ function drawTrip(tripId){
 	shapePointsUrl="/Gee/Entity?entity=Shapes&field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
     shape_points=[];
     station_points=[];
-    
     // remove the last trip
     for (i=0;i < trip_stops.length;i++){
 		set_event_handlers_for_station_outside_trip(trip_stops[i]);
@@ -1202,11 +1211,11 @@ function drawTrip(tripId){
 				create_shape_from_trip(tripId);
 			});			
 		}
-
-		map.fitBounds(station_points);			
-		
-		tripStationsLayer.bringToFront();		
+		dfd.resolve();
+		map.fitBounds(station_points);	
+		tripStationsLayer.bringToFront();	
 	});	
+	return dfd;
 }
 
 function update_station(stopId,coords){
