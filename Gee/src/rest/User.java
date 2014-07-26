@@ -1,6 +1,7 @@
 package rest;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import java.io.PrintWriter;
 import java.util.Hashtable;
@@ -177,7 +178,12 @@ public class User extends Rest {
 				switch(entity){
 				case "Instance":
 					System.err.print("About to call create database\n"); 
-					success = admin.CreateMySqlDatabase(record.get("databaseName"));
+					InputStream s =getClass().getClassLoader().getResourceAsStream("rest/create-gtfs.sql");
+					System.err.println("SQL STREAM = "+s);
+					success = admin.CreateMySqlDatabase(
+								record.get("databaseName"),
+								getClass().getClassLoader().getResourceAsStream("rest/create-gtfs.sql")
+								);							
 					break;
 				case "Invite":
 					// send an email to the invitee

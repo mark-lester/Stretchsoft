@@ -82,14 +82,15 @@ public class Loader extends Rest {
 		int length=decodedBytes.length;
 		System.err.println("decoded bytes length = "+length);
 		if (action==null)action=""; // switch doesnt like null
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
 		switch(action){
 		case "import":
-			gtfs.runLoader(decodedBytes);
+			gtfs.runLoader(decodedBytes,out);
 			break;
 		}
 		
 		try {
-			PrintWriter out = response.getWriter();
 			out.println(mapper.writeValueAsString(record.get("action")));
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();

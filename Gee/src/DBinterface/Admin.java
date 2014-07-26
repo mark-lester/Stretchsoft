@@ -1,6 +1,9 @@
 package DBinterface;
 import java.util.concurrent.*;
+
 import java.io.IOException;
+import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,6 +13,11 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import org.hibernate.Session;
 import admin.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class Admin extends DBinterface {
 	   private static final Semaphore semaphore= new Semaphore(1);
@@ -37,11 +45,9 @@ public class Admin extends DBinterface {
  * GrantUserAdminAccess adminId,userId,databaseName,[true,false]
  *   
  */
-	private static String sql_commands=null;
     
 	public Admin(){
-		
-		super("./hibernate.admin","admin");
+		super("./hibernate/admin","admin");
 	}
 	
 	public Admin(String hibernateConfigDirectory,String databaseName){
@@ -207,7 +213,7 @@ public class Admin extends DBinterface {
 		return instance.getdatabaseName();
 	}	
 	
-	public boolean CreateMySqlDatabase(String databaseName) {
+	public boolean CreateMySqlDatabase(String databaseName,InputStream s) {
 	    try {
             // Create a connection to the database.
             Connection connection = DriverManager.getConnection(
@@ -221,8 +227,9 @@ public class Admin extends DBinterface {
             statement =
                     connection.prepareStatement("USE "+databaseName);
             statement.execute();
-            if (sql_commands == null) sql_commands = readFile("./hibernate/gtfs/create-gtfs.sql", Charset.defaultCharset());
-			for (String command : sql_commands.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/","").split(";")){
+            String sql_commands =  getStringFromInputStream(s);
+
+            for (String command : sql_commands.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/","").split(";")){
 				command = command.trim();
 				if (command.length() == 0) continue;
 				System.err.println("SQL COMMAND = "+command); 
@@ -263,6 +270,36 @@ public class Admin extends DBinterface {
         }
         return true;
     }
+	// convert InputStream to String
+		private static String getStringFromInputStream(InputStream is) {
+	 
+			BufferedReader br = null;
+			StringBuilder sb = new StringBuilder();
+	 
+			String line;
+			try {
+	 
+				br = new BufferedReader(new InputStreamReader(is));
+				while ((line = br.readLine()) != null) {
+					sb.append(line);
+				}
+	 
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+	 
+			return sb.toString();
+	 
+		}
+	 
 
 }// end class
   

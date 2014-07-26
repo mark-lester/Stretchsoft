@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "file://localhost/home/Gee/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="admin.Invite" table="invite">
+      <meta attribute="class-description">
+         This class contains the user detail. 
+      </meta>
+      <id name="hibernateId" type="int" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+      <property name="fromUserId" column="from_user_id" type="string"/>
+      <property name="toUserId" column="to_user_id" type="string"/>
+      <property name="databaseName" column="database_name" type="string"/>
+      <property name="accessKey" column="access_key" type="string"/>
+      <property name="grantEdit" column="grant_edit_flag" type="integer"/>
+      <property name="grantAdmin" column="grant_admin_flag" type="integer"/>
+   </class>
+</hibernate-mapping>
+

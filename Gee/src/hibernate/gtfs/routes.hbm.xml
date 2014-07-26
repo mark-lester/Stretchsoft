@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "file://localhost/home/Gee/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="tables.Routes" table="routes">
+      <meta attribute="class-description">
+         This class contains the routes detail. 
+      </meta>
+      <id name="hibernateId" type="integer" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+      
+      <property name="routeId" column="route_id" type="string" unique="true"/>
+      <property name="agencyId" column="agency_id" type="string"/>
+      <property name="routeShortName" column="route_short_name" type="string"/>
+      <property name="routeLongName" column="route_long_name" type="string"/>
+      <property name="routeDesc" column="route_desc" type="string"/>
+      <property name="routeType" column="route_type" type="integer"/>
+      <property name="routeUrl" column="route_url" type="string"/>
+      <property name="routeColor" column="route_color" type="string"/>
+      <property name="routeTextColor" column="route_text_color" type="string"/>
+   </class>
+</hibernate-mapping>

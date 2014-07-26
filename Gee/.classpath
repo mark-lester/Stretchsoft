@@ -23,5 +23,6 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/jackson-core-asl-1.9.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/org-apache-commons-lang.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/mysql-connector-java-5.1.28-bin.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-io-2.4.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

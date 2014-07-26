@@ -21,7 +21,7 @@ public static void main(String[] args) {
 	if(cmd.hasOption("d")) {
 		gtfs.runDumper();
 	} else {
-		gtfs.runLoader();
+//		gtfs.runLoader();
 	}
   }
 }

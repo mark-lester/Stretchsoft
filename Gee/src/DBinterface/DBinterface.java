@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
 
 
 import java.util.Enumeration;
@@ -26,7 +27,7 @@ import java.io.ByteArrayOutputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
+import org.xml.sax.InputSource;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -100,7 +101,6 @@ public class DBinterface {
             throw new ExceptionInInitializerError(ex);
         }   
 
-        hibernateConfig = configStore.get(hibernateConfigDirectory);  
         spf = SAXParserFactory.newInstance();   
         spf.setNamespaceAware(true);
         try {
@@ -110,22 +110,14 @@ public class DBinterface {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	    
-        /*
-        if (!configStore.containsKey("/home/Gee/config/gtfs")){
-        	configStore.put("/home/Gee/config/gtfs",ReadConfig("/home/Gee/config/gtfs"));        	
-        }
-        
-        if (!configStore.containsKey("/home/Gee/config/admin")){
-        	configStore.put("/home/Gee/config/admin",ReadConfig("/home/Gee/config/admin"));        	
-        }
-        */
+
         if (!configStore.containsKey(hibernateConfigDirectory)){
         	configStore.put(hibernateConfigDirectory,ReadConfig(hibernateConfigDirectory));        	
         }
+        hibernateConfig = configStore.get(hibernateConfigDirectory);  
     }
     
-    public void runLoader(byte[] zipData) {
+    public void runLoader(byte[] zipData, PrintWriter out) {
     	 // this is where you start, with an InputStream containing the bytes from the zip file
     	InputStream zipStream = new ByteArrayInputStream(zipData);
         ZipInputStream zis = new ZipInputStream(zipStream);
@@ -159,24 +151,13 @@ public class DBinterface {
         
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
-            System.out.println("Loading "+resourceFile+"...\n");       
+            out.println("Loading "+resourceFile+"...\n");       
             LoadTable(resourceFile,zipHash);
-            System.out.println("Done "+resourceFile+"\n");       
+            out.println("Done "+resourceFile+"\n");       
         }   
     }
+
     
-    public void runLoader() {
-        // get the tables out of the hibernate.cfg.xml.
-        // you can presumably do that via hibernate itself but I couldn't work out how to do that
-
-        for (String resourceFile : hibernateConfig.resources) {
-            // load the specific table
-            System.out.println("Loading "+resourceFile+"...\n");       
-            LoadTable(resourceFile,null);
-            System.out.println("Done "+resourceFile+"\n");       
-        }   
-    }
-
     public void runZapper() {
         // get the tables out of the hibernate.cfg.xml.
         // you can presumably do that via hibernate itself but I couldn't work out how to do that
@@ -229,7 +210,8 @@ public class DBinterface {
     
     public SessionFactory configureSessionFactory() throws HibernateException { 	
         configuration = new Configuration();   
-         configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
+//        configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
+        configuration.configure(hibernateConfigDirectory+"/hibernate.cfg.xml");
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
          System.err.println(" USERNAME="+
         	        configuration.getProperty("hibernate.connection.username")+
@@ -247,11 +229,13 @@ public class DBinterface {
     private HibernateConfig ReadConfig(String directory) 
     {
         // reads the config to get the list of mapping (resource) files
-
+System.err.println("ReadConfig("+directory+")");
+InputStream s = getClass().getClassLoader().getResourceAsStream(directory+"hibernate.cfg.xml");
+InputSource i = new InputSource(s);
         HibernateConfig hibernateConfig=new HibernateConfig();
         try{
             xmlReader.setContentHandler(hibernateConfig);
-            xmlReader.parse(directory+"/hibernate.cfg.xml");
+            xmlReader.parse(i);
         } catch (SAXException ex) {
             System.err.println(ex);       
         } catch (IOException ex) {
@@ -272,10 +256,12 @@ public class DBinterface {
     private TableMap ReadTableMap(String resourceFile, String directory) 
     {
         // populates a hash of the field names, and also initialises "className" and "tableName" strings
-        TableMap tableMap=new TableMap();
+    	InputStream s = getClass().getClassLoader().getResourceAsStream(resourceFile);
+    	InputSource i = new InputSource(s);
+      TableMap tableMap=new TableMap();
         try{
             xmlReader.setContentHandler(tableMap);
-            xmlReader.parse(directory+"/"+resourceFile);
+            xmlReader.parse(i);
         } catch (SAXException ex) {
             System.err.println(ex);       
         } catch (IOException ex) {
@@ -444,9 +430,10 @@ public class DBinterface {
          return true;
      }
      
-public int existsRecord(Session session, String entityName,TableMap tableMap,Hashtable <String,String> record) throws HibernateException{
+public int existsRecord(Session session, String className,TableMap tableMap,Hashtable <String,String> record) throws HibernateException{
 	String query = new String();
 	Boolean first=true;
+	String entityName = className.substring(className.lastIndexOf(".")+1);
 	query += "FROM "+entityName;
 	for (String keyName : tableMap.keyFields) {
         if (first){
@@ -457,7 +444,7 @@ public int existsRecord(Session session, String entityName,TableMap tableMap,Has
         first=false;
         query += keyName+"='"+record.get(keyName)+"'";
     }
-	if (!first){ // these are no keys, nothing exists for de-duping
+	if (first){ // these are no keys, nothing exists for de-duping
 		return 0; 
 	}
 	Object entities[]=session.createQuery(query).list().toArray();
@@ -468,8 +455,9 @@ public int existsRecord(Session session, String entityName,TableMap tableMap,Has
     Method m;
     int hibernateId=0;
 	try {
-		cls = Class.forName(entityName);
-		m = cls.getMethod("gethibernateId", cls);
+		cls = Class.forName(className);
+		               
+		m = cls.getMethod("gethibernateId");
 	    hibernateId = (int)m.invoke(entities[0]);
 	} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 		// TODO Auto-generated catch block

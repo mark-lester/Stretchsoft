@@ -753,6 +753,9 @@ function SetupMenu(){
 					dataType: 'JSON',
 					data:  {values : datastring},
 					url: $url,
+					onprogress : function(xhr){
+						alert("I got this "+xhr.responseText);
+					},
 					success: function(response){
 						alert("finished loading GTFS");
 						refreshAll();
@@ -792,7 +795,6 @@ function SetupMenu(){
 				$.ajax({
 					method:"GET",
 					dataType: 'JSON',
-					data:  {values : datastring},
 					url: $url,
 					success: function(response){
 						console.log("finished zapping GTFS");

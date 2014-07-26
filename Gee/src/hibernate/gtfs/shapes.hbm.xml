@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "file://localhost/home/Gee/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="tables.Shapes" table="shapes">
+      <meta attribute="class-description">
+         This class contains the shapes detail. 
+      </meta>
+      <id name="hibernateId" type="integer" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+      
+      <property name="shapeId" column="shape_id" type="string" unique="true"/>
+      <property name="shapePtLat" column="shape_pt_lat" type="double"/>
+      <property name="shapePtLon" column="shape_pt_lon" type="double"/>
+      <property name="shapePtSequence" column="shape_pt_sequence" type="integer" unique="true"/>
+      <property name="shapeDistTraveled" column="shape_dist_traveled" type="double"/>
+   </class>
+</hibernate-mapping>
+

@@ -19,22 +19,27 @@ import org.codehaus.jackson.map.ObjectMapper;
 import DBinterface.Admin;
 import DBinterface.Gtfs;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.ServletContext;
 
 public class Rest extends HttpServlet {
 	public static Gtfs gtfs=null;
 	public static Admin admin=null;
 	public String databaseName="gtfs";  //should really be null
 	public static Hashtable <String,Gtfs> gtfsStore=null;
-	
+	public static String server_root=null;
 	private static final long serialVersionUID = 1L;
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
-
+	ServletContext context;
 	
     public Rest () {
         super();
+//		server_root=System.getProperty("catalina.base");
+//		context = getServletContext();
+		//this.getServletContext().getRealPath("/");
+
         if (admin == null){
-        	admin = new Admin();
+        	admin = new Admin("hibernate/admin/","admin");
         }
         if (gtfsStore == null){
             gtfsStore = new Hashtable <String,Gtfs>();        	
@@ -132,7 +137,7 @@ public class Rest extends HttpServlet {
 	public Gtfs getGtfs(String databaseName, String userId){
 		if (gtfsStore.get(databaseName) == null){
 			// TODO make sure it's there, or at least in the instances table.
-			gtfsStore.put(databaseName, new Gtfs("./hibernate.gtfs",databaseName,userId));
+			gtfsStore.put(databaseName, new Gtfs("hibernate/gtfs/",databaseName,userId));
 		}
 		
 		return gtfsStore.get(databaseName);
