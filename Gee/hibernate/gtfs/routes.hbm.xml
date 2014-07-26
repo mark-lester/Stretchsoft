@@ -12,7 +12,7 @@
          <generator class="native"/>
       </id>
       
-      <property name="routeId" column="route_id" type="string"/>
+      <property name="routeId" column="route_id" type="string" unique="true"/>
       <property name="agencyId" column="agency_id" type="string"/>
       <property name="routeShortName" column="route_short_name" type="string"/>
       <property name="routeLongName" column="route_long_name" type="string"/>

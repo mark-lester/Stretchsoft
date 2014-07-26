@@ -11,7 +11,7 @@
       <id name="hibernateId" type="int" column="hibernate_id">
          <generator class="native"/>
       </id>
-      <property name="agencyId" column="agency_id" type="string"/>
+      <property name="agencyId" column="agency_id" type="string" unique="true"/>
       <property name="agencyName" column="agency_name" type="string"/>
       <property name="agencyUrl" column="agency_url" type="string"/>
       <property name="agencyTimezone" column="agency_timezone" type="string"/>

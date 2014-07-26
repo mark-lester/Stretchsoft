@@ -12,7 +12,7 @@
          <generator class="native"/>
       </id>
       
-      <property name="fareId" column="fare_id" type="string"/>
+      <property name="fareId" column="fare_id" type="string"  unique="true"/>
       <property name="pricE" column="price" type="string"/>
       <property name="currencyType" column="currency_type" type="string"/>
       <property name="paymentMethod" column="payment_method" type="boolean"/>

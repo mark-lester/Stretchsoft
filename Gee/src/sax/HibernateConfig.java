@@ -9,7 +9,10 @@ public class HibernateConfig extends DefaultHandler {
 	public List<String> resources = new ArrayList<>();
 	public Hashtable <String,TableMap> tableMaps=new Hashtable<String,TableMap> ();
 	public Hashtable <String,String> properties=new Hashtable<String,String> ();
+	public Hashtable <String,String> keys=new Hashtable<String,String> ();	
 	public String current_property=null;
+	public String is_key=null;
+	
 	   
 	public void startElement(
 				String namespaceURI,
@@ -22,6 +25,7 @@ public class HibernateConfig extends DefaultHandler {
 		}
 		if (localName.matches("property")){
 			current_property=atts.getValue("name");
+			is_key=atts.getValue("key");
 		}
 	}
 

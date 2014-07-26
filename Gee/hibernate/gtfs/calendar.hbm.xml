@@ -12,7 +12,7 @@
          <generator class="native"/>
       </id>
       
-      <property name="serviceId" column="service_id" type="string"/>
+      <property name="serviceId" column="service_id" type="string" unique="true"/>
       <property name="monDay" column="monday" type="integer"/>
       <property name="tuesDay" column="tuesday" type="integer"/>
       <property name="wednesDay" column="wednesday" type="integer"/>

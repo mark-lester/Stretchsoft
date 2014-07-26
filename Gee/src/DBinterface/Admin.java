@@ -41,7 +41,7 @@ public class Admin extends DBinterface {
     
 	public Admin(){
 		
-		super("/home/Gee/config/admin","admin");
+		super("./hibernate.admin","admin");
 	}
 	
 	public Admin(String hibernateConfigDirectory,String databaseName){
@@ -221,7 +221,7 @@ public class Admin extends DBinterface {
             statement =
                     connection.prepareStatement("USE "+databaseName);
             statement.execute();
-            if (sql_commands == null) sql_commands = readFile("/home/Gee/config/gtfs/create-gtfs.sql", Charset.defaultCharset());
+            if (sql_commands == null) sql_commands = readFile("./hibernate/gtfs/create-gtfs.sql", Charset.defaultCharset());
 			for (String command : sql_commands.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/","").split(";")){
 				command = command.trim();
 				if (command.length() == 0) continue;

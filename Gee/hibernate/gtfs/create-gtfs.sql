@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS `agency`;
 
 CREATE TABLE `agency` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	agency_id VARCHAR(255),
+	agency_id VARCHAR(255) UNIQUE KEY,
 	agency_name VARCHAR(255) NOT NULL,
 	agency_url VARCHAR(255) NOT NULL,
 	agency_timezone VARCHAR(255) NOT NULL,
@@ -81,11 +81,10 @@ CREATE TABLE `routes` (
 	route_type INTEGER,
 	route_url VARCHAR(255),
 	route_color VARCHAR(255),
-	route_text_color VARCHAR(255)/*.
+	route_text_color VARCHAR(255),
 	 FOREIGN KEY (agency_id) 
         REFERENCES agency(agency_id)
         ON DELETE CASCADE
-        */
 );
 
 /*==========================================*/
@@ -106,9 +105,9 @@ CREATE TABLE `trips` (
 	KEY `route_id` (route_id),
 	KEY `service_id` (service_id),
 	KEY `direction_id` (direction_id),
-	KEY `block_id` (block_id)/*,
+	KEY `block_id` (block_id),
 	FOREIGN KEY (route_id) references routes(route_id),
-	FOREIGN KEY (service_id) references calendar(calendar_id)*/
+	FOREIGN KEY (service_id) references calendar(calendar_id)
 );
 
 /*==========================================*/
@@ -130,9 +129,9 @@ CREATE TABLE `stop_times` (
 	KEY `stop_id` (stop_id),
 	KEY `stop_sequence` (stop_sequence),
 	KEY `pickup_type` (pickup_type),
-	KEY `drop_off_type` (drop_off_type)/*,
+	KEY `drop_off_type` (drop_off_type),
 	FOREIGN KEY (trip_id) references trips(trip_id),
-	FOREIGN KEY (stop_id) references stops(stop_id)*/
+	FOREIGN KEY (stop_id) references stops(stop_id)
 );
 
 /*==========================================*/
@@ -147,8 +146,8 @@ CREATE TABLE `calendar_dates` (
 	`date` DATE ,
 	exception_type INTEGER,
 	KEY `service_id` (service_id),
-	KEY `exception_type` (exception_type)/*,
-	FOREIGN KEY (service_id) references calendar(service_id)*/
+	KEY `exception_type` (exception_type),
+	FOREIGN KEY (service_id) references calendar(service_id)
 );
 
 /*==========================================*/
@@ -175,9 +174,9 @@ CREATE TABLE fare_rules (
 	route_id VARCHAR(255),
 	origin_id VARCHAR(255),
 	destination_id VARCHAR(255),
-	contains_id VARCHAR(255)/*,
+	contains_id VARCHAR(255),
 	FOREIGN KEY (fare_id) references fares(fare_id),
-	FOREIGN KEY (route_id) references routes(route_id),*/
+	FOREIGN KEY (route_id) references routes(route_id),
 );
 
 /*==========================================*/
@@ -202,8 +201,8 @@ CREATE TABLE frequencies (
 	trip_id VARCHAR(255) NOT NULL,
 	start_time TIME NOT NULL,
 	end_time TIME NOT NULL,
-	headway_secs MEDIUMINT NOT NULL/*,
-	FOREIGN KEY (trip_id) references trips(trip_id)*/
+	headway_secs MEDIUMINT NOT NULL,
+	FOREIGN KEY (trip_id) references trips(trip_id)
 );
 
 /*==========================================*/
@@ -215,9 +214,9 @@ CREATE TABLE transfers (
 	from_stop_id VARCHAR(255) NOT NULL,
 	to_stop_id VARCHAR(255) NOT NULL,
 	transfer_type INTEGER,
-	min_transfer_time MEDIUMINT NOT NULL/*,
+	min_transfer_time MEDIUMINT NOT NULL,
 	FOREIGN KEY (from_stop_id) references stops(stop_id),
-	FOREIGN KEY (to_stop_id) references stops(stop_id)*/
+	FOREIGN KEY (to_stop_id) references stops(stop_id)
 );
 
 /*==========================================*/

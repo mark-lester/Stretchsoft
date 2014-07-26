@@ -12,7 +12,7 @@
          <generator class="native"/>
       </id>
       
-      <property name="stopId" column="stop_id" type="string"/>
+      <property name="stopId" column="stop_id" type="string" unique="true"/>
       <property name="stopCode" column="stop_code" type="string"/>
       <property name="stopName" column="stop_name" type="string"/>
       <property name="stopDesc" column="stop_desc" type="string"/>

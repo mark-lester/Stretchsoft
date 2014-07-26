@@ -12,7 +12,7 @@
          <generator class="native"/>
       </id>
 
-      <property name="tripId" column="trip_id" type="string"/>
+      <property name="tripId" column="trip_id" type="string" unique="true"/>
       <property name="routeId" column="route_id" type="string"/>
       <property name="serviceId" column="service_id" type="string"/>
       <property name="tripHeadsign" column="trip_headsign" type="string"/>

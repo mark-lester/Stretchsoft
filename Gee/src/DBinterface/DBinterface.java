@@ -19,8 +19,9 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.Iterator;
-import java.util.zip.ZipInputStream;
 import java.util.zip.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.io.ByteArrayOutputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -110,6 +111,7 @@ public class DBinterface {
 			e.printStackTrace();
 		}
     	    
+        /*
         if (!configStore.containsKey("/home/Gee/config/gtfs")){
         	configStore.put("/home/Gee/config/gtfs",ReadConfig("/home/Gee/config/gtfs"));        	
         }
@@ -117,7 +119,7 @@ public class DBinterface {
         if (!configStore.containsKey("/home/Gee/config/admin")){
         	configStore.put("/home/Gee/config/admin",ReadConfig("/home/Gee/config/admin"));        	
         }
-        
+        */
         if (!configStore.containsKey(hibernateConfigDirectory)){
         	configStore.put(hibernateConfigDirectory,ReadConfig(hibernateConfigDirectory));        	
         }
@@ -133,6 +135,12 @@ public class DBinterface {
         try {
 			while ((entry = zis.getNextEntry()) != null) {   
 			    String fileName = entry.getName();
+			    Pattern pattern = Pattern.compile("/(.*?)$");
+			    Matcher matcher = pattern.matcher(fileName);
+			    if (matcher.find())			    {
+			        fileName=matcher.group(1);
+			    }
+
 			    byte[] buffer=new byte[1024];
 			    String outString ="";
 			    int len;
@@ -318,7 +326,13 @@ public class DBinterface {
                          set_flag=true;
                      }
                      if (!set_flag) continue;
-                     createRecordInner(session,tx,className,record);
+                     int hibernateId;
+                     if ((hibernateId = existsRecord(session,className,tableMap,record)) > 0){
+                    	 record.put("hibernateId",Integer.toString(hibernateId));
+                    	 updateRecord(className,record);
+                     } else {
+                    	 createRecordInner(session,tx,className,record);
+                     }
                  }
                 
              } catch ( FileNotFoundException ex) {
@@ -341,7 +355,7 @@ public class DBinterface {
              Enumeration ekeys = tableMap.map.keys();
              Set <String> keys = tableMap.map.keySet();
 //             String[] keyArray = keys.toArray(new String[0]);
-             String[] fieldOrder = tableMap.cvsFieldOrder.toArray(new String[0]);
+             String[] fieldOrder = tableMap.csvFieldOrder.toArray(new String[0]);
             
              String className=tableMap.className;
              String tableName=tableMap.tableName;
@@ -429,8 +443,49 @@ public class DBinterface {
             
          return true;
      }
+     
+public int existsRecord(Session session, String entityName,TableMap tableMap,Hashtable <String,String> record) throws HibernateException{
+	String query = new String();
+	Boolean first=true;
+	query += "FROM "+entityName;
+	for (String keyName : tableMap.keyFields) {
+        if (first){
+        	query += " WHERE ";        	
+        } else {
+        	query += " AND ";
+        }
+        first=false;
+        query += keyName+"='"+record.get(keyName)+"'";
+    }
+	if (!first){ // these are no keys, nothing exists for de-duping
+		return 0; 
+	}
+	Object entities[]=session.createQuery(query).list().toArray();
+	if (entities.length < 1){
+		return 0; // no matching entity
+	}
+    Class<?> cls=null;
+    Method m;
+    int hibernateId=0;
+	try {
+		cls = Class.forName(entityName);
+		m = cls.getMethod("gethibernateId", cls);
+	    hibernateId = (int)m.invoke(entities[0]);
+	} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (IllegalAccessException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (IllegalArgumentException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 
- public int createRecord(String className,Hashtable <String,String> record) throws HibernateException{
+    return hibernateId;
+}
+
+public int createRecord(String className,Hashtable <String,String> record) throws HibernateException{
      Integer recordId = null;
 //     className = "tables."+className;
      Session session = factory.openSession();

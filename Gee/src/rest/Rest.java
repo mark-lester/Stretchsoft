@@ -132,7 +132,7 @@ public class Rest extends HttpServlet {
 	public Gtfs getGtfs(String databaseName, String userId){
 		if (gtfsStore.get(databaseName) == null){
 			// TODO make sure it's there, or at least in the instances table.
-			gtfsStore.put(databaseName, new Gtfs("/home/Gee/config/gtfs",databaseName,userId));
+			gtfsStore.put(databaseName, new Gtfs("./hibernate.gtfs",databaseName,userId));
 		}
 		
 		return gtfsStore.get(databaseName);
