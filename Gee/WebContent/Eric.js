@@ -1040,12 +1040,11 @@ function MapSetUp(){
 	});
 }
 
-
+var mapobjectToValue=[];
 function drawStops(){
 	var i=0;
 	
 	mapobjectToValue=[];
-	valueToMapobject=[];
 	allStationsLayer.clearLayers();
 	var all_station_points=[];
 	mapurl= "/Gee/Entity?entity=Stops";
@@ -1055,7 +1054,6 @@ function drawStops(){
 				$.each( data, function( key, val ) {
 					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon, draggable: true}).addTo(map);
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
-					valueToMapobject[val['stopId']]=mapobject;
 					set_event_handlers_for_station_outside_trip(mapobject,val['stopName']);
 					allStationsLayer.addLayer(mapobject);
 					all_station_points.push([val['stopLat'],val['stopLon']]);
@@ -1186,7 +1184,6 @@ function drawTripsForStop(stopId){
 						DrawTripPathOther(tripStruct);						
 					});
 				});
-				tripPathsLayer.bringToFront();
 			}
 	);
 	
