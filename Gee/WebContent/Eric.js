@@ -1198,7 +1198,7 @@ function GetTrip(tripId,tripStruct){
 			function( data ) {
 				$.each( data, function( key, val ) {
 					// hibernate returns an array of two records on a join
-					$.extend(val[0],val[1]);					
+					$.extend(val[0],val[1],val[2]);					
 					tripStruct.Trip=val[0];
 				});
 			}
@@ -1249,7 +1249,7 @@ function DrawTripPathOther(tripStruct){
 		vector['Agency']=tripLinesToTripStruct[L.stamp(e.target)].Trip.agencyId;
 		vector['Routes']=tripLinesToTripStruct[L.stamp(e.target)].Trip.routeId;
 		vector['Trips']=tripLinesToTripStruct[L.stamp(e.target)].Trip.tripId;
-		refreshTable('Routes',vector);
+		refreshTable('Agency',vector);
 	});	
 	mapobject.bindPopup("Route "+tripStruct.Trip.routeId);
 	mapobject.on('mouseover', function(e) {
