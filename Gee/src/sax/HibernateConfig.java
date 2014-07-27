@@ -6,7 +6,7 @@ import java.util.*;
 
 
 public class HibernateConfig extends DefaultHandler {
-	public List<String> resources = new ArrayList<>();
+	public List<String> resources = new ArrayList<String>();
 	public Hashtable <String,TableMap> tableMaps=new Hashtable<String,TableMap> ();
 	public Hashtable <String,String> properties=new Hashtable<String,String> ();
 	public Hashtable <String,String> keys=new Hashtable<String,String> ();	

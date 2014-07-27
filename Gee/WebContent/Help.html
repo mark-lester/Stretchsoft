@@ -26,6 +26,9 @@ A video and a proper looking doco page coming soon....<br>
 For now, 
 <ul>
 <li> choose a database that you have access rights to. e,g. ""Bangladesh Railways" which is currently a publicly available sratchpad.
+<li> click on a station not on the current trip (i.e. red or blue line shown and dark), you wil get green lines showing other trips that use this staion
+<li> click on one of those green lines to make it the current trip to be edited. The stations will be now dark and a red ()or blue line if a shape is defuned for this trip) wil be shown
+<li> note that the selection values on the route and trips selecftors on the left have changed to match your route.
 <li> select the entity you wish to edit via the select lists on the left. click the create(blue), edit (green), or delete (red) buttons to do any of those actions 
 <li> drag stations about the map to change their locations
 <li> double click on the map away from a station or any blue or red lines and make anew station
@@ -37,6 +40,10 @@ are in sequence with the other stops (else your route will dart off there first)
 <li> double click anywhere on the blue shape line to add a new node
 <li> double click on a shape node to delete it
 <li> delete all the blue shape nodes and the red line will reappear
+<li> you can also navigate the GTFS schema via the select listrs on the left. For each entity type (agency, route etc) there is a select list showing all the values that match any parent values 
+that have been selected. e.g if we select a specific agency, only routes for that agency are shown, for any route select (initially the first in the list) only trips belonging to that route are shown, and the first one is selected. etc.
+<li> next to each list there are blue green and red icons for create, edit and delete.  To create a new entity click the blue buttton, to edit the currently selected entity click green, anbd to delete this entity click red.
+<hr>
 <li> creating new databases is fraught with danger right now, but you could give it a go
 <li> hit the blue (create) button on instance and give it a nice no spaces database name 
 <li> you can then import a GTFS to it. Go get one from GTFS exchange or wherever and hit the upload button.

@@ -11,6 +11,8 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
 
@@ -161,8 +163,13 @@ public class DBinterface {
     public void runZapper() {
         // get the tables out of the hibernate.cfg.xml.
         // you can presumably do that via hibernate itself but I couldn't work out how to do that
+    	
+//    	List<String> reversed=
 
-        for (String resourceFile : hibernateConfig.resources) {
+    	// what kind of fucking language is this ?
+    	List<String> reverse = new ArrayList<String>(hibernateConfig.resources);
+    	Collections.reverse(reverse);
+        for (String resourceFile : reverse) {
             // load the specific table
             System.out.println("Loading "+resourceFile+"...\n");       
             ZapTable(resourceFile);
@@ -325,9 +332,10 @@ InputSource i = new InputSource(s);
                  System.err.println("Failed to get csv file for "+tableName+" :" + ex);       
              }  catch ( IOException ex) {
                  System.err.println("Failed reading csv file for "+tableName+" :" + ex);       
+             } finally {
+                 tx.commit();
+                 session.close();            	 
              }
-             tx.commit();
-             session.close();
              return true;
          }
 

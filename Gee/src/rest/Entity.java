@@ -84,7 +84,12 @@ public class Entity extends Rest {
 		if (request.getParameter("order") != null){
 			query+=" ORDER BY child_table."+request.getParameter("order");
 		}
-//		System.err.print("Want query for "+query+"\n"); 
+		
+		if (request.getParameter("order_parent") != null){
+			query+=" ORDER BY parent_table."+request.getParameter("order_parent");
+		}
+		
+		System.err.print("Want query for "+query+"\n"); 
 		
 		Session session = gtfs.factory.openSession();
 		Object entities[] = session.createQuery(query).list().toArray();

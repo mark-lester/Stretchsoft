@@ -42,15 +42,24 @@ public class Loader extends Rest {
 
 		String action=request.getParameter("action");
 		if (action==null)action=""; // switch doesnt like null
+
+		
 		switch(action){
 		case "export":
+			if (!admin.verifyReadAccess(databaseName,userId)){
+				Print404(response,"You do not have Read permission for this database");
+				return;
+			}
 			response.setHeader("Content-Disposition", "inline; filename="+databaseName+".zip" );
 			response.setContentType("application/zip, application/octet-stream");
 			response.getOutputStream().write(gtfs.runDumper());
 			break;
 		case "zap":
+			if (!admin.verifyAdminAccess(databaseName,userId)){
+				Print404(response,"You do not have Admin permission for this database");
+				return;
+			}
 			response.setContentType("text/html");
-			System.err.println("RUNNING ZAPPER");
 			gtfs.runZapper();
 			PrintWriter out = response.getWriter();
 			out.println("[]");
@@ -67,6 +76,10 @@ public class Loader extends Rest {
 		String userId = getUserId(request,response);
 		if (userId == null){
 			return; // your cookie doesnt add up
+		}
+		if (!admin.verifyWriteAccess(databaseName,userId)){
+			Print404(response,"You do not have Write permission for this database");
+			return;
 		}
 		
 		ObjectMapper mapper = new ObjectMapper();
