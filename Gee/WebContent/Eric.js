@@ -152,7 +152,11 @@ function getTableDataInner(tableName,vector){
 		var $url="/Gee/"+relations[tableName]['method']+"?entity="+tableName;
 
 		if (matchField != undefined){
-			$url+="&field="+matchField+"&value="+matchValue;
+			if (joinKey != undefined){
+				$url+="&parent_field="+matchField+"&value="+matchValue;	
+			} else {
+				$url+="&field="+matchField+"&value="+matchValue;			
+			}
 		}
 		if (orderField != undefined){
 			$url+="&order="+orderField;
@@ -278,7 +282,7 @@ function initTables(){
 }
 
 function get_permissions(databaseName){
-	console.log("getting permissions for "+databaseName);
+//	console.log("getting permissions for "+databaseName);
 	var $url="/Gee/User?entity=Permissions&databaseName="+databaseName;
 	return $.ajax({
 		method:"GET",
@@ -1189,14 +1193,16 @@ function drawTripsForStop(stopId){
 }
 
 function GetTrip(tripId,tripStruct){
-	tripUrl="/Gee/Entity?entity=Trips&field=tripId&value="+tripId;
-	stopTimesUrl= "/Gee/Entity?entity=Stops&parent_order=stopSequence&join_table=StopTimes&join_key=stopId&field=tripId&value="+tripId;
-	shapePointsUrl="/Gee/Entity?entity=Shapes&field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
+	tripUrl="/Gee/Entity?entity=Trips&field=tripId&value="+tripId+"&join_table=Routes&join_key=routeId";
+	stopTimesUrl= "/Gee/Entity?entity=Stops&parent_order=stopSequence&join_table=StopTimes&join_key=stopId&parent_field=tripId&value="+tripId;
+	shapePointsUrl="/Gee/Entity?entity=Shapes&parent_field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
 
 	trip_df = $.getJSON(tripUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
-					tripStruct.Trip=val;
+					// hibernate returns an array of two records on a join
+					$.extend(val[0],val[1]);					
+					tripStruct.Trip=val[0];
 				});
 			}
 			);
@@ -1215,7 +1221,9 @@ function GetTrip(tripId,tripStruct){
 	shapes_df = $.getJSON(shapePointsUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
-					tripStruct.ShapePoints.push(val);
+					// hibernate returns an array of two records on a join
+					$.extend(val[1],val[0]);  // we need the right hibernateId, so watch the merge
+					tripStruct.ShapePoints.push(val[1]);
 				});
 			}
 			);
@@ -1241,6 +1249,7 @@ function DrawTripPathOther(tripStruct){
 	mapobject.on("click",function(e) {
 		var vector={};
 		tripPathsLayer.clearLayers();
+		vector['Agency']=tripLinesToTripStruct[L.stamp(e.target)].Trip.agencyId;
 		vector['Routes']=tripLinesToTripStruct[L.stamp(e.target)].Trip.routeId;
 		vector['Trips']=tripLinesToTripStruct[L.stamp(e.target)].Trip.tripId;
 		refreshTable('Routes',vector);
@@ -1253,13 +1262,13 @@ function DrawTripPathOther(tripStruct){
 }
 
 /*
- * this one prints the path for the current trip, which wil include the shaoe if there is one
+ * this one prints the path for the current trip, which will include the shape if there is one
  */
 function DrawTripPath(tripStruct){
 	var i;
 	if (tripStruct.ShapePoints.length > 0){
 		for (i=0;i<tripStruct.ShapePoints.length-1;i++){
-			mapobject=L.polyline( 
+			mapobject=L.polyline( [
 					[
 					 tripStruct.ShapePoints[i]['shapePtLat'],
 					 tripStruct.ShapePoints[i]['shapePtLon']
@@ -1267,26 +1276,48 @@ function DrawTripPath(tripStruct){
 					[
 					 tripStruct.ShapePoints[i+1]['shapePtLat'],
 					 tripStruct.ShapePoints[i+1]['shapePtLon']
-					],{
+					]],{
 				color: 'blue'
 			});
+			
+			tripStationsLayer.addLayer(mapobject);
 			shapeSequence[L.stamp(mapobject)]=i+1;
 			mapobject.on("dblclick",function(e) {
 			    add_shape_point_after(shapeSequence[L.stamp(e.target)], shapeId,[e.latlng.lat,e.latlng.lng] );
 			});
-			tripStationsLayer.addLayer(mapobject);
+			DrawShapePoint(tripStruct.ShapePoints[i],tripStruct.Trip.tripId);
 		}
+		DrawShapePoint(tripStruct.ShapePoints[i],tripStruct.Trip.tripId); // and the last one
 	} else {
-		console.log("draw RED trip path");
 		mapobject=L.polyline( tripStruct.station_points,  {
 			color: 'red',
 			opacity : 1
 		});
 		tripStationsLayer.addLayer(mapobject);
 		mapobject.on("dblclick",function(e) {
-			create_shape_from_trip(tripId);
+			create_shape_from_trip(tripStruct.Trip.tripId);
 		});
 	}
+}
+
+function DrawShapePoint(Point,tripId){
+	mapobject=L.marker([Point.shapePtLat,Point.shapePtLon], {icon: shapenodeIcon, draggable : true});
+	mapobjectToValue[L.stamp(mapobject)]=Point.hibernateId;
+	tripStationsLayer.addLayer(mapobject);
+	mapobject.on('dragend', function(e) {
+	    var marker = e.target;  // you could also simply access the marker through the closure
+	    var result = marker.getLatLng();  // but using the passed event is cleaner
+	    $.when(update_shape_point(mapobjectToValue[L.stamp(e.target)],result)).done(function(){
+	    	// dont bother refocusing, we are already focused!
+	    	drawTrip(tripId);
+	    });
+	});
+	mapobject.on('dblclick', function(e) {
+		$.when(delete_shape_point(mapobjectToValue[L.stamp(e.target)])).done(function(){
+			drawTrip(tripId);							
+		}); 
+	});
+
 }
 
 function SetTTBE(tripStruct){

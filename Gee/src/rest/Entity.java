@@ -59,6 +59,9 @@ public class Entity extends Rest {
 		if (request.getParameter("join_table") != null){
 			query += ","+request.getParameter("join_table")+" as parent_table";
 		}
+		if (request.getParameter("second_join_table") != null){
+			query += ","+request.getParameter("second_join_table")+" as grandparent_table";
+		}
 		if (request.getParameter("join_table") != null || request.getParameter("field") != null){
 			query+=" WHERE ";			
 		}
@@ -66,14 +69,26 @@ public class Entity extends Rest {
 			query += "child_table."+request.getParameter("join_key")+"="+
 					"parent_table."+request.getParameter("join_key");
 		}
+		if (request.getParameter("second_join_table") != null){
+			query += "AND parent_table."+request.getParameter("second_join_key")+"="+
+					"grandparent_table."+request.getParameter("second_join_key");
+		}
 		
 		if (request.getParameter("field") != null){
 			if (request.getParameter("join_table")!=null){
-				query +=" AND parent_table.";
+				query +=" AND child_table.";
 			} else {
 				query +=" child_table.";
 			}
 			query+=request.getParameter("field")+"='"+request.getParameter("value")+"'";
+		}
+		if (request.getParameter("parent_field") != null){
+			if (request.getParameter("join_table")!=null){
+				query +=" AND parent_table.";
+			} else {
+				query +=" parent_table.";
+			}
+			query+=request.getParameter("parent_field")+"='"+request.getParameter("value")+"'";
 		}
 		/*
 		if (request.getParameter("secondfield") != null){
