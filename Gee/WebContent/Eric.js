@@ -23,6 +23,7 @@ function MainSetupInner(){
 		$("#welcome").hide();
 		
 		$.when(refreshAll()).done(function(){
+			$("#select-Instance").val(databaseName);
 			MapSetUp();
 		});
 }

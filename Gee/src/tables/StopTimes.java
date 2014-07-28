@@ -48,18 +48,41 @@ public StopTimes(Hashtable <String,String> record) throws ParseException{
 
 public void update(Hashtable <String,String> record) throws ParseException{
 	if (
+			(record.get("arrivalTime") == null ||
+			record.get("arrivalTime").isEmpty()) 
+			&&
+			(record.get("departureTime") != null &&
+			!record.get("departureTime").isEmpty())
+			){
+		record.put("arrivalTime",record.get("departureTime"));		
+	}
+	
+	if (
+			(record.get("departureTime") == null ||
+			record.get("departureTime").isEmpty()) 
+			&&
+			(record.get("arrivalTime") != null &&
+			!record.get("arrivalTime").isEmpty())
+			){
+		record.put("departureTime",record.get("arrivalTime"));		
+	}
+	
+	if (
 			record.get("arrivalTime") == null ||
 			record.get("arrivalTime").isEmpty() ||
 			record.get("departureTime") == null ||
 			record.get("departureTime").isEmpty()
 			){
-		throw new ParseException("Arrival times not set",0);
+		record.put("arrivalTime", "00:00:00");
+		record.put("departureTime", "00:00:00");
 	}
+	
 			
 		this.tripId=record.get("tripId");
 		try {
 			this.arrivalTime=new SimpleDateFormat("HH:mm:ss",Locale.getDefault()).parse(record.get("arrivalTime"));
 		} catch (ParseException ex){
+			System.err.println("arrival time = :"+record.get("arrivalTime")+":");
 					System.err.println(ex);		
 		}
 		try {

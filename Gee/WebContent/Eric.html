@@ -158,6 +158,14 @@ hr { color: #7FA423;
 <div id="Shapes" class="Eric" parent="Trips">
 <h5>Shape Points</h5>
 </div>
+<hr>
+<div id="FareAttributes" class="Eric" parent="Instance">
+<h5>Fare Attributes</h5>
+</div>
+<div id="FareRules" class="Eric" parent="Instance">
+<h5>Fare Rules</h5>
+</div>
+
 </div> <!--  end of scroll -->
 </div> <!--  end of first col -->
 <div class="col-md-9">
@@ -474,6 +482,58 @@ you will lose all the routes, trips and stoptimes if you do
      Are you sure you want to delete Shape Point 
       <input readonly name="shapeId" size=10 maxlength=10><br>
       <input readonly name="shapePtSequence" size=10 maxlength=10><br>
+	
+</form>
+</div>
+
+<div id="dialog-edit-FareAttributes" title="Add/Edit Fare Attribute">
+<form id="dialog-edit-FareAttributes-form">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+  	<label for="fareId">Fare ID</label>
+    <input id="fareId" name="fareId" size=10 maxlength=10 display><br>
+  	<label for="pricE">Price</label>
+    <input id="pricE" name="pricE" size=10 maxlength=10><br>
+  	<label for="currencyType">Currency</label>
+    <input id="currencyType" name="currencyType" size=10 maxlength=10><br>
+    
+ </fieldset>
+  </form>
+ </div>
+<div id="dialog-delete-FareAttributes" title="Delete Fare Attribute">
+<form id="dialog-delete-FareAttributes-form">
+     Are you sure you want to delete Fare Attribute 
+      <input readonly name="fareId" size=10 maxlength=10><br>
+	
+</form>
+</div>
+
+<div id="dialog-edit-FareRules" title="Add/Edit Fare Rules">
+<form id="dialog-edit-FareRules-form">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+  	<label for="fareId">Fare ID</label>
+    <input id="fareId" name="fareId" size=10 maxlength=10 display ><br>
+  	<label for="routeId">Route ID</label>
+    <input id="routeId" name="routeId" size=10 maxlength=10><br>
+  	<label for="originId">Origin ID</label>
+    <input id="originId" name="originId" size=10 maxlength=10><br>
+  	<label for="destinationId">Destination ID</label>
+    <input id="destinationId" name="destinationId" size=10 maxlength=10><br>
+  	<label for="containsId">Contains ID</label>
+    <input id="containsId" name="containsId" size=10 maxlength=10><br>
+    
+ </fieldset>
+  </form>
+ </div>
+<div id="dialog-delete-FareRules" title="Delete Fare Rules">
+<form id="dialog-delete-FareRules-form">
+     Are you sure you want to delete Fare Rule 
+      <input readonly name="fareId" size=10 maxlength=10><br>
+      <input readonly name="routeId" size=10 maxlength=10><br>
+      <input readonly name="originId" size=10 maxlength=10><br>
+      <input readonly name="destinationId" size=10 maxlength=10><br>
+      <input readonly name="containsId" size=10 maxlength=10><br>
 	
 </form>
 </div>

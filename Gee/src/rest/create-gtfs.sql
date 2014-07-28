@@ -16,9 +16,20 @@ use gtfs;
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS `agency`;
+DROP TABLE IF EXISTS imported_stops;
+DROP TABLE IF EXISTS fare_rules;
+DROP TABLE IF EXISTS fare_attributes;
+DROP TABLE IF EXISTS transfers;
+DROP TABLE IF EXISTS frequencies;
+DROP TABLE IF EXISTS shapes;
+DROP TABLE IF EXISTS stop_times;
+DROP TABLE IF EXISTS trips;
+DROP TABLE IF EXISTS `routes`;
+DROP TABLE IF EXISTS `stops`;
+DROP TABLE IF EXISTS calendar;
+DROP TABLE IF EXISTS agency;
 
-CREATE TABLE `agency` (
+CREATE TABLE agency (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	agency_id VARCHAR(255) UNIQUE KEY,
 	agency_name VARCHAR(255) NOT NULL,
@@ -29,7 +40,6 @@ CREATE TABLE `agency` (
 );
 /*==========================================*/
 
-DROP TABLE IF EXISTS calendar;
 
 CREATE TABLE `calendar` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -48,7 +58,6 @@ CREATE TABLE `calendar` (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS `stops`;
 
 CREATE TABLE `stops` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -69,7 +78,6 @@ CREATE TABLE `stops` (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS `routes`;
 
 CREATE TABLE `routes` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -89,7 +97,6 @@ CREATE TABLE `routes` (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS trips;
 
 CREATE TABLE `trips` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -112,7 +119,6 @@ CREATE TABLE `trips` (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS stop_times;
 
 CREATE TABLE `stop_times` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -152,36 +158,33 @@ CREATE TABLE `calendar_dates` (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS fare_rules;
-
-CREATE TABLE fare_rules (
-	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	fare_id VARCHAR(255) NOT NULL UNIQUE KEY,
-	route_id VARCHAR(255),
-	origin_id VARCHAR(255),
-	destination_id VARCHAR(255),
-	contains_id VARCHAR(255),
-	FOREIGN KEY (route_id) references routes(route_id)
-);
-
-/*==========================================*/
-
-DROP TABLE IF EXISTS fare_attributes;
 
 CREATE TABLE fare_attributes (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
-	fare_id VARCHAR(255) NOT NULL,
+	fare_id VARCHAR(255) NOT NULL UNIQUE KEY,
 	price VARCHAR(255) NOT NULL,
 	currency_type VARCHAR(255) NOT NULL,
 	payment_method INTEGER,
 	transfers INTEGER,
-	transfer_duration INTEGER,
-	FOREIGN KEY (fare_id) references fare_rules(fare_id)
+	transfer_duration MEDIUMINT UNSIGNED
 );
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS shapes;
+
+CREATE TABLE fare_rules (
+	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
+	fare_id VARCHAR(255),
+	route_id VARCHAR(255),
+	origin_id VARCHAR(255),
+	destination_id VARCHAR(255),
+	contains_id VARCHAR(255)/*,
+	FOREIGN KEY (fare_id) references fares(fare_id),
+	FOREIGN KEY (route_id) references routes(route_id),*/
+);
+
+/*==========================================*/
+
 
 CREATE TABLE shapes (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -194,7 +197,6 @@ CREATE TABLE shapes (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS frequencies;
 
 CREATE TABLE frequencies (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -207,7 +209,6 @@ CREATE TABLE frequencies (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS transfers;
 
 CREATE TABLE transfers (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
@@ -221,7 +222,6 @@ CREATE TABLE transfers (
 
 /*==========================================*/
 
-DROP TABLE IF EXISTS imported_stops;
 
 CREATE TABLE imported_stops (
     hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),

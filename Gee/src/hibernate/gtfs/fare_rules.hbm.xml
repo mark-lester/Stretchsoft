@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "file://localhost/home/Gee/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+   <class name="tables.FareRules" table="fare_rules">
+      <meta attribute="class-description">
+         This class contains the fare_rules detail. 
+      </meta>
+      <id name="hibernateId" type="integer" column="hibernate_id">
+         <generator class="native"/>
+      </id>
+      
+      <property name="fareId" column="fare_id" type="string"  />
+      <property name="routeId" column="route_id" type="string"  />
+      <property name="originId" column="origin_id" type="string"/>
+      <property name="destinationId" column="destination_id" type="string"/>
+      <property name="containsId" column="contains_id" type="string"  />
+    </class>
+</hibernate-mapping>
+

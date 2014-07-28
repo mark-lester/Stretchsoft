@@ -46,11 +46,12 @@
    <mapping resource="hibernate/gtfs/stops.hbm.xml"/>
    <mapping resource="hibernate/gtfs/trips.hbm.xml"/>
    <mapping resource="hibernate/gtfs/stop_times.hbm.xml"/>
-   <mapping resource="hibernate/gtfs/fare_attributes.hbm.xml"/>
    <mapping resource="hibernate/gtfs/shapes.hbm.xml"/>
    <mapping resource="hibernate/gtfs/frequencies.hbm.xml"/>
    <mapping resource="hibernate/gtfs/transfers.hbm.xml"/>
    <mapping resource="hibernate/gtfs/imported_stops.hbm.xml"/>
-
+   <mapping resource="hibernate/gtfs/fare_rules.hbm.xml"/>
+   <mapping resource="hibernate/gtfs/fare_attributes.hbm.xml"/>
+   
 </session-factory>
 </hibernate-configuration>

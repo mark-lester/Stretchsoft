@@ -43,7 +43,13 @@ public void update(Hashtable <String,String> record){
 		this.pricE=record.get("pricE");
 		this.currencyType=record.get("currencyType");
 		this.transferS=Integer.parseInt(record.get("transferS"));
-		this.transferDuration=Integer.parseInt(record.get("transferDuration"));
+
+		try {
+			this.transferDuration=Integer.parseInt(record.get("transferDuration"));
+		} catch (NumberFormatException ex){
+//			System.err.println(ex);		
+			this.transferDuration=0;
+		}
 	}
 
 public Hashtable <String,String> hash(){
