@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.apache.commons.io.input.BOMInputStream;
 
 import DBinterface.Admin;
 import DBinterface.Gtfs;
@@ -76,7 +77,8 @@ public class Rest extends HttpServlet {
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
-		System.err.println("databaseName="+databaseName);
+		System.err.println("The databaseName="+databaseName);
+		System.err.println("request ="+signed_request);
 		
 		if (signed_request != null){
 			String[] sr_parts = signed_request.split("\\.",2);
@@ -89,8 +91,8 @@ public class Rest extends HttpServlet {
 
 	        payload = codec.decode(encodedPayload);
 	        String payload_string = new String(payload);
-//	        System.err.print("payload = " + payload_string + "\n");
-//	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
+	        System.err.print("payload = " + payload_string + "\n");
+	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
 	     
 	        sig = new String(codec.decode(encoded_sig));
 	        try {	  

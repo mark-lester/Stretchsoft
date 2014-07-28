@@ -763,7 +763,6 @@ function SetupMenu(){
 			    // from tableName + gtfs-id value to hibernateId
 				$("#dialog-import_gtfs-loading" ).show();
 				$("#dialog-import_gtfs-done" ).hide();
-				$("#dialog-import_gtfs").dialog('option', 'buttons', {});
 
 				values={};
 //				values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
@@ -783,17 +782,12 @@ function SetupMenu(){
 						$("#dialog-import_gtfs-loading" ).hide();
 						$("#dialog-import_gtfs-done" ).show();
 						$("#dialog-import_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
-						$("#dialog-import_gtfs" ).dialog('option', 'buttons', {
-						    'Ok': function() {
-						        $(this).dialog('close');
-						    }
-						});
 						refreshAll();
 						},
-					error: function(response){
-						alert("finished loading GTFS");
-						
-						$("#dialog-import_gtfs" ).dialog("close");
+					error: function(xhr, ajaxOptions, thrownError){
+						$("#dialog-import_gtfs-loading" ).hide();
+						$("#dialog-import_gtfs-done" ).show();
+						$("#dialog-import_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
 						refreshAll();
 						}
 				});	
@@ -1062,7 +1056,7 @@ function MapSetUp(){
 		  success: function(val) {
 			  centreLat = val['minLat'] + (val['maxLat']-val['minLat'])/2;
 			  centreLon = val['minLon'] + (val['maxLon']-val['minLon'])/2;
-//			  map.setView([centreLat, centreLon], 7);
+			  map.setView([centreLat, centreLon], 7);
 
 		  }
 	});

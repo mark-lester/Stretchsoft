@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
-
+import java.io.InputStreamReader;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -35,8 +35,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 
 import org.hibernate.HibernateException;
+import org.hibernate.AssertionFailure;
 import org.hibernate.cfg.Configuration;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -143,7 +146,15 @@ public class DBinterface {
 			    	String str = new String(subArray, "UTF-8");
 			    	outString += str;
 			    }
-		    	Reader thisReader = new StringReader(outString);
+//		    	Reader thisReader = new StringReader(outString);
+		    	InputStream is = new ByteArrayInputStream( outString.getBytes() );
+		    	BOMInputStream bomIn = new BOMInputStream(is,
+		    			ByteOrderMark.UTF_8, 
+		    			ByteOrderMark.UTF_16BE, 
+		    			ByteOrderMark.UTF_16LE, 
+		    			ByteOrderMark.UTF_32BE, 
+		    			ByteOrderMark.UTF_32LE);
+		    	Reader thisReader = new InputStreamReader(bomIn);
 		    	zipHash.put(fileName,thisReader);
 			}
 		} catch (IOException e) {
@@ -155,7 +166,11 @@ public class DBinterface {
             // load the specific table
             System.err.println("Loading "+resourceFile+"...\n");       
             out.println("Loading "+resourceFile+"...\n");
-            LoadTable(resourceFile,zipHash,out);
+            try {
+            	LoadTable(resourceFile,zipHash,out);
+            } catch (HibernateException|AssertionFailure e){
+            	out.println("aborting import from "+resourceFile);
+            }
             System.err.println("Done "+resourceFile+"\n");       
             out.println("Done "+resourceFile+"\n");       
         }   
@@ -283,7 +298,7 @@ InputSource i = new InputSource(s);
     
       
  // TODO refactor this to use the classNames from the keys of tableMaps
-     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash,PrintWriter out){
+     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash,PrintWriter out) throws HibernateException, AssertionFailure {
          // the resource file is the <table>.hbm.xml
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
@@ -300,8 +315,8 @@ InputSource i = new InputSource(s);
              session = factory.openSession();
              Transaction tx = session.beginTransaction();
             
+        	 CsvReader csvReader=null;
              try {
-            	 CsvReader csvReader=null;
             	 if (zipHash == null){
             		 csvReader = new CsvReader(dataDirectory+tableName+".txt");
             	 } else {
@@ -318,7 +333,6 @@ InputSource i = new InputSource(s);
                     	 if (hibernateFieldName == null || hibernateFieldName.isEmpty()) continue;
                          String csvFieldValue=csvReader.get(databaseFieldName);
                     	 if (csvFieldValue == null || csvFieldValue.isEmpty() || csvFieldValue.length() > 255) continue;
-                    	 
                          record.put(hibernateFieldName, csvFieldValue);
                          set_flag=true;
                      }
@@ -341,10 +355,21 @@ InputSource i = new InputSource(s);
                  out.println("Failed to get csv file for "+tableName+" :" + ex);       
              }  catch ( IOException ex) {
                  out.println("Failed reading csv file for "+tableName+" :" + ex);       
-             } finally {
-                 tx.commit();
-                 session.close();            	 
+             } catch (AssertionFailure|HibernateException ex) {
+                 System.err.println("Failed importing "+tableName+" :" + ex);                   	 
+                 out.println("Failed importing "+tableName+" :" + ex);                   	 
+                 for (String databaseFieldName : keys) {
+                	 try {
+ 						System.err.println(databaseFieldName+"="+csvReader.get(databaseFieldName));
+						out.println(databaseFieldName+"="+csvReader.get(databaseFieldName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                 }
              }
+             tx.commit();
+             session.close();            	 
              out.println(
             		 "Inserts="+Integer.toString(inserts)+ 
             		 " Updates="+Integer.toString(updates)+ 
@@ -546,7 +571,7 @@ public int createRecord(String className,Hashtable <String,String> record) throw
          m.invoke(hibernateRecord,inputRecord);
          recordId = (Integer) session.save(hibernateRecord);
          tx.commit();
-     } catch (ClassNotFoundException|
+     } catch (NullPointerException|ClassNotFoundException|
              NoSuchMethodException|
              InvocationTargetException|
              IllegalAccessException e) {

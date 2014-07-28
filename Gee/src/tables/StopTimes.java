@@ -47,36 +47,22 @@ public StopTimes(Hashtable <String,String> record) throws ParseException{
 }
 
 public void update(Hashtable <String,String> record) throws ParseException{
-	if (
-			(record.get("arrivalTime") == null ||
-			record.get("arrivalTime").isEmpty()) 
-			&&
-			(record.get("departureTime") != null &&
-			!record.get("departureTime").isEmpty())
-			){
-		record.put("arrivalTime",record.get("departureTime"));		
-	}
 	
-	if (
-			(record.get("departureTime") == null ||
-			record.get("departureTime").isEmpty()) 
-			&&
-			(record.get("arrivalTime") != null &&
-			!record.get("arrivalTime").isEmpty())
+	if (record.get("arrivalTime") == null ||
+			record.get("arrivalTime").isEmpty() 
 			){
-		record.put("departureTime",record.get("arrivalTime"));		
+		if (record.get("departureTime") != null &&
+				!record.get("departureTime").isEmpty()){
+			record.put("arrivalTime", record.get("departureTime"));
+		} else {
+			record.put("arrivalTime", "00:00:00");			
+		}
 	}
-	
-	if (
-			record.get("arrivalTime") == null ||
-			record.get("arrivalTime").isEmpty() ||
-			record.get("departureTime") == null ||
-			record.get("departureTime").isEmpty()
+	if (record.get("departureTime") == null ||
+			record.get("departureTime").isEmpty() 
 			){
-		record.put("arrivalTime", "00:00:00");
-		record.put("departureTime", "00:00:00");
+		record.put("departureTime", record.get("arrivalTime"));
 	}
-	
 			
 		this.tripId=record.get("tripId");
 		try {
