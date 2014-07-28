@@ -1280,7 +1280,7 @@ function DrawTripPath(tripStruct){
 			tripStationsLayer.addLayer(mapobject);
 			shapeSequence[L.stamp(mapobject)]=i+1;
 			mapobject.on("dblclick",function(e) {
-			    add_shape_point_after(shapeSequence[L.stamp(e.target)], shapeId,[e.latlng.lat,e.latlng.lng] );
+			    add_shape_point_after(shapeSequence[L.stamp(e.target)], tripStruct.Trip.shapeId,[e.latlng.lat,e.latlng.lng] );
 			});
 			DrawShapePoint(tripStruct.ShapePoints[i],tripStruct.Trip.tripId);
 		}
@@ -1387,7 +1387,7 @@ function delete_shape_point(hibernateId){
 	var values={};
 	values['action']='delete_shape_point';
 	values['hibernateId']=""+hibernateId;
-	values['shapeId']=shapeId;
+//	values['shapeId']=shapeId;
     var datastring = JSON.stringify(values);
 
 	return $.ajax({

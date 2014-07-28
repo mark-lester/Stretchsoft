@@ -236,20 +236,27 @@ public class Mapdata extends Rest {
 			break;
 
 		case "delete_shape_point":
+			// fetch it so we can work out what shapeId it's got, so we can then heal up the sequence
+			query="from Shapes WHERE hibernateId="+record.get("hibernateId");
+			session = gtfs.factory.openSession();
+			results = session.createQuery(query).list().toArray();
+			session.close();
+			Shapes shape_rec=(Shapes)results[0];
+
 			gtfs.deleteRecord(className,record);
 			try {
 				connection = cp.getConnection();
 				PreparedStatement statement =
 						connection.prepareStatement("UPDATE shapes set shape_pt_sequence = shape_pt_sequence - 1"+
 										" WHERE shape_pt_sequence > "+request.getParameter("shapePtSequence") +
-										" AND shape_id='"+record.get("shapeId")+"'");
+										" AND shape_id='"+shape_rec.getshapeId()+"'");
 				statement.executeUpdate();
 			    connection.commit();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			query="from Shapes WHERE shapeId='"+record.get("shapeId")+"'";
+			query="from Shapes WHERE shapeId='"+shape_rec.getshapeId()+"'";
 			session = gtfs.factory.openSession();
 			results = session.createQuery(query).list().toArray();
 			session.close();
@@ -258,11 +265,16 @@ public class Mapdata extends Rest {
 			}
 			// oh, we've only got one point, better zap it
 
-			Shapes shape_rec=(Shapes)results[0];
+			shape_rec=(Shapes)results[0];
 			shape.put("hibernateId",Integer.toString(shape_rec.gethibernateId()));
 			gtfs.deleteRecord("tables.Shapes", shape);	
 			
 			// unhook any trips that were using this shape
+			// removed. it works with shape id's pointing to nowhere
+			// but you can set say all the trips of a route to the same shape,
+			// if we zap the shape id with this you'd break that link if you deleted 
+			// the shape and then started again
+			/*
 			try {
 				connection = cp.getConnection();
 				PreparedStatement statement =
@@ -273,7 +285,8 @@ public class Mapdata extends Rest {
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}					
+			}
+			*/					
 
 			break;
 		
