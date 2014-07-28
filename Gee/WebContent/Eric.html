@@ -63,7 +63,7 @@ hr { color: #7FA423;
     <!-- Brand and toggle ge
 	<label for="upload_file">Upload GTFS from local file system</label>
     <input id="upload_file" name="upload_file" type=file><br>t grouped for better mobile display -->
-    <div class="navbar-header">
+    </div>
     <img class="navbar-brand" src="img/cow-icon.png" >
     <a class="navbar-brand" href="#">Gee - Open Access GTFS Editor</a>
     </div>
@@ -99,6 +99,14 @@ hr { color: #7FA423;
     	  </form>
         </li>
       </ul>
+      <ul class="nav navbar-nav">
+      	 <li class="active" style="vertical-align: middle;">
+      	 <div id="loading">
+      	 <img class="navbar-brand" src="img/ajax-loader.gif" >
+      	 </div>
+     	 </li>
+      </ul>
+
       <ul class="nav navbar-nav navbar-right">
       	 <li class="active" style="vertical-align: middle;">
       	 <br>
@@ -184,13 +192,27 @@ hr { color: #7FA423;
  </div>
  
 <div id="dialog-import_gtfs" title="Import GTFS" class="edit-dialog">
+
+
 <form id="dialog-import_gtfs-form">
 <fieldset>
 	<label for="upload_file">Upload GTFS from local file system</label>
     <input id="upload_file" name="upload_file" type=file><br>
 </fieldset>
+<div id="dialog-import_gtfs-loading">
+<center>
+<h3> Loading....</h3>
+<img src="img/ajax-loader.gif">
+</center>
+</div>
+<div id="dialog-import_gtfs-done">
+<h3>Loading Complete, here's what the database said</h3>
+<div id="dialog-import_gtfs-done-text">
+</div>
+</div>
  </form>
- </div>
+</div>
+</div>
  
 <div id="dialog-zap_gtfs" title="Clear GTFS" class="edit-dialog">
 <form id="dialog-zap_gtfs-form">

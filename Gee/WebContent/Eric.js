@@ -3,10 +3,24 @@ var relations=[];
 var get_table_deffereds=[];
 var GTFS_Upload_file=null;
 var rules={};
+var load_count=0;
+
 function MainSetup(){
 	dfd = new $.Deferred();
 	FBSetup(dfd);
-
+	$.ajaxSetup({
+	    beforeSend:function(){
+	        // show gif here, eg:
+	        $("#loading").show();
+	        load_count++;
+	    },
+	    complete:function(){
+	        // hide gif here, eg:
+	        load_count--;
+	    	if (load_count < 1)
+	    		$("#loading").hide();
+	    }
+	});
 	$(document).ready(function(){
 		MainSetupInner();
 	});
@@ -730,6 +744,8 @@ function SetupMenu(){
 
 	$("#dialog-import_gtfs" ).dialog({ 
 		open : function (event,ui){
+			$("#dialog-import_gtfs-loading" ).hide();
+			$("#dialog-import_gtfs-done" ).hide();
 		},
 		autoOpen: false, 
 		modal :true,
@@ -745,6 +761,10 @@ function SetupMenu(){
 			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
 			    // this horrid global nested hash was the only way I could map 
 			    // from tableName + gtfs-id value to hibernateId
+				$("#dialog-import_gtfs-loading" ).show();
+				$("#dialog-import_gtfs-done" ).hide();
+				$("#dialog-import_gtfs").dialog('option', 'buttons', {});
+
 				values={};
 //				values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 				values['file']=window.btoa(GTFS_Upload_file);
@@ -753,17 +773,31 @@ function SetupMenu(){
 			    var datastring = JSON.stringify(values);
 				console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+" datalength="+datastring.length+"\n");
 				$url= "/Gee/Loader";
+				
 				xhr=$.ajax({
 					method:"POST",
-					dataType: 'JSON',
+					dataType: 'text',
 					data:  {values : datastring},
 					url: $url,
-					success: function(response){
+					success: function(data,textStatus,xhr){
+						$("#dialog-import_gtfs-loading" ).hide();
+						$("#dialog-import_gtfs-done" ).show();
+						$("#dialog-import_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
+						$("#dialog-import_gtfs" ).dialog('option', 'buttons', {
+						    'Ok': function() {
+						        $(this).dialog('close');
+						    }
+						});
+						refreshAll();
+						},
+					error: function(response){
 						alert("finished loading GTFS");
-						$( this ).dialog( "close" );
+						
+						$("#dialog-import_gtfs" ).dialog("close");
 						refreshAll();
 						}
-				});				
+				});	
+				
 			    
 			},
 			Cancel: function() {
@@ -1028,7 +1062,7 @@ function MapSetUp(){
 		  success: function(val) {
 			  centreLat = val['minLat'] + (val['maxLat']-val['minLat'])/2;
 			  centreLon = val['minLon'] + (val['maxLon']-val['minLon'])/2;
-			  map.setView([centreLat, centreLon], 7);
+//			  map.setView([centreLat, centreLon], 7);
 
 		  }
 	});
@@ -1320,7 +1354,7 @@ function DrawShapePoint(Point,tripId){
 
 function SetTTBE(tripStruct){
 	var i;
-
+	if (tripStruct.Stations.length < 1) return ;
 	for (i=0;i< tripStruct.Stations.length;i++){
 		station=tripStruct.Stations[i];
 		var mapobject=L.marker(
@@ -1330,8 +1364,18 @@ function SetTTBE(tripStruct){
 		set_event_handlers_for_station_inside_trip(mapobject,station);
 		tripStationsLayer.addLayer(mapobject);
 	}
-
-	map.fitBounds(tripStruct.station_points);				
+	start=tripStruct.Stations[0];
+	finish = tripStruct.Stations[tripStruct.Stations.length-1];
+	map.fitBounds([
+			[
+				start.stopLat,
+				start.stopLon
+			],
+			[
+				finish.stopLat,
+				finish.stopLon
+			]]
+			);				
 }
 
 

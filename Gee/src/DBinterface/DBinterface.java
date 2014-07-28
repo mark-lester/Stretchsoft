@@ -153,8 +153,10 @@ public class DBinterface {
         
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
-            out.println("Loading "+resourceFile+"...\n");       
-            LoadTable(resourceFile,zipHash);
+            System.err.println("Loading "+resourceFile+"...\n");       
+            out.println("Loading "+resourceFile+"...\n");
+            LoadTable(resourceFile,zipHash,out);
+            System.err.println("Done "+resourceFile+"\n");       
             out.println("Done "+resourceFile+"\n");       
         }   
     }
@@ -281,18 +283,20 @@ InputSource i = new InputSource(s);
     
       
  // TODO refactor this to use the classNames from the keys of tableMaps
-     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash){
+     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash,PrintWriter out){
          // the resource file is the <table>.hbm.xml
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
          // and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be
-             TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
-//             Enumeration<String> ekeys = tableMap.map.keys();
-             Set <String> keys = tableMap.map.keySet();
-             String className=tableMap.className;
-             String tableName=tableMap.tableName;
-     		Session session = null;
-
+         TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
+         Set <String> keys = tableMap.map.keySet();
+         String className=tableMap.className;
+         String tableName=tableMap.tableName;
+         Session session = null;
+         int updates=0;
+         int inserts=0;
+         int errors=0;
+         
              session = factory.openSession();
              Transaction tx = session.beginTransaction();
             
@@ -323,19 +327,29 @@ InputSource i = new InputSource(s);
                      if ((hibernateId = existsRecord(session,className,tableMap,record)) > 0){
                     	 record.put("hibernateId",Integer.toString(hibernateId));
                     	 updateRecord(className,record);
+                    	 updates++;
                      } else {
-                    	 createRecordInner(session,tx,className,record);
+                    	 if (createRecordInner(session,tx,className,record) > 0) {
+                    		 inserts++;
+                    	 } else {
+                    		 errors++;
+                    	 }
                      }
                  }
                 
              } catch ( FileNotFoundException ex) {
-                 System.err.println("Failed to get csv file for "+tableName+" :" + ex);       
+                 out.println("Failed to get csv file for "+tableName+" :" + ex);       
              }  catch ( IOException ex) {
-                 System.err.println("Failed reading csv file for "+tableName+" :" + ex);       
+                 out.println("Failed reading csv file for "+tableName+" :" + ex);       
              } finally {
                  tx.commit();
                  session.close();            	 
              }
+             out.println(
+            		 "Inserts="+Integer.toString(inserts)+ 
+            		 " Updates="+Integer.toString(updates)+ 
+            		 " Errors="+Integer.toString(errors) 
+            		 );
              return true;
          }
 
