@@ -4,10 +4,13 @@ var get_table_deffereds=[];
 var GTFS_Upload_file=null;
 var rules={};
 var load_count=0;
+var databaseName;
 
 function MainSetup(){
 	$("#loading").hide();
 	$("#interface").hide();
+	console.log("mainsetup hello there");
+	initDBCookie();
 	$.ajaxSetup({
 		beforeSend:function(){
 			// show gif here, eg:
@@ -25,6 +28,7 @@ function MainSetup(){
 	dfd = new $.Deferred();
 	FBSetup(dfd);
 	dfd.done(function(){
+
 		initTableRelations();
 		initTables();
 
@@ -60,6 +64,7 @@ function getURLParameter(name) {
 
 function initDBCookie(){
 	databaseName=getURLParameter('databaseName') || getCookie("gee_databasename") || "gtfs";
+	console.log("Database ="+databaseName);
 	setCookie("gee_databasename",databaseName);
 }
 
