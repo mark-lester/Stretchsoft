@@ -67,6 +67,7 @@ public class DBinterface {
     public XMLReader xmlReader;
     public static int session_count=0;
     public Configuration configuration=null;
+    public static final int RECORDS_PER_COMMIT=1000;  
 
 //    public Transaction tx = null;
 //    public Session session = null;
@@ -138,16 +139,15 @@ public class DBinterface {
 			        fileName=matcher.group(1);
 			    }
 
-			    byte[] buffer=new byte[1024];
-			    String outString ="";
+			    byte[] buffer=new byte[1024*32];
 			    int len;
-			    while ((len = zis.read(buffer,0,1024)) != -1){			    	
-			    	byte [] subArray = Arrays.copyOfRange(buffer, 0, len);
-			    	String str = new String(subArray, "UTF-8");
-			    	outString += str;
+			    ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
+			    while ((len = zis.read(buffer,0,1024*32)) != -1){
+			    	unzipped.write(Arrays.copyOfRange(buffer, 0, len));
 			    }
+			    
 //		    	Reader thisReader = new StringReader(outString);
-		    	InputStream is = new ByteArrayInputStream( outString.getBytes() );
+		    	InputStream is = new ByteArrayInputStream(unzipped.toByteArray());
 		    	BOMInputStream bomIn = new BOMInputStream(is,
 		    			ByteOrderMark.UTF_8, 
 		    			ByteOrderMark.UTF_16BE, 
@@ -156,6 +156,7 @@ public class DBinterface {
 		    			ByteOrderMark.UTF_32LE);
 		    	Reader thisReader = new InputStreamReader(bomIn);
 		    	zipHash.put(fileName,thisReader);
+		    	System.err.println("unzipped "+ fileName);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -308,12 +309,14 @@ InputSource i = new InputSource(s);
          String className=tableMap.className;
          String tableName=tableMap.tableName;
          Session session = null;
+         Transaction tx = null;
          int updates=0;
          int inserts=0;
          int errors=0;
+         int count=0;
          
              session = factory.openSession();
-             Transaction tx = session.beginTransaction();
+             tx = session.beginTransaction();
             
         	 CsvReader csvReader=null;
              try {
@@ -338,17 +341,29 @@ InputSource i = new InputSource(s);
                      }
                      if (!set_flag) continue;
                      int hibernateId;
-                     if ((hibernateId = existsRecord(session,className,tableMap,record)) > 0){
+                     hibernateId = existsRecord(session,className,tableMap,record);
+                     if (hibernateId > 0){
                     	 record.put("hibernateId",Integer.toString(hibernateId));
-                    	 updateRecord(className,record);
+                    	 updateRecordInner(session,tx,className,record);
                     	 updates++;
+//                         System.err.print("U");
                      } else {
                     	 if (createRecordInner(session,tx,className,record) > 0) {
                     		 inserts++;
+//                             System.err.print("C");
                     	 } else {
                     		 errors++;
+//                             System.err.print("E");
                     	 }
                      }
+                     if (count++%RECORDS_PER_COMMIT == 0){
+//                    	 System.err.println("Commiting block of records");
+                    	 tx.commit();               	 
+                    	 session.close();
+                         session = factory.openSession();
+                    	 tx = session.beginTransaction();
+                     }
+//                     if (count%100 == 0) System.err.println("");
                  }
                 
              } catch ( FileNotFoundException ex) {
@@ -369,7 +384,8 @@ InputSource i = new InputSource(s);
                  }
              }
              tx.commit();
-             session.close();            	 
+             session.close();  
+//             System.err.println("");
              out.println(
             		 "Inserts="+Integer.toString(inserts)+ 
             		 " Updates="+Integer.toString(updates)+ 
@@ -481,7 +497,13 @@ public int existsRecord(Session session, String className,TableMap tableMap,Hash
 	String query = new String();
 	Boolean first=true;
 	String entityName = className.substring(className.lastIndexOf(".")+1);
-	query += "FROM "+entityName;
+//	query += "FROM "+entityName;
+	query += "select * FROM "+tableMap.tableName;
+	
+	if (tableMap.use_key != null){
+		query += " use index("+tableMap.use_key+") ";
+	}
+	
 	for (String keyName : tableMap.keyFields) {
         if (first){
         	query += " WHERE ";        	
@@ -489,12 +511,13 @@ public int existsRecord(Session session, String className,TableMap tableMap,Hash
         	query += " AND ";
         }
         first=false;
-        query += keyName+"='"+record.get(keyName)+"'";
+//        query += keyName+"='"+record.get(keyName)+"'";
+        query += tableMap.pam.get(keyName)+"='"+record.get(keyName)+"'";
     }
 	if (first){ // these are no keys, nothing exists for de-duping
 		return 0; 
 	}
-	Object entities[]=session.createQuery(query).list().toArray();
+	Object entities[]=session.createSQLQuery(query).addEntity(className).list().toArray();
 	if (entities.length < 1){
 		return 0; // no matching entity
 	}
@@ -506,6 +529,7 @@ public int existsRecord(Session session, String className,TableMap tableMap,Hash
 		               
 		m = cls.getMethod("gethibernateId");
 	    hibernateId = (int)m.invoke(entities[0]);
+//	    System.err.println("we got hibernate_id="+Integer.toString(hibernateId));
 	} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -516,7 +540,6 @@ public int existsRecord(Session session, String className,TableMap tableMap,Hash
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-
     return hibernateId;
 }
 
@@ -558,30 +581,33 @@ public int createRecord(String className,Hashtable <String,String> record) throw
 
  public int updateRecord(String entityName,Hashtable <String,String> inputRecord) throws HibernateException{
 //     entityName = "tables."+entityName;
-     int hibernateId = Integer.parseInt(inputRecord.get("hibernateId"));
      Session session = factory.openSession();
-     Integer recordId = -1;
+     Transaction tx = session.beginTransaction();
+     int recordId = updateRecordInner(session,tx,entityName,inputRecord);
+     
+     session.close();    	 
+     tx.commit();
+     return recordId;
+ }
 
+  public int updateRecordInner(Session session, Transaction tx,String entityName,Hashtable <String,String> inputRecord) throws HibernateException{
+	 int hibernateId = Integer.parseInt(inputRecord.get("hibernateId"));
+	     Integer recordId = -1;
      try {
          Class<?> cls = Class.forName(entityName);
          Method m = cls.getMethod("update", inputRecord.getClass());
-         Transaction tx = session.beginTransaction();
 
          Object hibernateRecord = (Object)session.get(cls,hibernateId);
          m.invoke(hibernateRecord,inputRecord);
          recordId = (Integer) session.save(hibernateRecord);
-         tx.commit();
      } catch (NullPointerException|ClassNotFoundException|
              NoSuchMethodException|
              InvocationTargetException|
              IllegalAccessException e) {
          System.err.println(e.toString());
-     } finally {
-         session.close();    	 
      }
-
      return recordId;
- }
+  }
 
 
  public int deleteRecord(String className,Hashtable <String,String> record) throws HibernateException{

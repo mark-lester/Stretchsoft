@@ -12,7 +12,6 @@ public class HibernateConfig extends DefaultHandler {
 	public Hashtable <String,String> keys=new Hashtable<String,String> ();	
 	public String current_property=null;
 	public String is_key=null;
-	
 	   
 	public void startElement(
 				String namespaceURI,

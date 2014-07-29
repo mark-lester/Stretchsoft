@@ -11,7 +11,7 @@
       <id name="hibernateId" type="integer" column="hibernate_id">
          <generator class="native"/>
       </id>
-      <property name="tripId" column="trip_id" type="string" unique="true"/>
+      <property name="tripId" column="trip_id" type="string" unique="true" index="trip_stop_id"/>
       <property name="arrivalTime" column="arrival_time" type="time"/>
       <property name="departureTime" column="departure_time" type="time"/>
       <property name="stopId" column="stop_id" type="string" unique="true"/>

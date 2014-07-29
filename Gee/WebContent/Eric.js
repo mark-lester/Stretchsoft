@@ -5,24 +5,25 @@ var GTFS_Upload_file=null;
 var rules={};
 var load_count=0;
 var databaseName;
-
+function upcount(){
+	// show gif here, eg:
+	$("#loading").show();
+	load_count++;
+}
+function downcount(){
+	// hide gif here, eg:
+	load_count--;
+	if (load_count < 1)
+		$("#loading").hide();
+}
 function MainSetup(){
 	$("#loading").hide();
 	$("#interface").hide();
 	console.log("mainsetup hello there");
 	initDBCookie();
 	$.ajaxSetup({
-		beforeSend:function(){
-			// show gif here, eg:
-			$("#loading").show();
-			load_count++;
-		},
-		complete:function(){
-			// hide gif here, eg:
-			load_count--;
-			if (load_count < 1)
-				$("#loading").hide();
-		}
+		beforeSend:upcount,
+		complete:downcount
 	});
 	
 	dfd = new $.Deferred();
@@ -729,6 +730,7 @@ function SetupMenu(){
 			    
 			},
 			Cancel: function() {
+				downcount();
 				 $( this ).dialog( "close" );
 			}
 		}
@@ -763,6 +765,7 @@ function SetupMenu(){
 		open : function (event,ui){
 			$("#dialog-import_gtfs-loading" ).hide();
 			$("#dialog-import_gtfs-done" ).hide();
+			$(".ui-dialog-titlebar").css("background-color", "purple");
 		},
 		autoOpen: false, 
 		modal :true,
@@ -812,6 +815,7 @@ function SetupMenu(){
 			    
 			},
 			Cancel: function() {
+				downcount();
 				 $( this ).dialog( "close" );
 			}
 		}
@@ -830,6 +834,7 @@ function SetupMenu(){
 	
 	$("#dialog-zap_gtfs" ).dialog({ 
 		open : function (event,ui){
+			$(".ui-dialog-titlebar").css("background-color", "orange");
 		},
 		autoOpen: false, 
 		modal :true,
@@ -844,7 +849,6 @@ function SetupMenu(){
 					dataType: 'JSON',
 					url: $url,
 					success: function(response){
-						console.log("finished zapping GTFS");
 						refreshAll();
 						}
 				});

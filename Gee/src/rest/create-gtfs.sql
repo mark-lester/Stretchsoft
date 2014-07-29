@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS stop_times;
 DROP TABLE IF EXISTS trips;
 DROP TABLE IF EXISTS `routes`;
 DROP TABLE IF EXISTS `stops`;
+DROP TABLE IF EXISTS calendar_dates;
 DROP TABLE IF EXISTS calendar;
 DROP TABLE IF EXISTS agency;
 
@@ -82,7 +83,7 @@ CREATE TABLE `stops` (
 CREATE TABLE `routes` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	route_id VARCHAR(255) NOT NULL UNIQUE KEY,
-	agency_id VARCHAR(255),
+	agency_id VARCHAR(255) NOT NULL ,
 	route_short_name VARCHAR(255),
 	route_long_name VARCHAR(255),
 	route_desc VARCHAR(255),
@@ -90,6 +91,7 @@ CREATE TABLE `routes` (
 	route_url VARCHAR(255),
 	route_color VARCHAR(255),
 	route_text_color VARCHAR(255),
+	KEY `agency_id` (agency_id),
 	 FOREIGN KEY (agency_id) 
         REFERENCES agency(agency_id)
         ON DELETE CASCADE
@@ -133,12 +135,14 @@ CREATE TABLE `stop_times` (
 	shape_dist_traveled DECIMAL(10,4) DEFAULT 0,
 	KEY `trip_id` (trip_id),
 	KEY `stop_id` (stop_id),
+	KEY `stop_trip_id` (stop_id,trip_id),
+	KEY `trip_stop_id` (trip_id,stop_id),
 	KEY `stop_sequence` (stop_sequence),
 	KEY `pickup_type` (pickup_type),
 	KEY `drop_off_type` (drop_off_type),
 	FOREIGN KEY (trip_id) references trips(trip_id),
 	FOREIGN KEY (stop_id) references stops(stop_id)
-);
+)ENGINE=InnoDB;
 
 /*==========================================*/
 
@@ -192,7 +196,8 @@ CREATE TABLE shapes (
 	shape_pt_lat DECIMAL(12,8) NOT NULL,
 	shape_pt_lon DECIMAL(12,8) NOT NULL,
 	shape_pt_sequence SMALLINT UNSIGNED NOT NULL, 
-	shape_dist_traveled DECIMAL(10,4)
+	shape_dist_traveled DECIMAL(10,4),
+	KEY `shape_id` (shape_id)
 );
 
 /*==========================================*/
