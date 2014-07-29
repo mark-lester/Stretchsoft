@@ -583,10 +583,9 @@ public int createRecord(String className,Hashtable <String,String> record) throw
 //     entityName = "tables."+entityName;
      Session session = factory.openSession();
      Transaction tx = session.beginTransaction();
-     int recordId = updateRecordInner(session,tx,entityName,inputRecord);
-     
-     session.close();    	 
+     int recordId = updateRecordInner(session,tx,entityName,inputRecord);     
      tx.commit();
+     session.close();    	 
      return recordId;
  }
 
