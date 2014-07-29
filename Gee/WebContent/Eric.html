@@ -181,6 +181,9 @@ hr { color: #7FA423;
 
 </div> <!-- end 9 col -->
 </div> <!--  end row  -->
+</div> <!--  end interface -->
+
+<div id="dialogs"> 
 
 <div id="dialog-getstops" title="Get Stops From OSM" class="edit-dialog">
 <form id="dialog-getstops-form">
@@ -189,29 +192,29 @@ hr { color: #7FA423;
     <input id="stop_type" name="stop_type" size=10 maxlength=10 required><br>
 </fieldset>
  </form>
- </div>
- 
+</div>
+
 <div id="dialog-import_gtfs" title="Import GTFS" class="edit-dialog">
-
-
 <form id="dialog-import_gtfs-form">
 <fieldset>
 	<label for="upload_file">Upload GTFS from local file system</label>
     <input id="upload_file" name="upload_file" type=file><br>
 </fieldset>
+
 <div id="dialog-import_gtfs-loading">
 <center>
 <h3> Loading....</h3>
 <img src="img/ajax-loader.gif">
 </center>
 </div>
+
 <div id="dialog-import_gtfs-done">
 <h3>Loading Complete, here's what the database said</h3>
 <div id="dialog-import_gtfs-done-text">
 </div>
 </div>
+
  </form>
-</div>
 </div>
  
 <div id="dialog-zap_gtfs" title="Clear GTFS" class="edit-dialog">
@@ -235,6 +238,7 @@ hr { color: #7FA423;
 </fieldset>
  </form>
  </div>
+
 <div id="dialog-delete-Instance" title="Delete Database">
 <form id="dialog-delete-Instance-form">
      Are you sure you want to delete Database <input readonly name="display" size=20 maxlength=20><br>
@@ -262,7 +266,8 @@ hr { color: #7FA423;
     <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
 </fieldset>
  </form>
- </div>
+</div>
+
 <div id="dialog-delete-Stops" title="Delete Stops">
 <form id="dialog-delete-Stops-form">
 
@@ -298,7 +303,8 @@ hr { color: #7FA423;
     <input id="endDate" name="endDate" type=text picker="date" required greaterthan="startDate"><br>
 </fieldset>
  </form>
- </div>
+</div>
+
 <div id="dialog-delete-Calendar" title="Delete Calendar">
 <form id="dialog-delete-Calendar-form">
      Are you sure you want to delete Calendar ID,  <input readonly name="calendarId" size=10 maxlength=10><br>
@@ -319,7 +325,8 @@ hr { color: #7FA423;
     <input id="exceptionType" size=2 maxlength=2><br>
 </fieldset>
  </form>
- </div>
+</div>
+
 <div id="dialog-delete-CalendarDates" title="Delete Calendar Date">
 <form id="dialog-delete-CalendarDates-form">
      Are you sure you want to delete Calendar Date,  <input readonly name="date" size=10 maxlength=10><br>
@@ -351,7 +358,8 @@ hr { color: #7FA423;
 </fieldset>
 
  </form>
- </div>
+</div>
+
 <div id="dialog-delete-Agency" title="Delete Agency">
 <form id="dialog-delete-Agency-form">
      Are you sure you want to delete Agency ID,  <input readonly name="agencyId" size=10 maxlength=10><br>
@@ -384,7 +392,8 @@ you will lose all the routes, trips and stoptimes if you do
     <input id="routeTextColor" name="routeTextColor" picker="colour" size=10 type="colour" name="routetextColour"><br>
  </fieldset>
   </form>
- </div>
+</div>
+
 <div id="dialog-delete-Routes" title="Delete Route">
 <form id="dialog-delete-Routes-form">
      Are you sure you want to delete Route ID <input readonly name="routeId" size=10 maxlength=10><br>
@@ -392,7 +401,6 @@ you will lose all the routes, trips and stoptimes if you do
 </form>
 </div>
  
-
 <div id="dialog-edit-Trips" title="Add/Edit Trips">
 <form id="dialog-edit-Trips-form">
   <fieldset>
@@ -414,6 +422,7 @@ you will lose all the routes, trips and stoptimes if you do
   </fieldset>
    </form>
  </div>
+
 <div id="dialog-delete-Trips" title="Delete Trip">
 <form id="dialog-delete-Trips-form">
      Are you sure you want to delete Trip ID <input readonly name="tripId" size=10 maxlength=10><br>
@@ -437,7 +446,8 @@ you will lose all the routes, trips and stoptimes if you do
     <input id="headwaySecs" name="headwaySecs" size=30 maxlength=100 required><br>
 </fieldset>
   </form>
- </div>
+</div>
+
 <div id="dialog-delete-Frequencies" title="Delete Frequencies">
 <form id="dialog-delete-Frequencies-form">
      Are you sure you want to delete Frequencies <input readonly name="startTime" size=10 maxlength=10><br>
@@ -470,7 +480,8 @@ you will lose all the routes, trips and stoptimes if you do
     <input id="stopHeadsign" name="stopHeadsign" size=30 maxlength=100><br>
 </fieldset>
   </form>
- </div>
+</div>
+
 <div id="dialog-delete-StopTimes" title="Delete Stop Time">
 <form id="dialog-delete-StopTimes-form">
      Are you sure you want to delete Stop Time 
@@ -498,13 +509,13 @@ you will lose all the routes, trips and stoptimes if you do
     <input id="shapeDistTravelled" name="shapeDistTravelled" size=10 maxlength=10 required  display><br>
 </fieldset>
   </form>
- </div>
+</div>
+
 <div id="dialog-delete-Shapes" title="Delete Shape Point">
 <form id="dialog-delete-Shapes-form">
      Are you sure you want to delete Shape Point 
       <input readonly name="shapeId" size=10 maxlength=10><br>
       <input readonly name="shapePtSequence" size=10 maxlength=10><br>
-	
 </form>
 </div>
 
@@ -521,7 +532,8 @@ you will lose all the routes, trips and stoptimes if you do
     
  </fieldset>
   </form>
- </div>
+</div>
+
 <div id="dialog-delete-FareAttributes" title="Delete Fare Attribute">
 <form id="dialog-delete-FareAttributes-form">
      Are you sure you want to delete Fare Attribute 
@@ -548,6 +560,7 @@ you will lose all the routes, trips and stoptimes if you do
  </fieldset>
   </form>
  </div>
+
 <div id="dialog-delete-FareRules" title="Delete Fare Rules">
 <form id="dialog-delete-FareRules-form">
      Are you sure you want to delete Fare Rule 
@@ -560,16 +573,12 @@ you will lose all the routes, trips and stoptimes if you do
 </form>
 </div>
 
-
-
 <div id="dialog-edit-TripBlock" title="Trip Stop Times">
 <form id="dialog-edit-TripBlock-form">
   This will be a trip time block
 </form>
 </div>
 
-
- </div>
  <div id="template-select">
  <form id="template-select-form">
  <label id="template-select-label"></label>
@@ -582,12 +591,15 @@ you will lose all the routes, trips and stoptimes if you do
  </form>
  <hr>
  </div>
+ 
+ </div> <!--  end dialogs -->
 
 </body>
 
 <script>
 
 $("#template-select").hide();
+$("#dialogs").hide();
 $("#interface").hide();
 $("#menu").hide();
 
