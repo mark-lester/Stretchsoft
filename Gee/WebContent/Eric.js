@@ -1421,7 +1421,6 @@ function update_station(stopId,coords){
 }
 
 function update_shape_point(hibernateId,coords){
-	console.log("moving a shape node");
 	var $url="/Gee/Entity?entity=Shapes&field=hibernateId&value="+hibernateId;
 	return $.ajax({
 		method:"GET",
@@ -1437,7 +1436,6 @@ function update_shape_point(hibernateId,coords){
 			refreshTable('Shapes');
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			console.log("we will presumably get commit failed next");
 			request_error_alert(xhr);
 		}
 	});

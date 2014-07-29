@@ -49,6 +49,7 @@ import com.csvreader.CsvWriter;
 
 import sax.HibernateConfig;
 import sax.TableMap;
+import tables.ImportedStops;
 import DBinterface.StringOutputStream;
 
 
@@ -339,6 +340,7 @@ InputSource i = new InputSource(s);
                          record.put(hibernateFieldName, csvFieldValue);
                          set_flag=true;
                      }
+                     expandRecord(className,record);
                      if (!set_flag) continue;
                      int hibernateId;
                      hibernateId = existsRecord(session,className,tableMap,record);
@@ -492,6 +494,24 @@ InputSource i = new InputSource(s);
             
          return true;
      }
+
+     // right now this is a nasty hack to heal up missing agency_id in the routes.txt
+     // which google reckons is overkill
+   public void expandRecord(String className, Hashtable <String,String> record)  {
+
+	   switch (className){
+	   case "tables.Routes":
+		   if (record.get("agencyId") == null || record.get("agencyId").isEmpty()){
+				Session session = factory.openSession();
+				Object agency[] = session.createQuery("From Agency").list().toArray();
+				session.close();
+				if (agency.length > 0) {
+					tables.Agency a = (tables.Agency)agency[0];
+					record.put("agencyId",a.getagencyId());
+				}
+	   	   }
+        }
+   }
      
 public int existsRecord(Session session, String className,TableMap tableMap,Hashtable <String,String> record) throws HibernateException{
 	String query = new String();
