@@ -304,7 +304,7 @@ InputSource i = new InputSource(s);
     
       
  // TODO refactor this to use the classNames from the keys of tableMaps
-     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash,PrintWriter out) throws HibernateException, AssertionFailure {
+     public boolean LoadTable(String resourceFile, Hashtable <String,Reader> zipHash,PrintWriter out) throws HibernateException {
          // the resource file is the <table>.hbm.xml
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
@@ -332,7 +332,9 @@ InputSource i = new InputSource(s);
             		 csvReader = new CsvReader(zipHash.get(tableName+".txt"));
             	 }
                  csvReader.readHeaders();
+                 int row=0;
                  while (csvReader.readRecord()) {
+                	 row++;
                      Hashtable<String,String> record = new Hashtable<String,String>();
                      boolean set_flag=false;
                      for (String databaseFieldName : keys) {
@@ -348,18 +350,25 @@ InputSource i = new InputSource(s);
                      expandRecord(className,record);
                      int hibernateId;
                      hibernateId = existsRecord(session,className,tableMap,record);
+                     
                      if (hibernateId > 0){
                     	 record.put("hibernateId",Integer.toString(hibernateId));
                     	 updateRecordInner(session,tx,className,record);
                     	 updates++;
 //                         System.err.print("U");
                      } else {
-                    	 if (createRecordInner(session,tx,className,record) > 0) {
+                    	 try {
+                    		 hibernateId=createRecordInner(session,tx,className,record);
                     		 inserts++;
-//                             System.err.print("C");
-                    	 } else {
+                    	 } catch (AssertionFailure ex) {
+                             System.err.println("Assertion Failure in "+tableName+"row number "+row+" :" + ex);                   	 
+                             out.println("Assertion Failure in "+tableName+"row number "+row+" :" + ex);                   	 
+                             for (String databaseFieldName : keys) {
+             						System.err.println(databaseFieldName+"="+csvReader.get(databaseFieldName));
+            						out.print(databaseFieldName+"="+csvReader.get(databaseFieldName)+": ");
+                             }
+                             out.println("");
                     		 errors++;
-//                             System.err.print("E");
                     	 }
                      }
                      if (count++%RECORDS_PER_COMMIT == 0){
@@ -553,9 +562,9 @@ public int existsRecord(Session session, String className,TableMap tableMap,Hash
 //	query += "FROM "+entityName;
 	query += "select * FROM "+tableMap.tableName;
 	
-	if (tableMap.use_key != null){
-		query += " use index("+tableMap.use_key+") ";
-	}
+//	if (tableMap.use_key != null){
+//		query += " use index("+tableMap.use_key+") ";
+//	}
 	
 	for (String keyName : tableMap.keyFields) {
         if (first){
