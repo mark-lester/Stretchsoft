@@ -141,6 +141,9 @@ hr { color: #7FA423;
 <div id="Stops" class="Eric" parent="Instance">
 <h5>Stops</h5>
 </div>
+<div id="Transfers" class="Eric" parent="Stops">
+<h5>Transfer Times</h5>
+</div>
 <div id="Calendar" class="Eric" parent="Instance" >
 <h5>Calendar</h5>
 </div>
@@ -275,6 +278,36 @@ hr { color: #7FA423;
      You will lose any Stop times from any trips that use then if you do.
 </form>
 </div>
+
+
+<div id="dialog-edit-Transfers" title="Add/Edit Transfer Time" class="edit-dialog">
+<form id="dialog-edit-Transfers-form">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Stops" type=hidden>
+	<input id="parentKey" value="fromStopId" type=hidden>
+	
+	<label for="fromStopId">From Stop ID (required)</label>
+    <input id="fromStopId" name="fromStopId" size=20 maxlength=20 required key display><br>
+	<label for="toStopId">To Stop ID (required)</label>
+    <input id="toStopId" name="toStopId" size=20 maxlength=20 required display><br>
+   	<label for="transferType">Exception Type</label>
+    <input id="transferType" name="transferType" size=2 maxlength=2><br>
+   	<label for="minTransferTime">Min Trafser Time</label>
+    <input id="minTransferTime" name="minTransferTime" size=4 maxlength=4><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="dialog-delete-Transfers" title="Delete Transfe Time">
+<form id="dialog-delete-Transfers-form">
+
+     Are you sure you want to delete Transfer time for <input readonly name="display" size=20 maxlength=20><br>
+     You will lose any Stop times from any trips that use then if you do.
+</form>
+</div>
+
+
  
 
 <div id="dialog-edit-Calendar" title="Add/Edit Calendar" class="edit-dialog">

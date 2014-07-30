@@ -157,11 +157,11 @@ function getTableDataInner(tableName,vector){
 		
 		var matchField=undefined;
 		var matchValue=undefined;
-		
 		if (parentTable != undefined && relations[parentTable]['no_join'] == undefined){
-			matchField=relations[parentTable]['key'];
+			matchField=relations[tableName]['parentKey'] || relations[parentTable]['key'];
 			matchValue=$('#select-'+parentTable).val();		
 		}
+		console.log("getting data tablename="+tableName+" matchfield="+matchField);
 		var save_select_row=undefined;
 		var $select_list = $("#select-"+tableName);
 		if ($("#select-"+tableName).val()!=undefined 
@@ -257,7 +257,6 @@ function initTableRelations(){
 		}
 		if ($(this).attr('parent') != undefined){
 			relations[tableName]['parent']=
-				// <div id="CalendarDates" class="Eric" parent="Instance" >
 				$(this).attr('parent');			
 		}
 		if (!relations[tableName]['parent']){
@@ -279,6 +278,7 @@ function initTableRelations(){
 
 		
 		// <input id="stopId" name="stopId" size=10 maxlength=10 required key>
+		relations[tableName]['parentKey']=$('#dialog-edit-'+tableName+'-form :input[id=parentKey]').attr('value');
 		relations[tableName]['key']=$('#dialog-edit-'+tableName+'-form :input[key]').attr('name');
 		relations[tableName]['order']=$('#dialog-edit-'+tableName+'-form :input[order]').attr('name');
 		relations[tableName]['joinkey']=$('#dialog-edit-'+tableName+'-form :input[joinkey]').attr('name');
@@ -288,7 +288,12 @@ function initTableRelations(){
 //		relations[tableName]['display']=$('#dialog-edit-'+tableName+'-form :input[display]').attr('name');
 		$('#dialog-edit-'+tableName+'-form :input[display]').each(function (){
 			relations[tableName]['display'].push($(this).attr('name'));			
-		})
+		});
+		
+		$('#dialog-edit-'+tableName+'-form :input[source_key]').each(function (){
+			relations[tableName]['source_key']=$(this).attr('name');			
+		});
+		
 		
 		if (relations[tableName]['parent']){
 			var child=undefined;
