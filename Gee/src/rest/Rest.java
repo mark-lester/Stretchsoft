@@ -138,6 +138,11 @@ public class Rest extends HttpServlet {
 		    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
 		    response.addCookie(cookie1); 
 		}
+		// this is only done as I dont know how to find out what you are actually
+		// called on the client side. All verification is done by unpacking
+		// the facebook cookie. I just need to send this back so we can make DBs named after them
+	    Cookie user_name_cookie = new Cookie("gee_username", userId);
+	    response.addCookie(user_name_cookie); 
 		
 		gtfs = getGtfs(databaseName,userId);
 		

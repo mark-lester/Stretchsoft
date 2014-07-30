@@ -66,8 +66,35 @@ function getURLParameter(name) {
 function initDBCookie(){
 	databaseName=getURLParameter('databaseName') || getCookie("gee_databasename") || "gtfs";
 	console.log("Database ="+databaseName);
+	if (!check_exists_db(databaseName)) databaseName="gtfs";
 	setCookie("gee_databasename",databaseName);
 }
+var database_permissions={};
+function check_exists_db(databaseName){
+	get_permissions(databaseName); // blocking, synchronous
+	return database_permissions[databaseName]['exists'] == "1";	
+}
+
+function create_database(databaseName){
+	var values={};
+	values['entity']="Instance";
+	values['action']="create";
+	values['databaseName']=databaseName;
+	values['description']=databaseName;
+	
+	var datastring = JSON.stringify(values);
+	var $url="/Gee/User";
+
+	return $.ajax({
+		url: $url,
+		method:"POST",
+		dataType: 'JSON',
+		async : false,
+		data: {values: datastring}
+	});
+}
+
+
 
 function refreshAll(){
 	var deferreds=[];
@@ -326,9 +353,11 @@ function get_permissions(databaseName){
 		method:"GET",
 		dataType: 'JSON',
 		url: $url,
+		async: false,
 		success: function(response){
-			database_permissions={};
-			database_permissions=response;
+			console.log("database permissions for "+databaseName+"rec="+response+
+					" exists="+response['exists']);
+			database_permissions[databaseName]=response;
 		 },
 		error: function (xhr, ajaxOptions, thrownError) {
 			request_error_alert(xhr);
@@ -496,6 +525,9 @@ function initDialogs(tableName){
 			    		
 			    		default:
 					        values[this.id] = $(this).val();
+			    	}
+			    	if ($(this).attr('nospace')){
+				        values[this.id] = $(this).val().replace(/[^a-zA-Z0-9]/,'');			    		
 			    	}
 			    });
 			    $('#dialog-edit-'+tableName+'-form select').each(function() {
@@ -788,7 +820,14 @@ function SetupMenu(){
 			    // from tableName + gtfs-id value to hibernateId
 				$("#dialog-import_gtfs-loading" ).show();
 				$("#dialog-import_gtfs-done" ).hide();
-
+	        	if ($("#create_db","#dialog-import_gtfs").prop('checked')){
+	        		mydatabaseName="user_"+getCookie("gee_username");
+	        		if (!check_exists_db(mydatabaseName)){
+	        			create_database(mydatabaseName);
+	        		}
+	        		databaseName=mydatabaseName;
+	        		setCookie("gee_databasename",databaseName);
+				}
 				values={};
 //				values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 				values['file']=window.btoa(GTFS_Upload_file);
@@ -953,7 +992,7 @@ function init_edit_values(tableName){
 		    		switch ($(this).attr('type')){
 	    			case 'checkbox':
 				        if (record[this.id] == 1){
-				        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").prop('checked',true);
+				        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").$("#dialog-import_gtfs-loading" );
 				        } else {
 				        	$("#"+this.id,"#dialog-edit-"+tableName+"-form").prop('checked',false);
 				        }
@@ -1023,7 +1062,7 @@ var allStationsLayer=L.featureGroup();
 var tripPathsLayer=L.featureGroup();
 // the path AND the stations of the currently edited trip
 var tripStationsLayer=L.featureGroup();
-allStationsLayer.bringToFront();
+allStationsLayer.bringToBack();
 tripPathsLayer.bringToFront();
 tripStationsLayer.bringToFront();
 
@@ -1118,10 +1157,10 @@ function drawStops(){
 			function( data ) {
 				allStationsLayer.clearLayers();
 				$.each( data, function( key, val ) {
-					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon, draggable: true}).addTo(map);
+					var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon, draggable: true});
 					mapobjectToValue[L.stamp(mapobject)]=val['stopId'];
 					set_event_handlers_for_station_outside_trip(mapobject,val['stopName']);
-					allStationsLayer.addLayer(mapobject);
+					allStationsLayer.addLayer(mapobject).bringToBack();
 					all_station_points.push([val['stopLat'],val['stopLon']]);
 				});
 				allStationsLayer.bringToBack();

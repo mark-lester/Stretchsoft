@@ -96,11 +96,15 @@ public class User extends Rest {
 	private void get_permissions(HttpServletRequest request, HttpServletResponse response, String userId){
 		Hashtable<String,String> record=new Hashtable<String,String>();
 		String databaseName = request.getParameter("databaseName");
-		record.put("write",admin.verifyWriteAccess(databaseName,userId) ? "1":"0");
-		record.put("read",admin.verifyReadAccess(databaseName,userId) ? "1":"0");
-		record.put("admin",admin.verifyAdminAccess(databaseName,userId) ? "1":"0");
-		record.put("own",admin.verifyOwnership(databaseName,userId) ? "1":"0");
+		boolean exists;
 		record.put("name",databaseName);
+		record.put("exists",(exists=admin.verifyExists(databaseName)) ? "1":"0");
+		if (exists){
+			record.put("write",admin.verifyWriteAccess(databaseName,userId) ? "1":"0");
+			record.put("read",admin.verifyReadAccess(databaseName,userId) ? "1":"0");
+			record.put("admin",admin.verifyAdminAccess(databaseName,userId) ? "1":"0");
+			record.put("own",admin.verifyOwnership(databaseName,userId) ? "1":"0");
+		}
 		
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -177,11 +181,10 @@ public class User extends Rest {
 				boolean success=true;
 				switch(entity){
 				case "Instance":
-					System.err.print("About to call create database\n"); 
-					InputStream s =getClass().getClassLoader().getResourceAsStream("rest/create-gtfs.sql");
-					System.err.println("SQL STREAM = "+s);
+					String databaseName=record.get("databaseName");
+					databaseName.replaceAll("[^0-9a-zA-Z]", "");
 					success = admin.CreateMySqlDatabase(
-								record.get("databaseName"),
+								databaseName,
 								getClass().getClassLoader().getResourceAsStream("rest/create-gtfs.sql")
 								);							
 					break;

@@ -202,6 +202,9 @@ hr { color: #7FA423;
 <fieldset>
 	<label for="upload_file">Upload GTFS from local file system</label>
     <input id="upload_file" name="upload_file" type=file><br>
+	<label for="create_db">Create me a DB if I dont have one (say yes unless you know what you are doing)</label>
+    <input id="create_db" name="create_db" type=checkbox checked><br>
+    
 </fieldset>
 
 <div id="dialog-import_gtfs-loading">
@@ -231,7 +234,7 @@ hr { color: #7FA423;
 <fieldset>
 	<input id="hibernateId" type=hidden>
 	<label for="databaseName">Database Name</label>
-    <input id="databaseName" name="databaseName" size=10 maxlength=10 noSpace required key><br>
+    <input id="databaseName" name="databaseName" size=20 maxlength=20 nospace required key><br>
 	<label for="description">Description </label>
     <input id="description" name="description" size=30 maxlength=100 required display><br>
 	<label for="publicRead">Public Read</label>
