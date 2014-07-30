@@ -35,7 +35,18 @@ public void update(Hashtable <String,String> record){
 		this.fromStopId=record.get("fromStopId");
 		this.toStopId=record.get("toStopId");
 		this.transferType=Integer.parseInt(record.get("transferType"));
-		this.minTransferTime=Integer.parseInt(record.get("minTransferTime"));
+		try {
+			this.transferType=Integer.parseInt(record.get("transferType"));
+		} catch (NumberFormatException ex){
+			this.transferType=0;
+		}
+
+		try {
+			this.minTransferTime=Integer.parseInt(record.get("minTransferTime"));
+		} catch (NumberFormatException ex){
+			this.minTransferTime=0;
+		}
+
 	}
 
 public Hashtable <String,String> hash(){

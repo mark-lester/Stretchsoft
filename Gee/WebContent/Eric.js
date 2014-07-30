@@ -1037,6 +1037,12 @@ function MapSetUp(){
 		maxZoom: 18,
 		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
 	});
+	var Stamen_TonerLabels = L.tileLayer('http://{s}.tile.stamen.com/toner-labels/{z}/{x}/{y}.png', {
+		attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+		subdomains: 'abcd',
+		minZoom: 0,
+		maxZoom: 20
+	});
 	trainIcon = L.icon({
 	    iconUrl: 'img/steamtrain.png',
 	    iconSize:     [44, 44], // size of the icon
@@ -1057,18 +1063,23 @@ function MapSetUp(){
 	    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
 	    popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
 	});
-
+	var OpenStreetMap_DE = L.tileLayer('http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+		attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+	});
 
 	baseMaps={
-		    "OSM": baselayer
+		    "OSM": baselayer,
+		    "Stoner":Stamen_TonerLabels,
+		    "OSM/DE":OpenStreetMap_DE
 		};
+	
 	baselayer.addTo(map);
 	allStationsLayer.addTo(map);
 	tripStationsLayer.addTo(map);
 	tripPathsLayer.addTo(map);
 	
 
-//	L.control.layers(baseMaps,overlayMaps).addTo(map);
+	L.control.layers(baseMaps).addTo(map);
 	url="/Gee/Mapdata";
 	$.ajax({
 		  url: url,
@@ -1109,6 +1120,7 @@ function drawStops(){
 					all_station_points.push([val['stopLat'],val['stopLon']]);
 				});
 				allStationsLayer.bringToBack();
+				tripStationsLayer.bringToFront();
 			}
 	);
 }
@@ -1216,6 +1228,7 @@ function drawTrip(tripId){
 		tripStationsLayer.clearLayers();
 		SetTTBE(tripStruct);
 		DrawTripPath(tripStruct);
+		tripStationsLayer.bringToFront();
 	});
 }
 

@@ -195,7 +195,7 @@ CREATE TABLE shapes (
 	shape_id VARCHAR(255) NOT NULL,
 	shape_pt_lat DECIMAL(12,8) NOT NULL,
 	shape_pt_lon DECIMAL(12,8) NOT NULL,
-	shape_pt_sequence SMALLINT UNSIGNED NOT NULL, 
+	shape_pt_sequence INT UNSIGNED NOT NULL, 
 	shape_dist_traveled DECIMAL(10,4),
 	KEY `shape_id` (shape_id)
 );

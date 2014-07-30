@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
@@ -68,7 +69,9 @@ public class DBinterface {
     public XMLReader xmlReader;
     public static int session_count=0;
     public Configuration configuration=null;
-    public static final int RECORDS_PER_COMMIT=1000;  
+    public static final int RECORDS_PER_COMMIT=1000; 
+    public boolean success=false;
+    public Hashtable <String,String> load_success = new Hashtable <String,String>() ;
 
 //    public Transaction tx = null;
 //    public Session session = null;
@@ -166,10 +169,11 @@ public class DBinterface {
         
         for (String resourceFile : hibernateConfig.resources) {
             // load the specific table
-            System.err.println("Loading "+resourceFile+"...\n");       
+            System.err.println("Loading "+ resourceFile+"...\n");       
             out.println("Loading "+resourceFile+"...\n");
             try {
-            	LoadTable(resourceFile,zipHash,out);
+            	boolean success = LoadTable(resourceFile,zipHash,out);
+            	if (success) load_success.put(resourceFile,"DONE");
             } catch (HibernateException|AssertionFailure e){
             	out.println("aborting import from "+resourceFile);
             }
@@ -340,8 +344,8 @@ InputSource i = new InputSource(s);
                          record.put(hibernateFieldName, csvFieldValue);
                          set_flag=true;
                      }
-                     expandRecord(className,record);
                      if (!set_flag) continue;
+                     expandRecord(className,record);
                      int hibernateId;
                      hibernateId = existsRecord(session,className,tableMap,record);
                      if (hibernateId > 0){
@@ -510,6 +514,35 @@ InputSource i = new InputSource(s);
 					record.put("agencyId",a.getagencyId());
 				}
 	   	   }
+		   break;
+// both calendar dates, and potentially trips, may refer to implicit, i.e. non existent service ids, 
+// which normally are defined in calendar.txt. If, and only if, calendar.txt is missing, I will insert
+// an entry in Calendar for all days and from 2000 to 2030 for any of these implicit service_id
+// this isnt in the google spec, unlike the missing agency_id column above in routes.txt, 
+// but I have a number of cases already, so it it's in mine.
+		   
+	   case "tables.Trips":
+	   case "tables.CalendarDates":
+		   if (load_success.get("stop_times.txt") == null){  // only do this if there was no calendar.txt
+				Session session = factory.openSession();
+				String query="FROM Calendar where serviceId='"+record.get("serviceId")+"'";
+				Object entities[] = session.createQuery(query).list().toArray();
+				session.close();
+				if (entities.length > 0) break;  // good it's already there
+
+				Hashtable <String,String> calendar_rec=new Hashtable <String,String>();
+				calendar_rec.put("serviceId", record.get("serviceId"));
+				calendar_rec.put("monDay", "1");
+				calendar_rec.put("tuesDay", "1");
+				calendar_rec.put("wednesDay", "1");
+				calendar_rec.put("thursDay", "1");
+				calendar_rec.put("friDay", "1");
+				calendar_rec.put("saturDay", "1");
+				calendar_rec.put("sunDay", "1");
+				calendar_rec.put("startDate", "20000101");
+				calendar_rec.put("endDate", "20300101");
+				createRecord("tables.Calendar",calendar_rec);
+		   }		   
         }
    }
      

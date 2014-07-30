@@ -44,14 +44,24 @@ public class Rest extends HttpServlet {
             gtfsStore = new Hashtable <String,Gtfs>();        	
         }
     }
+    
+    @Override
+    public void init() throws ServletException {
+    	FACEBOOK_SECRET = getInitParameter("FACEBOOK_SECRET");
+	    System.err.println("got facebook secret"+FACEBOOK_SECRET);
+	    // having problems with eclipse and my web.xml :(
+	    FACEBOOK_SECRET = "2a20c183f3998aa8313671322990d777";
+    }
 
-	public void init(ServletConfig config) throws ServletException
+/*
+ * 	public void init(ServletConfig config) throws ServletException
+ 
 	{
 	    super.init(config);
 	    System.err.println("getting facebook secret");
 	    FACEBOOK_SECRET = config.getInitParameter("FACEBOOK_SECRET");
-	    FACEBOOK_SECRET = "2a20c183f3998aa8313671322990d777";
 	}
+	*/
 	
 	public String getUserId(HttpServletRequest request, HttpServletResponse response){
 		Cookie[] cookies = request.getCookies();
@@ -75,8 +85,8 @@ public class Rest extends HttpServlet {
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
-		System.err.println("The databaseName="+databaseName);
-		System.err.println("request ="+signed_request);
+//		System.err.println("The databaseName="+databaseName);
+//		System.err.println("request ="+signed_request);
 		
 		if (signed_request != null){
 			String[] sr_parts = signed_request.split("\\.",2);
@@ -88,8 +98,8 @@ public class Rest extends HttpServlet {
 	    
 
 	        payload = codec.decode(encodedPayload);
-	        String payload_string = new String(payload);
-	        System.err.print("payload = " + payload_string + "\n");
+	  //      String payload_string = new String(payload);
+	  //      System.err.print("payload = " + payload_string + "\n");
 	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
 	     
 	        sig = new String(codec.decode(encoded_sig));
