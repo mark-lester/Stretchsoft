@@ -43,22 +43,6 @@ function MainSetup(){
 	});
 }
 
-function MainSetupInner(){
-		initDBCookie();
-		initTableRelations();
-		initTables();
-		SetupMenu();			
-		
-		$("#interface").show();
-		$("#menu").show();
-		$("#welcome").hide();
-		
-		$.when(refreshAll()).done(function(){
-			$("#select-Instance").val(databaseName);
-			MapSetUp();
-		});
-}
-
 function getURLParameter(name) {
 	  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
 	}
@@ -1060,11 +1044,10 @@ var mapobjectToValue={};
 var allStationsLayer=L.featureGroup();
 // all the paths NOT on the currently edited trip
 var tripPathsLayer=L.featureGroup();
-// the path AND the stations of the currently edited trip
+//the path AND the stations of the currently edited trip
 var tripStationsLayer=L.featureGroup();
-allStationsLayer.bringToBack();
-tripPathsLayer.bringToFront();
-tripStationsLayer.bringToFront();
+// all the trips 
+var allTripsLayer=L.featureGroup();
 
 var baseMaps = {};
 
@@ -1118,12 +1101,17 @@ function MapSetUp(){
 		};
 	
 	baselayer.addTo(map);
-	allStationsLayer.addTo(map);
-	tripStationsLayer.addTo(map);
-	tripPathsLayer.addTo(map);
+	allTripsLayer.addTo(map);
+	
+	overLays={
+			"Trip to be edited":tripStationsLayer,
+			"All Stations":allStationsLayer,
+			"Trips from stop":tripPathsLayer,
+			"All Trips":allTripsLayer
+	};
 	
 
-	L.control.layers(baseMaps).addTo(map);
+	L.control.layers(baseMaps,overLays).addTo(map);
 	url="/Gee/Mapdata";
 	$.ajax({
 		  url: url,
@@ -1143,6 +1131,7 @@ function MapSetUp(){
 
 	    $( "#dialog-edit-Stops").dialog( "open" );
 	});
+	drawAllTrips();
 }
 
 var mapobjectToValue=[];
@@ -1184,11 +1173,11 @@ function set_event_handlers_for_station_outside_trip(mapobject,stopName){
 	});
 
 	mapobject.on("click", function(e){
+		tripStationsLayer.addTo(map);
 		$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 		drawTripsForStop(mapobjectToValue[L.stamp(e.target)]);
 		});
 		
-	mapobject.removeEventListener("dblclick");
 	mapobject.on("dblclick", function(e){
 		$( "#select-Stops").val(mapobjectToValue[L.stamp(e.target)]);
 		$( "#dialog-edit-StopTimes").data("edit_flag",false);
@@ -1296,6 +1285,23 @@ function drawTripsForStop(stopId){
 	
 }
 
+function drawAllTrips(){
+	tripsUrl= "/Gee/Entity?entity=Trips";
+	allTripsLayer.clearLayers();
+	return $.getJSON(tripsUrl, 
+			function( data ) {			
+				$.each( data, function( key, val ) {
+					var tripStruct = TripStruct();
+					$.when(GetTrip(val['tripId'],tripStruct)).done(function(){
+						DrawTripPathOther(tripStruct,"purple",allTripsLayer);						
+					});
+				});
+			}
+	);
+	
+}
+
+
 function GetTrip(tripId,tripStruct){
 	tripUrl="/Gee/Entity?entity=Trips&field=tripId&value="+tripId+"&join_table=Routes&join_key=routeId";
 	stopTimesUrl= "/Gee/Entity?entity=Stops&parent_order=stopSequence&join_table=StopTimes&join_key=stopId&parent_field=tripId&value="+tripId;
@@ -1328,6 +1334,7 @@ function GetTrip(tripId,tripStruct){
 					// hibernate returns an array of two records on a join
 					$.extend(val[1],val[0]);  // we need the right hibernateId, so watch the merge
 					tripStruct.ShapePoints.push(val[1]);
+					tripStruct.shape_points.push([val[0]['shapePtLat'],val[0]['shapePtLon']]);
 				});
 			}
 			);
@@ -1344,15 +1351,28 @@ function GetTrip(tripId,tripStruct){
  * i.e when you've clicked on a station outside the current trip
  */
 var tripLinesToTripStruct=[];
-function DrawTripPathOther(tripStruct){
-	mapobject=L.polyline( tripStruct.station_points,  {
-		color: 'green'
-	});
+
+function DrawTripPathOther(tripStruct,colour,layer){
+	if (colour == null)	colour = 'green';
+	if (layer == null)	layer = tripPathsLayer;
+	
+	if (tripStruct.ShapePoints.length > 0){
+		mapobject=L.polyline( tripStruct.shape_points,  {
+			color: colour
+		});		
+	} else {
+		mapobject=L.polyline( tripStruct.station_points,  {
+			color: colour
+		});
+		
+	}
 	tripLinesToTripStruct[L.stamp(mapobject)]=tripStruct;
-	tripPathsLayer.addLayer(mapobject);
+	layer.addLayer(mapobject);
 	mapobject.on("click",function(e) {
+		tripStationsLayer.addTo(map);
+
 		var vector={};
-		tripPathsLayer.clearLayers();
+//		layer.clearLayers();
 		vector['Agency']=tripLinesToTripStruct[L.stamp(e.target)].Trip.agencyId;
 		vector['Routes']=tripLinesToTripStruct[L.stamp(e.target)].Trip.routeId;
 		vector['Trips']=tripLinesToTripStruct[L.stamp(e.target)].Trip.tripId;
@@ -1438,6 +1458,7 @@ function SetTTBE(tripStruct){
 	}
 	start=tripStruct.Stations[0];
 	finish = tripStruct.Stations[tripStruct.Stations.length-1];
+	
 	map.fitBounds([
 			[
 				start.stopLat,
@@ -1447,7 +1468,8 @@ function SetTTBE(tripStruct){
 				finish.stopLat,
 				finish.stopLon
 			]]
-			);				
+			);
+					
 }
 
 

@@ -514,7 +514,10 @@ InputSource i = new InputSource(s);
 
 	   switch (className){
 	   case "tables.Routes":
-		   if (record.get("agencyId") == null || record.get("agencyId").isEmpty()){
+		   if (record.get("agencyId") == null || 
+		   		record.get("agencyId").isEmpty() ||
+		   		record.get("agencyId").equals("NULL") ||
+		   		record.get("agencyId").equals("null")){
 				Session session = factory.openSession();
 				Object agency[] = session.createQuery("From Agency").list().toArray();
 				session.close();
@@ -562,9 +565,9 @@ public int existsRecord(Session session, String className,TableMap tableMap,Hash
 //	query += "FROM "+entityName;
 	query += "select * FROM "+tableMap.tableName;
 	
-//	if (tableMap.use_key != null){
-//		query += " use index("+tableMap.use_key+") ";
-//	}
+	if (tableMap.use_key != null){
+		query += " use index("+tableMap.use_key+") ";
+	}
 	
 	for (String keyName : tableMap.keyFields) {
         if (first){

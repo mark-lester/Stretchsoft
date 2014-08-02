@@ -128,6 +128,9 @@ public class Rest extends HttpServlet {
 		}
 		
 		Hashtable <String,String> record = new Hashtable <String,String>();	
+		if (userId == null){
+			return null;
+		}
 		record.put("userId", userId);
 		// we can add email and nice name when we've worked out how to get them
 		admin.getUser(record);
