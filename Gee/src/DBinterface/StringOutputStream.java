@@ -8,7 +8,7 @@ public class StringOutputStream extends OutputStream {
 
 	// This buffer will contain the stream
 	protected StringBuffer buf = new StringBuffer();
-
+    
 	public StringOutputStream() {}
 
 	public void close() {}

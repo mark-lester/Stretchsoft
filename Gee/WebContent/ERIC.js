@@ -125,9 +125,11 @@ function KingEric (){
 	this.orphans = [];
 	this.name ="King Eric";
 	this.Init();
-	for (var index in this.orphans){
-		this.orphans[index].PrintTree(0);
-	}
+//	for (var index in this.orphans){
+//		this.orphans[index].PrintTree(0);
+//	}
+	// there would normally by one orphan, but i guess you can have multiple trees
+	// send the top a "Load" request and it should cascade down the tree
 	for (var index in this.orphans){
 		this.orphans[index].request("Load");
 	}
@@ -280,7 +282,7 @@ Eric.prototype.specific_constructor = function() {
 }
 
 Eric.prototype.request = function(request,data) {
-	console.log("requesting "+request+" of "+this.name);
+//	console.log("requesting "+request+" of "+this.name);
 	this.queue.add({request : request,data : data});
 };
  
@@ -308,7 +310,7 @@ Eric.prototype.select_empty = function() {
 };
 
 Eric.prototype.getrecord = function(key) {
-	return eric.record_lookup[key];
+	return this.record_lookup[key];
 };
 
 
@@ -405,6 +407,12 @@ Eric.prototype.LoadChildren = function() {
 // this request accepts edit and create, 
 Eric.prototype.create_or_update_entity = function(data) {
 	var eric=this;
+	
+	$.each( data, function( key, val ) {
+		if (val === undefined || val == null || val == 'null') val="";	
+		data[key]=""+val;
+	});
+	
 	var datastring = JSON.stringify(data);
 	var $url=this.RESTUrlBase+this.relations.method;
 
@@ -453,8 +461,6 @@ Eric.prototype.ProcessDialogs = function (){
     this.initInputForm('edit-'+this.name);
     
 	dialogs['edit']=$("#edit-"+this.name).dialog({ 
-		ED : this.ED,
-		eric : this,
 		open : function (event,ui){
 			if (eric.edit_flag == true){
 				$(".ui-dialog-titlebar").css("background-color", "green");
@@ -521,8 +527,6 @@ Eric.prototype.ProcessDialogs = function (){
 	});
 	
 	dialogs['remove']=$(this.ED).find( "#delete-"+this.name ).dialog({ 
-		ED : this.ED,
-		eric : this,
 		open : function (event,ui){
 			// need to get these working 
 			$(".ui-dialog-titlebar").css("background-color", "red");
@@ -540,7 +544,8 @@ Eric.prototype.ProcessDialogs = function (){
 			"Delete": function() {
 			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
 				values={};
-	    		values['hibernateId']=this.eric.hid_lookup[this.eric.value()];
+	    		values['hibernateId']=eric.hid_lookup[eric.value()];
+	    		values['entity']=eric.name;
 			    values['entity']=tableName;
 			    values['action']='delete';
 				this.request("remove_entity",values);
@@ -811,18 +816,19 @@ function downcount(){
 
 // MAP STUFF
 var map=null;
-var trainIcon=null;
+var smallTrainIcon=null;
+var bigTrainIcon=null;
 var trainboldIcon=null;
 var shapenodeIcon=null;
 var basemaps={};
 var overlays={};
+var layercontrol;
 
 MapEric.prototype = Object.create(Eric.prototype);
 MapEric.prototype.constructor = MapEric;
 
 function MapEric(ED){
 	this.objectToValue={};
-	console.log("WELL I SET UP ibjectToValue");
 	Eric.call(this, ED);
 }
 
@@ -830,7 +836,10 @@ MapEric.prototype.specific_constructor = function (){
 // stuff to do with creating layergroups
 	this.featureGroup=L.featureGroup();
 	overlays["All Stations"]=this.featureGroup;
-	L.control.layers(baseMaps,overlays).addTo(map);
+	if (layercontrol) map.removeControl(layercontrol);
+	this.featureGroup.addTo(map);
+	layercontrol=L.control.layers(baseMaps,overlays);
+	layercontrol.addTo(map);
 };
 
 
@@ -849,17 +858,19 @@ MapEric.prototype.Draw = function (){
     var data = maperic.parent.data;
 	
 	$.each( data, function( key, val ) {
-		var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: trainIcon, draggable: true});
+		var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: smallTrainIcon, draggable: true});
 		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
 		maperic.set_event_handlers_for_station_outside_trip(mapobject,val['stopName']);
 		maperic.featureGroup.addLayer(mapobject).bringToBack();
 	});
-	map.fitToBounds(this.featureGroup.getBounds());
+	map.fitBounds(this.featureGroup.getBounds());
 	// we are politey issuing a 'Changed' request incase we have further descendants
+	this.featureGroup.addTo(map);
 	this.request("Changed");
 };
 
-function set_event_handlers_for_station_outside_trip(mapobject,stopName){
+MapEric.prototype.set_event_handlers_for_station_outside_trip = function (mapobject,stopName){
+	var maperic=this;
 	if (mapobject == null){
 		return;
 	}
@@ -870,7 +881,9 @@ function set_event_handlers_for_station_outside_trip(mapobject,stopName){
 		values['stopLat']=coords['lat'];
 		values['stopLon']=coords['lng'];
 		values['action']="update";
-		maperic.parent().request("create_or_update_entity",values);
+		values['entity']='Stops';
+		
+		maperic.parent.request("create_or_update_entity",values);
 	});
 
 	mapobject.on("click", function(e){
@@ -888,7 +901,6 @@ function set_event_handlers_for_station_outside_trip(mapobject,stopName){
 	mapobject.on('mouseover', function(e) {
 		this.openPopup();
 		});
-	mapobject.setIcon(trainIcon);    
 }
 
 
@@ -905,7 +917,15 @@ function MapSetup(){
 		minZoom: 0,
 		maxZoom: 20
 	});
-	trainIcon = L.icon({
+	
+	smallTrainIcon = L.icon({
+	    iconUrl: 'img/railway-station-16.jpg',
+	    iconSize:     [16, 16], // size of the icon
+	    iconAnchor:   [8, 8], // point of the icon which will correspond to marker's location
+	    popupAnchor:  [0, -16] // point from which the popup should open relative to the iconAnchor
+	});
+
+	bigTrainIcon = L.icon({
 	    iconUrl: 'img/steamtrain.png',
 	    iconSize:     [44, 44], // size of the icon
 	    iconAnchor:   [22, 44], // point of the icon which will correspond to marker's location
@@ -933,6 +953,5 @@ function MapSetup(){
 		    "Stoner":Stamen_TonerLabels,
 		    "OSM/DE":OpenStreetMap_DE
 		};
-	L.control.layers(baseMaps,overlays).addTo(map);
 	baselayer.addTo(map);
 }
