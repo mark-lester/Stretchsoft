@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/uniform.default.css" media="screen" />
 <!-- Latest compiled and minified JavaScript -->
+
 <script src="js/bootstrap.min.js"></script> 
  <link rel="stylesheet" href="css/jquery-ui.css">
 <script src="js/jquery-1.10.2.js"></script> 
@@ -11,8 +12,6 @@
 <link rel="stylesheet" href="css/leaflet.css" />
 <script src="js/leaflet.js"></script>
 <script src="js/jquery.uniform.js"></script>
-<script src="js/ba-jqmq.js"></script>
-<script src="js/FBSetup.js"></script>
 
 <!-- Bootstrap UI stuff -->
 <!-- Latest compiled and minified CSS -->
@@ -34,8 +33,11 @@
 <script src="js/jquery.timepicker.min.js"></script>
 <script src="js/jquery.validate.js"></script>
 
-<script type="text/javascript" src="Eric.js"></script>
 <script src="//connect.facebook.net/en_US/all.js"></script>
+<script src="ERIC.js"></script>
+<script src="js/FBSetup.js"></script>
+<script src="js/jquery.ba-jqmq.js"></script>
+
 <style>
 .edit-dialog {
     border: 1px solid rgb(74, 159, 63);
@@ -186,7 +188,7 @@ hr { color: #7FA423;
 <div id="Instance" class="Eric" no_join method="User">
 
 <div id="select">
-<h5>Databases</h5>
+<label>Databases</label>
 </div>
 
 <div id="edit" title="Add/Edit Database" class="edit-dialog">
@@ -217,7 +219,7 @@ hr { color: #7FA423;
 
 <div id="Stops" class="Eric" parent="Instance">
 <div id="select">
-<h5>Stops</h5>
+<label>Stops</label>
 </div>
 
 <div id="edit" title="Add/Edit Stop" class="edit-dialog">
@@ -254,7 +256,7 @@ hr { color: #7FA423;
 
 <div id="Transfers" class="Eric" parent="Stops">
 <div id="select">
-<h5>Transfer Times</h5>
+<label>Transfer Times</label>
 </div>
 
 <div id="edit" title="Add/Edit Transfer Time" class="edit-dialog">
@@ -288,7 +290,7 @@ hr { color: #7FA423;
 
 <div id="Calendar" class="Eric" parent="Instance" >
 <div id="select">
-<h5>Calendar</h5>
+<label>Calendar</label>
 </div>
 
 <div id="edit" title="Add/Edit Calendar" class="edit-dialog">
@@ -330,7 +332,7 @@ hr { color: #7FA423;
 
 <div id="CalendarDates" class="Eric" parent="Instance" >
 <div id=select">
-<h5>Calendar Dates</h5>
+<label>Calendar Dates</label>
 </div>
 
 <div id="edit" title="Add/Edit Calendar Date" class="edit-dialog">
@@ -360,8 +362,8 @@ hr { color: #7FA423;
 <!--  Eric DECLARATION: Agency -->
 
 <div id="Agency" class="Eric" parent="Instance" >
-<div>
-<h5>Agencies</h5>
+<div id="select">
+<label>Agencies</label>
 </div>
 
 <div id="edit" title="Add/Edit Agency">
@@ -402,8 +404,8 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: Routes -->
 
 <div id="Routes" class="Eric" parent="Agency" >
-<div>
-<h5>Routes</h5>
+<div id="select">
+<label>Routes</label>
 </div>
  
 <div id="edit" title="Add/Edit Route">
@@ -444,12 +446,12 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: Trips -->
 
 <div id="Trips" class="Eric" parent="Routes">
-<div>
-<h5>Trips</h5>
+<div id="select">
+<label>Trips</label>
 </div>
  
-<div id="dialog-edit-Trips" title="Add/Edit Trips">
-<form id="dialog-edit-Trips-form">
+<div id="edit" title="Add/Edit Trips">
+<form id="edit">
   <fieldset>
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Routes" type=hidden>
@@ -481,8 +483,8 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: Frequencies -->
 
 <div id="Frequencies" class="Eric" parent="Trips">
-<div class="select">
-<h5>Frequencies</h5>
+<div id="select">
+<label>Frequencies</label>
 </div>
 
 <div id="edit" title="Add/Edit Frequencies">
@@ -514,8 +516,8 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: StopTimes -->
 
 <div id="StopTimes" class="Eric" parent="Trips">
-<div class="select">
-<h5>Stop Times</h5>
+<div id="select">
+<label>Stop Times</label>
 </div>
  
 <div id="edit" title="Add/Edit Stop Time">
@@ -556,8 +558,8 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: Shapes -->
 
 <div id="Shapes" class="Eric" parent="Trips">
-<div class="select">
-<h5>Shape Points</h5>
+<div id="select">
+<label>Shape Points</label>
 </div>
 
 <div id="edit" title="Add/Edit Shape Point">
@@ -593,8 +595,8 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: FareAttributes -->
 
 <div id="FareAttributes" class="Eric" parent="Instance">
-<div class="select">
-<h5>Fare Attributes</h5>
+<div id="select">
+<label>Fare Attributes</label>
 </div>
 
 <div id="edit" title="Add/Edit Fare Attribute">
@@ -624,8 +626,8 @@ you will lose all the routes, trips and stoptimes if you do
 <!--  Eric DECLARATION: FareRules -->
 
 <div id="FareRules" class="Eric" parent="Instance">
-<div class="select">
-<h5>Fare Rules</h5>
+<div id="select">
+<label>Fare Rules</label>
 </div>
 
 <div id="edit" title="Add/Edit Fare Rules">
@@ -658,6 +660,9 @@ you will lose all the routes, trips and stoptimes if you do
 	
 </form>
 </div>
+</div>
+
+<div id="Map_Stops" class="Eric" parent="Stops" type="MapEric">
 </div>
 
 </div> <!-- END OF ERIC DECLARATIONS -->
@@ -725,12 +730,15 @@ you will lose all the routes, trips and stoptimes if you do
 </body>
 
 <script>
+$("#Eric_Declarations").hide();
 $("#template-select").hide();
 $("#dialogs").hide();
 $("#interface").hide();
 $("#menu").hide();
+$("#loading").hide();
 
 $("#welcome").show();
+SetUp();	
 
 </script>
 

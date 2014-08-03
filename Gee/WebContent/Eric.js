@@ -401,7 +401,7 @@ function initSelectForm(tableName){
 }	
 
 function initInputForm(tableName){
-	$('#dialog-edit-'+tableName+'-form').validate();
+	$('#dialog-edit-'+tableName+'-form').validate().form();
 	// set the pickers
 
 	var $inputs = $('#dialog-edit-'+tableName+'-form :input');
