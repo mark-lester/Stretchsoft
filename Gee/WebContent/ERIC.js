@@ -84,6 +84,7 @@
  * 
  * 
 */
+var databaseName="gtfs";
 var load_count=0;
 function upcount(){
 	// show gif here, eg:
@@ -125,9 +126,16 @@ function KingEric (){
 	this.orphans = [];
 	this.name ="King Eric";
 	this.Init();
-//	for (var index in this.orphans){
+
+	// cant find a way to incrementally build this, so have to add it after building the map layers
+	layercontrol=L.control.layers(baseMaps,overlays).addTo(GeeMap);
+
+	//	for (var index in this.orphans){
 //		this.orphans[index].PrintTree(0);
 //	}
+	// need to set the database. yucky I know
+	this.subjects["Instance"].seed=databaseName;
+	
 	// there would normally by one orphan, but i guess you can have multiple trees
 	// send the top a "Load" request and it should cascade down the tree
 	for (var index in this.orphans){
@@ -167,9 +175,17 @@ KingEric.prototype.Init = function (){
 	// go find stuff and build the tree
 	$('.Eric').each(function(){
 		var eric=null;
+		
+		// would like to turn this into one line
 		switch ($(this).attr('type')){
 		case 'MapEric':
 			eric = new MapEric(this);
+			break;
+		case 'MapEricTrip':
+			eric = new MapEricTrip(this);
+			break;
+		case 'MapEricShape':
+			eric = new MapEricShape(this);
 			break;
 		default:
 			eric = new Eric(this);	
@@ -206,6 +222,7 @@ function Eric (ED) {
     this.record_lookup = [];
     this.relations={};
     this.edit_flag=false; // used to re-use the edit dialog for create
+    this.seed=null;
     
     this.queue = jQuery.jqmq({    
         // Next item will be processed only when queue.next() is called in callback.
@@ -218,6 +235,9 @@ function Eric (ED) {
         callback: function( request_struct ) {
         	var queue=this;
         	$.when(this.eric[request_struct.request](request_struct.data)).done(function (){
+        		if (request_struct.callback != undefined){
+        			request_struct.callback(request_struct);
+        		}
             	queue.next();        		
         	});
         },
@@ -228,6 +248,7 @@ function Eric (ED) {
     });
     this.queue.eric = this;
     this.name = $(ED).attr('id');
+    this.title = $(ED).attr('title');
 	this.parent_name = $(ED).attr('parent') || $(ED).find('#edit input[id=parentTable]').val();
 	this.relations={
 			method 				: $(ED).attr('method') || "Entity",
@@ -246,7 +267,7 @@ function Eric (ED) {
 		relations.display.push($(this).attr('name'));			
 	});
 	
-    this.specific_constructor();
+    this.type_specific();
 }
 
 Eric.prototype.PrintTree = function(indent){
@@ -263,7 +284,7 @@ Eric.prototype.PrintTree = function(indent){
 
 // STANDARD CONSTRUCTOR. 
 // Creates a drop down select, and the dialogs 
-Eric.prototype.specific_constructor = function() {
+Eric.prototype.type_specific = function() {
 
     this.ProcessDialogs(); // get them ready for the buttons
     this.MakeUIobject();  //  make the UI object and plonk in the place holder
@@ -281,9 +302,9 @@ Eric.prototype.specific_constructor = function() {
     });
 }
 
-Eric.prototype.request = function(request,data) {
-//	console.log("requesting "+request+" of "+this.name);
-	this.queue.add({request : request,data : data});
+Eric.prototype.request = function(request,data,callback) {
+	//console.log("requesting "+request+" of "+this.name);
+	this.queue.add({request : request, data : data, callback:callback});
 };
  
 Eric.prototype.addChild = function(child) {
@@ -338,7 +359,7 @@ Eric.prototype.RESTUrl = function() {
 
 
 //  here are the requests (WARNING, you could request "request", and it would explode)
-Eric.prototype.Load = function() {
+Eric.prototype.Load = function(force) {
 	var eric=this;
 	var $dfd = $.getJSON(this.RESTUrl(), 
 		function( data ) {
@@ -354,16 +375,20 @@ Eric.prototype.Load = function() {
 				outdata.push(values);
 			});
 			eric.data=outdata;
-			eric.request("Draw"); 
+			eric.request("Draw",force); 
 	     }
 	);
 	return $dfd;
 };
 
-
-Eric.prototype.Draw = function() {
+//force flag to ensure propogation down the tree with the "Changed" request
+//it will orignate from create_or_update_entity. 
+Eric.prototype.Draw = function(force) { 
 	this.hid_lookup={};
 	var save_select_value=this.value();
+	if (this.seed){
+		save_select_value=this.seed;
+	}
 	this.select_empty();
 	var eric=this;
 	var select_entity=this.select_entity();
@@ -375,31 +400,34 @@ Eric.prototype.Draw = function() {
 				).appendTo(select_entity);	
 	});
 	
+	var no_change=false;
 	if (save_select_value &&
 			(row_entity = $(select_entity).find("option[value='"+save_select_value+"']")) &&
 			(value = $(row_entity).val()) &&
-			value.length > 0)
-		   {
+			value.length > 0){
 		this.value(save_select_value);
-	} else {
-		// the current value has gone, reload the kids
-		this.request("Changed");
+		no_change=true;
+	} 
+	
+	if (force || !no_change || this.seed != null) { // only do this if we've changed or were seeded
+		this.request("Changed",force);		
 	}
+	this.seed=null;
 };
 
-Eric.prototype.Changed = function() {
+Eric.prototype.Changed = function(force) {
 	// we may need to go backup and change an ancestoral table, e,g, the stop if we changed stoptimes
 	if (this.relations.secondParentTable){
 		$KingEric.get(this.relations.secondParentTable)
 				.value(this.currentRecord()[this.relations.secondParentKey]);
 	}
 	// but either way we've changed, so got get the kids
-	this.request("LoadChildren");
+	this.request("LoadChildren",force);
 };
 
-Eric.prototype.LoadChildren = function() {
+Eric.prototype.LoadChildren = function(force) {
 	for (var child in this.children){
-		this.children[child].request("Load");
+		this.children[child].request("Load",force);
 	}
 };
 
@@ -412,8 +440,14 @@ Eric.prototype.create_or_update_entity = function(data) {
 		if (val === undefined || val == null || val == 'null') val="";	
 		data[key]=""+val;
 	});
+	data['entity']= this.name; //force this, else you coul dupdate somethingelse,whichwould be ok
+								// but then the Draw message wil go to the wrong place
+	
+	if (!data['action'])   // and default to update
+		data['action']='update';
 	
 	var datastring = JSON.stringify(data);
+	console.log("data action="+data['action']+" calling update with "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({
@@ -422,7 +456,7 @@ Eric.prototype.create_or_update_entity = function(data) {
 		data: {values: datastring},
 		url: $url,
 		success: function(response){
-			eric.request("Load");
+			eric.request("Load",true);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			request_error_alert(xhr);
@@ -430,8 +464,8 @@ Eric.prototype.create_or_update_entity = function(data) {
 	 });
 };
 
-Eric.prototype.remove_entity = function(request) {
-	var datastring = JSON.stringify(request.data);
+Eric.prototype.remove_entity = function(data) {
+	var datastring = JSON.stringify(data);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({
@@ -703,6 +737,8 @@ Eric.prototype.init_edit_values = function (){
 	    } else if (this.id == relations.secondParentKey){
 	        $(this).attr("readonly",true);			        
 	        $(this).val(eric.secondParent.value());
+	    } else if (($(this).attr("joinkey") != null) && eric.edit_flag){
+	        $(this).attr("readonly",true);			        	    	
 	    } else if (	this.id == 'parentKey' || 
 	    			this.id == 'parentTable' || 
 	    			this.id == 'secondParentTable' || 
@@ -815,15 +851,16 @@ function downcount(){
 
 
 // MAP STUFF
-var map=null;
+var GeeMap=null;
 var smallTrainIcon=null;
 var bigTrainIcon=null;
-var trainboldIcon=null;
+var boldTrainIcon=null;
 var shapenodeIcon=null;
 var basemaps={};
 var overlays={};
 var layercontrol;
 
+// MapEric is the base "class" for maps, extending Eric, which is set up for All Stops
 MapEric.prototype = Object.create(Eric.prototype);
 MapEric.prototype.constructor = MapEric;
 
@@ -832,14 +869,11 @@ function MapEric(ED){
 	Eric.call(this, ED);
 }
 
-MapEric.prototype.specific_constructor = function (){
+MapEric.prototype.type_specific = function (){
 // stuff to do with creating layergroups
 	this.featureGroup=L.featureGroup();
-	overlays["All Stations"]=this.featureGroup;
-	if (layercontrol) map.removeControl(layercontrol);
-	this.featureGroup.addTo(map);
-	layercontrol=L.control.layers(baseMaps,overlays);
-	layercontrol.addTo(map);
+	overlays[this.title]=this.featureGroup;
+	this.featureGroup.addTo(GeeMap);
 };
 
 
@@ -851,25 +885,35 @@ MapEric.prototype.Load = function (){
 	this.request("Draw");
 };
 
+var first_call=true; 
 MapEric.prototype.Draw = function (){
 	// stuff to do with playing about with map objects, using either (normally) the parents data store
 	// or in the case of the route map, local data
+	this.featureGroup.clearLayers();
 	var maperic=this;
     var data = maperic.parent.data;
 	
 	$.each( data, function( key, val ) {
 		var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: smallTrainIcon, draggable: true});
 		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
-		maperic.set_event_handlers_for_station_outside_trip(mapobject,val['stopName']);
-		maperic.featureGroup.addLayer(mapobject).bringToBack();
+		maperic.stop_event_handlers(mapobject,val['stopName']);
+		maperic.featureGroup.addLayer(mapobject);
 	});
-	map.fitBounds(this.featureGroup.getBounds());
+	if (first_call || !this.featureGroup.getBounds().contains(GeeMap.getBounds())){
+		GeeMap.fitBounds(this.featureGroup.getBounds());		
+	}
+	first_call=false;
 	// we are politey issuing a 'Changed' request incase we have further descendants
-	this.featureGroup.addTo(map);
+	this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
 };
 
-MapEric.prototype.set_event_handlers_for_station_outside_trip = function (mapobject,stopName){
+function isinside(inside,what){
+	
+	return true;
+}
+
+MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 	var maperic=this;
 	if (mapobject == null){
 		return;
@@ -883,7 +927,9 @@ MapEric.prototype.set_event_handlers_for_station_outside_trip = function (mapobj
 		values['action']="update";
 		values['entity']='Stops';
 		
-		maperic.parent.request("create_or_update_entity",values);
+		$KingEric.get("Stops").request("create_or_update_entity",values,function(){
+			$KingEric.get("StopTimes").request("Load",true);
+		});
 	});
 
 	mapobject.on("click", function(e){
@@ -903,9 +949,213 @@ MapEric.prototype.set_event_handlers_for_station_outside_trip = function (mapobj
 		});
 }
 
+MapEricTrip.prototype = Object.create(MapEric.prototype);
+MapEricTrip.prototype.constructor = MapEricTrip;
+function MapEricTrip(ED){
+	MapEric.call(this, ED);
+}
+
+MapEricTrip.prototype.Draw = function (){
+	this.featureGroup.clearLayers();
+	var maperic=this;
+    var data = maperic.parent.data;
+	var stops_eric=$KingEric.get("Stops");
+	var latlngs = Array();
+	var mapobject=null;
+	//Get latlng from first marker
+
+	$.each( data, function( key, val ) {
+		var StopRecord = stops_eric.getrecord(val['stopId']); 
+		mapobject=L.marker([StopRecord['stopLat'],StopRecord['stopLon']], {icon: boldTrainIcon, draggable: true});
+		latlngs.push(mapobject.getLatLng());
+		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
+		maperic.stop_event_handlers(mapobject,StopRecord.stopName + "<br> A:"+val.arrivalTime+" D:"+val.departureTime);
+		maperic.featureGroup.addLayer(mapobject);
+	});
+	mapobject=L.polyline( latlngs,  {
+		color: 'red',
+		opacity : 1
+	});
+	maperic.featureGroup.addLayer(mapobject);
+	mapobject.on("dblclick",function(e) {
+		create_shape_from_trip($KingEric.get("Trips").value());
+	});
+	
+	GeeMap.fitBounds(this.featureGroup.getBounds());
+	// we are politey issuing a 'Changed' request incase we have further descendants
+	this.featureGroup.addTo(GeeMap);
+	this.request("Changed");
+}
+;
+function create_shape_from_trip(tripId){
+	var $url="/Gee/Mapdata";
+	values={};
+	values['action']='create_shape_from_trip';
+	values['tripId']=tripId;
+    var datastring = JSON.stringify(values);
+	return $.ajax({
+		method:"POST",
+		dataType: 'JSON',
+		data: {values: datastring},
+		url: $url,
+		success: function(response){
+			$KingEric.get("Shapes").request("Load",true);
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			request_error_alert(xhr);
+		}
+	});
+	
+}
+
+MapEricTrip.prototype.stop_event_handlers = function (mapobject,stopName){
+	var maperic=this;
+	if (mapobject == null){
+		return;
+	}
+	mapobject.on('dragend', function(e) {
+	    var marker = e.target;  // you could also simply access the marker through the closure
+	    var coords = marker.getLatLng();  // but using the passed event is cleaner
+	    var values = $KingEric.get("Stops").getrecord(maperic.objectToValue[L.stamp(e.target)]);
+		values['stopLat']=coords['lat'];
+		values['stopLon']=coords['lng'];
+		values['action']="update";
+		values['entity']='Stops';
+		
+		$KingEric.get("Stops").request("create_or_update_entity",values,function(){
+			$KingEric.get("Trips").request("Draw",true);
+		});
+		
+	});
+
+	mapobject.on("click", function(e){
+		// set the parent value to this stopId
+		maperic.parent.value(maperic.objectToValue[L.stamp(e.target)])
+		});
+		
+	mapobject.on("dblclick", function(e){
+		maperic.parent.value(maperic.objectToValue[L.stamp(e.target)]);
+		$KingEric.get("StopTimes").request("open_edit_dialog",true);
+		});
+	
+   	var popup_val=stopName;
+	mapobject.bindPopup(popup_val);
+	mapobject.on('mouseover', function(e) {
+		this.openPopup();
+		});
+}
+
+
+MapEricShape.prototype = Object.create(MapEric.prototype);
+MapEricShape.prototype.constructor = MapEricShape;
+function MapEricShape(ED){
+	MapEric.call(this, ED);
+}
+
+MapEricShape.prototype.Draw = function (){
+	this.featureGroup.clearLayers();
+	var maperic=this;
+    var data = maperic.parent.data;
+	var stops_eric=$KingEric.get("Stops");
+	var latlngs = Array();
+	var mapobject=null;
+	//Get latlng from first marker
+
+	var previous=null;
+	$.each( data, function( key, val ) {
+		var StopRecord = stops_eric.getrecord(val['stopId']); 
+		mapobject=L.marker([val['shapePtLat'],val['shapePtLon']], {icon: shapenodeIcon, draggable: true});
+		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
+		maperic.node_event_handlers(mapobject,val);
+		maperic.featureGroup.addLayer(mapobject);
+
+		if (previous){	
+			mapobject=L.polyline( [
+		                        [previous.shapePtLat,previous.shapePtLon],
+		                        [val.shapePtLat,     val.shapePtLon]
+		                       ],
+		                       {color: 'blue', opacity : 1});
+			maperic.line_event_handlers(mapobject,val);
+			maperic.featureGroup.addLayer(mapobject);
+		}
+		previous=val;
+	});
+	
+	GeeMap.fitBounds(this.featureGroup.getBounds());
+	// we are politey issuing a 'Changed' request incase we have further descendants
+	this.featureGroup.addTo(GeeMap);
+	this.request("Changed");
+};
+
+
+MapEricShape.prototype.line_event_handlers = function (mapobject,values){
+	if (mapobject == null){
+		return;
+	}
+	mapobject.on("dblclick",function(e) {
+	    add_shape_point_after(values.shapePtSeq, this.parent.data[0].shapeId,[e.latlng.lat,e.latlng.lng] );
+	});
+};
+
+function add_shape_point_after(after, shapeId, coords){
+	var $url="/Gee/Mapdata";
+	var values={};
+	values['after']=""+after;
+	values['action']='add_shape_point_after';
+	values['shapeId']=shapeId;
+	values['shapePtLat']=""+coords[0];
+	values['shapePtLon']=""+coords[1];
+			
+    var datastring = JSON.stringify(values);
+	return $.ajax({
+		method:"POST",
+		dataType: 'JSON',
+		data: {values: datastring},
+		url: $url,
+		success: function(response){
+			$KingEric.get('Shapes').request("Draw");
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			request_error_alert(xhr);
+		}
+	});
+}
+
+
+MapEricShape.prototype.node_event_handlers = function (mapobject,values){
+	var maperic=this;
+	if (mapobject == null){
+		return;
+	}
+	mapobject.on('dragend', function(e) {
+	    var result = e.target.getLatLng();  
+	    values.shapePtLat = result.lat;
+	    values.shapePtLon = result.lng;
+	    console.log("setting values to "+ 
+	    		values.shapePtLat  + "," +
+	    		values.shapePtLon  + "," +
+	    		values.shapeId  + "," +
+	    		values.shapePtSeq  + "," );
+	    $KingEric.get("Shapes").request("create_or_update_entity",values);
+	});
+	mapobject.on('dblclick', function(e) {
+		$KingEric.get("Shapes").request("remove_entity",values);
+	});
+};
+
+MapEricTrip.prototype.line_event_handlers = function (mapobject,index){
+	var maperic=this;
+	if (mapobject == null){
+		return;
+	}
+	mapobject.on("dblclick",function(e) {
+	    add_shape_point_after(index, this.parent.data[0].shapeId,[e.latlng.lat,e.latlng.lng] );
+	});
+};
+
 
 function MapSetup(){
-	map = L.map('map', { zoomControl:false });
+	GeeMap = L.map('map', { zoomControl:false });
 	var osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	var baselayer = L.tileLayer(osm_tiles, {
 		maxZoom: 18,
@@ -932,7 +1182,7 @@ function MapSetup(){
 	    popupAnchor:  [0, -44] // point from which the popup should open relative to the iconAnchor
 	});
 
-	trainboldIcon = L.icon({
+	boldTrainIcon = L.icon({
 	    iconUrl: 'img/steamtrain-bold.png',
 	    iconSize:     [44, 44], // size of the icon
 	    iconAnchor:   [22, 44], // point of the icon which will correspond to marker's location
@@ -953,5 +1203,5 @@ function MapSetup(){
 		    "Stoner":Stamen_TonerLabels,
 		    "OSM/DE":OpenStreetMap_DE
 		};
-	baselayer.addTo(map);
+	baselayer.addTo(GeeMap);
 }

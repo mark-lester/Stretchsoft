@@ -570,13 +570,13 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="parentKey" value="tripId" type=hidden>
 	
   	<label for="shapeId">Shape ID</label>
-    <input id="shapeId" name="shapeId" size=10 maxlength=10 required key joinkey><br>
+    <input id="shapeId" name="shapeId" size=10 maxlength=10 required joinkey><br>
   	<label for="shapePtLat">Lat </label>
     <input id="shapePtLat" name="shapePtLat" size=10 maxlength=10 required display><br>
   	<label for="shapePtLon">Lat </label>
     <input id="shapePtLon" name="shapePtLon" size=10 maxlength=10 required display><br>
   	<label for="shapePtSequence">Sequence </label>
-    <input id="shapePtSequence" name="shapePtSequence" size=10 maxlength=10 required order readonly><br>
+    <input id="shapePtSequence" name="shapePtSequence" size=10 maxlength=10 required order readonly key><br>
   	<label for="shapeDistTravelled">Distance </label>
     <input id="shapeDistTravelled" name="shapeDistTravelled" size=10 maxlength=10 required  display><br>
 </fieldset>
@@ -662,7 +662,13 @@ you will lose all the routes, trips and stoptimes if you do
 </div>
 </div>
 
-<div id="Map_Stops" class="Eric" parent="Stops" type="MapEric">
+<div id="Map_Stops" class="Eric" parent="Stops" type="MapEric" title="All Stops">
+</div>
+
+<div id="Map_Trips" class="Eric" parent="StopTimes" type="MapEricTrip" title="Trip Editor">
+</div>
+
+<div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
 </div>
 
 </div> <!-- END OF ERIC DECLARATIONS -->

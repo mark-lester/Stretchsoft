@@ -656,7 +656,9 @@ public int createRecord(String className,Hashtable <String,String> record) throw
 
   public int updateRecordInner(Session session, Transaction tx,String entityName,Hashtable <String,String> inputRecord) throws HibernateException{
 	 int hibernateId = Integer.parseInt(inputRecord.get("hibernateId"));
-	     Integer recordId = -1;
+		System.err.println("In updateRecordInner after parse of hid="+inputRecord.get("hibernateId")+" class="+entityName); 
+
+	 Integer recordId = -1;
      try {
          Class<?> cls = Class.forName(entityName);
          Method m = cls.getMethod("update", inputRecord.getClass());
@@ -669,6 +671,7 @@ public int createRecord(String className,Hashtable <String,String> record) throw
              InvocationTargetException|
              IllegalAccessException e) {
          System.err.println(e.toString());
+         e.printStackTrace();
      }
      return recordId;
   }
