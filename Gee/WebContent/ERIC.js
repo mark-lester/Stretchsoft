@@ -174,22 +174,9 @@ KingEric.prototype.Init = function (){
 	var king = this;
 	// go find stuff and build the tree
 	$('.Eric').each(function(){
-		var eric=null;
-		
-		// would like to turn this into one line
-		switch ($(this).attr('type')){
-		case 'MapEric':
-			eric = new MapEric(this);
-			break;
-		case 'MapEricTrip':
-			eric = new MapEricTrip(this);
-			break;
-		case 'MapEricShape':
-			eric = new MapEricShape(this);
-			break;
-		default:
-			eric = new Eric(this);	
-		}
+		var className = $(this).attr('type');
+		if (!className) className = "Eric";
+		var eric = new window[className](this);
 		
 		if (eric.parent_name){
 			eric.parent=king.get(eric.parent_name);
@@ -229,8 +216,6 @@ function Eric (ED) {
         delay: -1,
         // Process queue items one-at-a-time.
         batch: 1,
-        // add a link to the owning object
-        eric : this,
         // For each queue item, execute this function, 
         callback: function( request_struct ) {
         	var queue=this;
@@ -447,7 +432,6 @@ Eric.prototype.create_or_update_entity = function(data) {
 		data['action']='update';
 	
 	var datastring = JSON.stringify(data);
-	console.log("data action="+data['action']+" calling update with "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({
@@ -790,8 +774,6 @@ function check_exists_db(databaseName){
 
 // this has to go
 function get_permissions(databaseName){
-//	console.log("getting permissions for "+databaseName);
-	console.log("gettingperpissions "+this.RESTUrlBase);
 	var $url="/Gee/User?entity=Permissions&databaseName="+databaseName;
 	return $.ajax({
 		method:"GET",
@@ -890,14 +872,14 @@ MapEric.prototype.Draw = function (){
 	// stuff to do with playing about with map objects, using either (normally) the parents data store
 	// or in the case of the route map, local data
 	this.featureGroup.clearLayers();
-	var maperic=this;
-    var data = maperic.parent.data;
+	var eric=this;
+    var data = eric.parent.data;
 	
 	$.each( data, function( key, val ) {
 		var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: smallTrainIcon, draggable: true});
-		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
-		maperic.stop_event_handlers(mapobject,val['stopName']);
-		maperic.featureGroup.addLayer(mapobject);
+		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
+		eric.stop_event_handlers(mapobject,val['stopName']);
+		eric.featureGroup.addLayer(mapobject);
 	});
 	if (first_call || !this.featureGroup.getBounds().contains(GeeMap.getBounds())){
 		GeeMap.fitBounds(this.featureGroup.getBounds());		
@@ -914,14 +896,14 @@ function isinside(inside,what){
 }
 
 MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
-	var maperic=this;
+	var eric=this;
 	if (mapobject == null){
 		return;
 	}
 	mapobject.on('dragend', function(e) {
 	    var marker = e.target;  // you could also simply access the marker through the closure
 	    var coords = marker.getLatLng();  // but using the passed event is cleaner
-	    var values = maperic.parent.getrecord(maperic.objectToValue[L.stamp(e.target)]);
+	    var values = eric.parent.getrecord(eric.objectToValue[L.stamp(e.target)]);
 		values['stopLat']=coords['lat'];
 		values['stopLon']=coords['lng'];
 		values['action']="update";
@@ -934,11 +916,11 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 
 	mapobject.on("click", function(e){
 		// set the parent value to this stopId
-		maperic.parent.value(maperic.objectToValue[L.stamp(e.target)])
+		eric.parent.value(eric.objectToValue[L.stamp(e.target)])
 		});
 		
 	mapobject.on("dblclick", function(e){
-		maperic.parent.value(maperic.objectToValue[L.stamp(e.target)]);
+		eric.parent.value(eric.objectToValue[L.stamp(e.target)]);
 		$KingEric.get("StopTimes").request("open_edit_dialog",false);
 		});
 	
@@ -957,8 +939,8 @@ function MapEricTrip(ED){
 
 MapEricTrip.prototype.Draw = function (){
 	this.featureGroup.clearLayers();
-	var maperic=this;
-    var data = maperic.parent.data;
+	var eric=this;
+    var data = eric.parent.data;
 	var stops_eric=$KingEric.get("Stops");
 	var latlngs = Array();
 	var mapobject=null;
@@ -968,15 +950,15 @@ MapEricTrip.prototype.Draw = function (){
 		var StopRecord = stops_eric.getrecord(val['stopId']); 
 		mapobject=L.marker([StopRecord['stopLat'],StopRecord['stopLon']], {icon: boldTrainIcon, draggable: true});
 		latlngs.push(mapobject.getLatLng());
-		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
-		maperic.stop_event_handlers(mapobject,StopRecord.stopName + "<br> A:"+val.arrivalTime+" D:"+val.departureTime);
-		maperic.featureGroup.addLayer(mapobject);
+		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
+		eric.stop_event_handlers(mapobject,StopRecord.stopName + "<br> A:"+val.arrivalTime+" D:"+val.departureTime);
+		eric.featureGroup.addLayer(mapobject);
 	});
 	mapobject=L.polyline( latlngs,  {
 		color: 'red',
 		opacity : 1
 	});
-	maperic.featureGroup.addLayer(mapobject);
+	eric.featureGroup.addLayer(mapobject);
 	mapobject.on("dblclick",function(e) {
 		create_shape_from_trip($KingEric.get("Trips").value());
 	});
@@ -1009,14 +991,14 @@ function create_shape_from_trip(tripId){
 }
 
 MapEricTrip.prototype.stop_event_handlers = function (mapobject,stopName){
-	var maperic=this;
+	var eric=this;
 	if (mapobject == null){
 		return;
 	}
 	mapobject.on('dragend', function(e) {
 	    var marker = e.target;  // you could also simply access the marker through the closure
 	    var coords = marker.getLatLng();  // but using the passed event is cleaner
-	    var values = $KingEric.get("Stops").getrecord(maperic.objectToValue[L.stamp(e.target)]);
+	    var values = $KingEric.get("Stops").getrecord(eric.objectToValue[L.stamp(e.target)]);
 		values['stopLat']=coords['lat'];
 		values['stopLon']=coords['lng'];
 		values['action']="update";
@@ -1030,11 +1012,11 @@ MapEricTrip.prototype.stop_event_handlers = function (mapobject,stopName){
 
 	mapobject.on("click", function(e){
 		// set the parent value to this stopId
-		maperic.parent.value(maperic.objectToValue[L.stamp(e.target)])
+		eric.parent.value(eric.objectToValue[L.stamp(e.target)])
 		});
 		
 	mapobject.on("dblclick", function(e){
-		maperic.parent.value(maperic.objectToValue[L.stamp(e.target)]);
+		eric.parent.value(eric.objectToValue[L.stamp(e.target)]);
 		$KingEric.get("StopTimes").request("open_edit_dialog",true);
 		});
 	
@@ -1054,8 +1036,8 @@ function MapEricShape(ED){
 
 MapEricShape.prototype.Draw = function (){
 	this.featureGroup.clearLayers();
-	var maperic=this;
-    var data = maperic.parent.data;
+	var eric=this;
+    var data = eric.parent.data;
 	var stops_eric=$KingEric.get("Stops");
 	var latlngs = Array();
 	var mapobject=null;
@@ -1065,9 +1047,9 @@ MapEricShape.prototype.Draw = function (){
 	$.each( data, function( key, val ) {
 		var StopRecord = stops_eric.getrecord(val['stopId']); 
 		mapobject=L.marker([val['shapePtLat'],val['shapePtLon']], {icon: shapenodeIcon, draggable: true});
-		maperic.objectToValue[L.stamp(mapobject)]=val[maperic.parent.relations.key];
-		maperic.node_event_handlers(mapobject,val);
-		maperic.featureGroup.addLayer(mapobject);
+		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
+		eric.node_event_handlers(mapobject,val);
+		eric.featureGroup.addLayer(mapobject);
 
 		if (previous){	
 			mapobject=L.polyline( [
@@ -1075,8 +1057,8 @@ MapEricShape.prototype.Draw = function (){
 		                        [val.shapePtLat,     val.shapePtLon]
 		                       ],
 		                       {color: 'blue', opacity : 1});
-			maperic.line_event_handlers(mapobject,val);
-			maperic.featureGroup.addLayer(mapobject);
+			eric.line_event_handlers(mapobject,val);
+			eric.featureGroup.addLayer(mapobject);
 		}
 		previous=val;
 	});
@@ -1123,7 +1105,6 @@ function add_shape_point_after(after, shapeId, coords){
 
 
 MapEricShape.prototype.node_event_handlers = function (mapobject,values){
-	var maperic=this;
 	if (mapobject == null){
 		return;
 	}
@@ -1131,11 +1112,6 @@ MapEricShape.prototype.node_event_handlers = function (mapobject,values){
 	    var result = e.target.getLatLng();  
 	    values.shapePtLat = result.lat;
 	    values.shapePtLon = result.lng;
-	    console.log("setting values to "+ 
-	    		values.shapePtLat  + "," +
-	    		values.shapePtLon  + "," +
-	    		values.shapeId  + "," +
-	    		values.shapePtSeq  + "," );
 	    $KingEric.get("Shapes").request("create_or_update_entity",values);
 	});
 	mapobject.on('dblclick', function(e) {
@@ -1144,7 +1120,6 @@ MapEricShape.prototype.node_event_handlers = function (mapobject,values){
 };
 
 MapEricTrip.prototype.line_event_handlers = function (mapobject,index){
-	var maperic=this;
 	if (mapobject == null){
 		return;
 	}
@@ -1152,6 +1127,151 @@ MapEricTrip.prototype.line_event_handlers = function (mapobject,index){
 	    add_shape_point_after(index, this.parent.data[0].shapeId,[e.latlng.lat,e.latlng.lng] );
 	});
 };
+
+MapEricAllTrips.prototype = Object.create(MapEric.prototype);
+MapEricAllTrips.prototype.constructor = MapEricAllTrips;
+function MapEricAllTrips(ED){
+	MapEric.call(this, ED);
+	this.total_records=0;
+	this.off=false;
+	this.tripIds=[];
+	this.max_records = $(ED).attr("max_records");
+	if (!this.max_fecords)
+		this.max_records=10000;	
+}
+
+MapEricAllTrips.prototype.Load = function (force){
+	this.off=false;
+	GeeMap.addLayer(this.featureGroup);
+	this.request("Draw",force);
+};
+
+MapEricAllTrips.prototype.Draw = function (force){
+	var eric=this;
+	this.tripIds=[];
+	if (this.off){
+		console.log("All Trips Turned Off Cos Too Big");
+		return;		
+	}
+	
+	this.featureGroup.clearLayers();
+	tripsUrl= "/Gee/Entity?entity=Trips";
+	return $.getJSON(tripsUrl, 
+			function( data ) {			
+				$.each( data, function( key, val ) {
+					eric.tripIds.push(val.tripId);
+				});
+			}
+	).done(function(){
+		eric.request("AllTripCycle");		
+	});
+	
+};
+
+MapEricAllTrips.prototype.AllTripCycle = function(){
+	if (tripId=this.tripIds.pop()){
+		this.request("GetTrip",tripId);
+	}
+}
+
+function TripStruct(){
+	var tripStruct= {};
+	tripStruct['Trip']=[];
+	tripStruct['shape_points']=[];
+	tripStruct['station_points']=[];
+	return tripStruct;
+}
+
+
+MapEricAllTrips.prototype.GetTrip = function(tripId){
+	var tripStruct= {};
+	tripStruct['Trip']=[];
+	tripStruct['shape_points']=[];
+	tripStruct['station_points']=[];
+
+	var tripUrl="/Gee/Entity?entity=Trips&field=tripId&join_table=Routes&join_key=routeId&value="+tripId;
+	var stopTimesUrl= "/Gee/Entity?entity=Stops&parent_order=stopSequence&join_table=StopTimes&join_key=stopId&parent_field=tripId&value="+tripId;
+	var shapePointsUrl="/Gee/Entity?entity=Shapes&parent_field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
+	if (this.off)
+		return null;
+	var eric=this;
+	trip_df = $.getJSON(tripUrl, 
+			function( data ) {
+				$.each( data, function( key, val ) {
+					// hibernate returns an array of two records on a join
+					$.extend(val[0],val[1],val[2]);					
+					tripStruct.Trip=val[0];
+				});
+			}
+			);
+	
+	stops_df = $.getJSON(stopTimesUrl, 
+			function( data ) {
+				$.each( data, function( key, val ) {
+					// hibernate returns an array of two records on a join
+					$.extend(val[0],val[1]);
+					tripStruct.station_points.push([val[0]['stopLat'],val[0]['stopLon']]);
+					eric.record_count++;
+				});
+			}
+			);
+	
+	shapes_df = $.getJSON(shapePointsUrl, 
+			function( data ) {
+				$.each( data, function( key, val ) {
+					// hibernate returns an array of two records on a join
+					$.extend(val[1],val[0]);  // we need the right hibernateId, so watch the merge
+					tripStruct.shape_points.push([val[0]['shapePtLat'],val[0]['shapePtLon']]);
+					eric.record_count++;
+				});
+			}
+			);
+	var all_dfd= new $.Deferred();
+	$.when(stops_df,trip_df,shapes_df).done(function(){
+		if (this.total_records > this.max_records){
+			this.off=true;
+			alert("Ooops, this one has more than "+this.max_records+" geo data points, I am turning off the Route Map Layer");
+			GeeMap.removeLayer(this.featureGroup);
+		}
+		eric.request("DrawTrip",tripStruct);
+		all_dfd.resolve();
+	});
+	return all_dfd;
+};
+
+MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
+	this.total_records+=tripStruct.record_count;
+    colour=tripStruct.Trip.routeColor;
+    
+	if (tripStruct.shape_points.length > 0){
+		mapobject=L.polyline( tripStruct.shape_points,  {
+			color: 'black'
+		});		
+	} else {
+		mapobject=L.polyline( tripStruct.station_points,  {
+			color: 'black'
+		});	
+	}
+	
+	//zap these,we're done
+	tripStruct.shape_points=[];
+	tripStruct.station_points=[];
+	
+	mapobject.on("click",function(e) {
+		$KingEric.get("Agency").seed = tripStruct.Trip.agencyId;
+		$KingEric.get("Routes").seed = tripStruct.Trip.routeId;
+		$KingEric.get("Trips").seed = tripStruct.Trip.tripId;
+		$KingEric.get("Agency").request("Draw",true);
+	});	
+	mapobject.bindPopup("Route "+tripStruct.Trip.routeId);
+	mapobject.on('mouseover', function(e) {
+		this.openPopup();
+		});
+	this.featureGroup.addLayer(mapobject);
+	this.request("AllTripCycle");
+};
+
+
 
 
 function MapSetup(){
