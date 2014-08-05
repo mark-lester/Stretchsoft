@@ -36,7 +36,7 @@ MapEricTrip.prototype.Draw = function (){
 	});
 	
 	GeeMap.fitBounds(this.featureGroup.getBounds());
-	// we are politey issuing a 'Changed' request incase we have further descendants
+	// we are politely issuing a 'Changed' request in case we have further descendants
 	this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
 };
