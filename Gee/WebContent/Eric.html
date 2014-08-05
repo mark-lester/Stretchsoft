@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/uniform.default.css" media="screen" />
 <!-- Latest compiled and minified JavaScript -->
+
 <script src="js/bootstrap.min.js"></script> 
  <link rel="stylesheet" href="css/jquery-ui.css">
 <script src="js/jquery-1.10.2.js"></script> 
@@ -11,6 +12,7 @@
 <link rel="stylesheet" href="css/leaflet.css" />
 <script src="js/leaflet.js"></script>
 <script src="js/jquery.uniform.js"></script>
+
 <!-- Bootstrap UI stuff -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -31,8 +33,19 @@
 <script src="js/jquery.timepicker.min.js"></script>
 <script src="js/jquery.validate.js"></script>
 
-<script type="text/javascript" src="Eric.js"></script>
 <script src="//connect.facebook.net/en_US/all.js"></script>
+<script src="ERIC.js"></script>
+<script src="js/FBSetup.js"></script>
+<script src="js/jquery.ba-jqmq.js"></script>
+<script src="SetupMenu.js"></script>
+<script src="KingEric.js"></script>
+<script src="BaseEric.js"></script>
+<script src="MapEric.js"></script>
+<script src="MapEricTrip.js"></script>
+<script src="MapEricShape.js"></script>
+<script src="MapEricSingleTrip.js"></script>
+<script src="MapEricAllTrips.js"></script>          
+
 <style>
 .edit-dialog {
     border: 1px solid rgb(74, 159, 63);
@@ -135,46 +148,36 @@ hr { color: #7FA423;
 <div class="col-md-3">
 <div class="col1"> 
 
-<div id="Instance" class="Eric" no_join method="User">
-<h5>Databases</h5>
-</div>
-<div id="Stops" class="Eric" parent="Instance">
-<h5>Stops</h5>
-</div>
-<div id="Transfers" class="Eric" parent="Stops">
-<h5>Transfer Times</h5>
-</div>
-<div id="Calendar" class="Eric" parent="Instance" >
-<h5>Calendar</h5>
-</div>
-<div id="CalendarDates" class="Eric" parent="Instance" >
-<h5>Calendar Dates</h5>
-</div>
-<div id="Agency" class="Eric" parent="Instance" >
-<h5>Agencies</h5>
-</div>
-<div id="Routes" class="Eric" parent="Agency" >
-<h5>Routes</h5>
-</div>
-<div id="Trips" class="Eric" parent="Routes">
-<h5>Trips</h5>
-</div>
-<div id="StopTimes" class="Eric" parent="Trips">
-<h5>Stop Times</h5>
-</div>
-<div id="Frequencies" class="Eric" parent="Trips">
-<h5>Frequencies</h5>
+<div id="Instance" class="Eric_Place_Holder">
 </div>
 
-<div id="Shapes" class="Eric" parent="Trips">
-<h5>Shape Points</h5>
+<div id="Stops" class="Eric_Place_Holder">
+</div>
+
+<div id="Transfers" class="Eric_Place_Holder">
+</div>
+
+<div id="Calendar" class="Eric_Place_Holder">
+</div>
+<div id="CalendarDates" class="Eric_Place_Holder" >
+</div>
+<div id="Agency" class="Eric_Place_Holder" >
+</div>
+<div id="Routes" class="Eric_Place_Holder" >
+</div>
+<div id="Trips" class="Eric_Place_Holder">
+</div>
+<div id="StopTimes" class="Eric_Place_Holder">
+</div>
+<div id="Frequencies" class="Eric_Place_Holder">
+</div>
+
+<div id="Shapes" class="Eric_Place_Holder">
 </div>
 <hr>
-<div id="FareAttributes" class="Eric" parent="Instance">
-<h5>Fare Attributes</h5>
+<div id="FareAttributes" class="Eric_Place_Holder">
 </div>
-<div id="FareRules" class="Eric" parent="Instance">
-<h5>Fare Rules</h5>
+<div id="FareRules" class="Eric_Place_Holder">
 </div>
 
 </div> <!--  end of scroll -->
@@ -185,6 +188,502 @@ hr { color: #7FA423;
 </div> <!-- end 9 col -->
 </div> <!--  end row  -->
 </div> <!--  end interface -->
+
+<div id=Eric_Declarations>
+
+<!--  Eric DECLARATION: Instance -->
+
+<div id="Instance" class="Eric" no_join method="User">
+
+<div id="select">
+<label>Databases</label>
+</div>
+
+<div id="edit" title="Add/Edit Database" class="edit-dialog">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<label for="databaseName">Database Name</label>
+    <input id="databaseName" name="databaseName" size=20 maxlength=20 nospace required key><br>
+	<label for="description">Description </label>
+    <input id="description" name="description" size=30 maxlength=100 required display><br>
+	<label for="publicRead">Public Read</label>
+    <input id="publicRead" name="publicRead" type=checkbox><br>
+	<label for="publicWrite">Public Write</label>
+    <input id="publicWrite" name="publicWrite" type=checkbox><br>
+</fieldset>
+ </form>
+ </div>
+
+<div id="delete" title="Delete Database">
+<form id="delete">
+     Are you sure you want to delete Database <input readonly name="display" size=20 maxlength=20><br>
+     You will lose all data if you do.
+</form>
+</div>	
+</div>
+
+<!--  Eric DECLARATION: Stops -->
+
+<div id="Stops" class="Eric" parent="Instance">
+<div id="select">
+<label>Stops</label>
+</div>
+
+<div id="edit" title="Add/Edit Stop" class="edit-dialog">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<label for="stopId">Stop ID (required)</label>
+    <input id="stopId" name="stopId" size=20 maxlength=20 required key><br>
+	<label for="stopCode">Code (required)</label>
+    <input id="stopCode" name="stopCode" size=30 maxlength=30 required><br>
+	<label for="stopName">Name (required)</label>
+    <input id="stopName" name="stopName" size=30 maxlength=30 required display><br>
+	<label for="stopDesc">Description</label>
+    <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
+	<label for="stopUrl">URL</label>
+    <input id="stopUrl" name="stopUrl" size=30 maxlength=100><br>
+	<label for="stopLat">Latitude (required)</label>
+    <input id="stopLat" name="stopLat" size=30 maxlength=100 required><br>
+	<label for="stopLon">Longitude (required)</label>
+    <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="delete" title="Delete Stops">
+<form id="delete">
+     Are you sure you want to delete  Stop <input readonly name="display" size=20 maxlength=20><br>
+     You will lose any Stop times from any trips that use then if you do.
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: Transfers -->
+
+<div id="Transfers" class="Eric" parent="Stops">
+<div id="select">
+<label>Transfer Times</label>
+</div>
+
+<div id="edit" title="Add/Edit Transfer Time" class="edit-dialog">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Stops" type=hidden>
+	<input id="parentKey" value="fromStopId" type=hidden>
+	
+	<label for="fromStopId">From Stop ID (required)</label>
+    <input id="fromStopId" name="fromStopId" size=20 maxlength=20 required key display><br>
+	<label for="toStopId">To Stop ID (required)</label>
+    <input id="toStopId" name="toStopId" size=20 maxlength=20 required display><br>
+   	<label for="transferType">Exception Type</label>
+    <input id="transferType" name="transferType" size=2 maxlength=2><br>
+   	<label for="minTransferTime">Min Trafser Time</label>
+    <input id="minTransferTime" name="minTransferTime" size=4 maxlength=4><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="delete" title="Delete Transfer Time">
+<form id="delete">
+     Are you sure you want to delete Transfer time for <input readonly name="display" size=20 maxlength=20><br>
+     You will lose any Stop times from any trips that use then if you do.
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: Calendar -->
+
+<div id="Calendar" class="Eric" parent="Instance" >
+<div id="select">
+<label>Calendar</label>
+</div>
+
+<div id="edit" title="Add/Edit Calendar" class="edit-dialog">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden><br>
+	<label for="servceId">ID</label>
+    <input id="serviceId"  name="serviceId" size=20 maxlength=20 key display><br>
+	<label for="monDay">Monday</label>
+    <input id="monDay"  name="monDay" type=checkbox><br>
+	<label for="tuesDay">Tuesday</label>
+    <input id="tuesDay" name="tuesDay" type=checkbox><br>
+	<label for="wednesdDay">Wednesday</label>
+    <input id="wednesDay" name="wednesDay" type=checkbox><br>
+	<label for="thursDay">Thursday</label>
+    <input id="thursDay" type=checkbox><br>
+	<label for="friDay">Friday</label>
+    <input id="friDay" type=checkbox><br>
+	<label for="saturDay">Saturday</label>
+    <input id="saturDay" name="saturDay" type=checkbox><br>
+	<label for="sunDay">Sunday</label>
+    <input id="sunDay" type=checkbox><br>
+	<label for="startDate">Start</label>
+    <input id="startDate" name="startDate" type=text picker="date" required lessthan="endDate"><br>
+	<label for="endDate">End</label>
+    <input id="endDate" name="endDate" type=text picker="date" required greaterthan="startDate"><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="delete" title="Delete Calendar">
+<form id="delete">
+     Are you sure you want to delete Calendar ID,  <input readonly name="calendarId" size=10 maxlength=10><br>
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: CalendarDates -->
+
+<div id="CalendarDates" class="Eric" parent="Instance" >
+<div id=select">
+<label>Calendar Dates</label>
+</div>
+
+<div id="edit" title="Add/Edit Calendar Date" class="edit-dialog">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden><br>
+	<input id="parentTable" value="Calendar" type=hidden>
+	<input id="parentKey" value="serviceId" type=hidden>
+	<label for="serviceId">Calendar ID</label>
+    <input id="serviceId" size=20 maxlength=20 required><br>
+	<label for="date">Date</label>
+    <input id="date" name="date"  type=text picker="date" required key display><br>
+	<label for="exceptionType">Exception Type</label>
+    <input id="exceptionType" size=2 maxlength=2><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="delete" title="Delete Calendar Date">
+<form id="delete">
+     Are you sure you want to delete Calendar Date,  <input readonly name="date" size=10 maxlength=10><br>
+</form>
+</div>
+</div>
+
+
+<!--  Eric DECLARATION: Agency -->
+
+<div id="Agency" class="Eric" parent="Instance" >
+<div id="select">
+<label>Agencies</label>
+</div>
+
+<div id="edit" title="Add/Edit Agency">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden><br>
+
+	<label for="agencyId">Agency ID</label>
+    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required key><br>
+	
+	<label for="agencyName">Name</label>
+    <input id="agencyName" name="agencyName" size=30 maxlength=30  type="text" required display><br>
+	
+	<label for="agencyUrl">URL</label>
+    <input id="agencyUrl" name="agencyUrl" size=30 maxlength=100><br>
+	
+	<label for="agencyTimezone">Timezone</label>
+    <input id="agencyTimezone" name="agencyTimezone" size=20 maxlength=20><br>
+	
+	<label for="agencyLang">Language</label>
+    <input id="agencyLang" name="agencyLang" size=10 maxlength=10 ><br>
+	
+	<label for="agencyPhone">Phone</label>
+    <input id="agencyPhone" name="agencyPhone" size=20 maxlength=20r>
+</fieldset>
+
+ </form>
+</div>
+
+<div id="dialog-delete-Agency" title="Delete Agency">
+<form id="dialog-delete-Agency-form">
+     Are you sure you want to delete Agency ID,  <input readonly name="agencyId" size=10 maxlength=10><br>
+you will lose all the routes, trips and stoptimes if you do
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: Routes -->
+
+<div id="Routes" class="Eric" parent="Agency" >
+<div id="select">
+<label>Routes</label>
+</div>
+ 
+<div id="edit" title="Add/Edit Route">
+<form id="edit">
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Agency" type=hidden>
+	<input id="parentKey" value="agencyId" type=hidden>
+<fieldset>
+	
+	<label for="agencyId">Agency</label>
+    <input id="agencyId" size=10 maxlength=10 required><br>
+	<label for="routeId">Route ID</label>
+    <input id="routeId" name="routeId" size=30 maxlength=30 required key display><br>
+	<label for="routeShortName">Short Name</label>
+    <input id="routeShortName" name="routeShortName" size=30 maxlength=100 required><br>
+	<label for="routeLongName">Long Name</label>
+    <input id="routeLongName" name="routeLongName" size=60 maxlength=60 required><br>
+	<label for="routeDesc">Description</label>
+    <input id="routeDesc" name="routeDesc" size=60 maxlength=60 ><br>
+	<label for="routeType">Type</label>
+    <input id="routeType" name="routeType" size=10 type=text><br>
+	<label for="routeColor">Colour</label>
+    <input id="routeColor"name="routeColor" picker="colour" size=10 type="colour" name="routeColor"><br>
+	<label for="routeTextColor">Text Colour</label>
+    <input id="routeTextColor" name="routeTextColor" picker="colour" size=10 type="colour" name="routetextColour"><br>
+ </fieldset>
+  </form>
+</div>
+
+<div id="delete" title="Delete Route">
+<form id="delete">
+     Are you sure you want to delete Route ID <input readonly name="routeId" size=10 maxlength=10><br>
+	you will lose all the trips, and their stop times, if you do.
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: Trips -->
+
+<div id="Trips" class="Eric" parent="Routes">
+<div id="select">
+<label>Trips</label>
+</div>
+ 
+<div id="edit" title="Add/Edit Trips">
+<form id="edit">
+  <fieldset>
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Routes" type=hidden>
+	<input id="parentKey" value="routeId" type=hidden>
+	<label for="routeId">Route</label>
+    <input id="routeId" size=30 maxlength=30 required><br>
+	<label for="tripId">Trip ID</label>
+    <input id="tripId" name="tripId" size=20 maxlength=20 required key display><br>
+	<label for="serviceId">Service ID</label>
+    <select id="serviceId" name="serviceId" table="Calendar"></select> <br>
+	<label for="tripHeadsign">Head sign</label>
+    <input id="tripHeadsign" size=30 maxlength=100 required><br>
+	<label for="tripShortName">Short Name</label>
+    <input id="tripShortName" name="tripShortName" size=60 maxlength=60 ><br>
+	<label for="shapeId">Shape ID</label>
+    <input id="shapeId" name="shapeId" size=60 maxlength=60 ><br>
+  </fieldset>
+   </form>
+ </div>
+
+<div id="delete" title="Delete Trip">
+<form id="delete">
+     Are you sure you want to delete Trip ID <input readonly name="tripId" size=10 maxlength=10><br>
+	you will lose all the stop times if you do.
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: Frequencies -->
+
+<div id="Frequencies" class="Eric" parent="Trips">
+<div id="select">
+<label>Frequencies</label>
+</div>
+
+<div id="edit" title="Add/Edit Frequencies">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Trips" type=hidden>
+	<input id="parentKey" value="tripId" type=hidden>
+  	<label for="tripId">Trip ID </label>
+    <input id="tripId" size=10 maxlength=10 required><br>
+ 	<label for="tripId">Start</label>
+ 	<input id="startTime" name="startTime" type=text picker=time required lessthan="endTime" key display><br>
+ 	<label for="endTime">End Time</label>
+    <input id="endTime" name="endTime" type=text picker=time required greaterthan="startTime" ><br>
+ 	<label for="headwaySecs">Headway Seconds</label>
+    <input id="headwaySecs" name="headwaySecs" size=30 maxlength=100 required><br>
+</fieldset>
+  </form>
+</div>
+
+<div id="delete" title="Delete Frequencies">
+<form id="delete">
+     Are you sure you want to delete Frequencies <input readonly name="startTime" size=10 maxlength=10><br>
+	you will lose all the stop times if you do.
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: StopTimes -->
+
+<div id="StopTimes" class="Eric" parent="Trips">
+<div id="select">
+<label>Stop Times</label>
+</div>
+ 
+<div id="edit" title="Add/Edit Stop Time">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Trips" type=hidden>
+	<input id="parentKey" value="tripId" type=hidden>
+	<input id="secondParentTable" value="Stops" type=hidden>
+	<input id="secondParentKey" value="stopId" type=hidden>
+	<input id="shapeDistTraveled" value="0" type=hidden>
+	
+  	<label for="tripId">Trip ID</label>
+    <input id="tripId" name="tripId" size=10 maxlength=10 required><br>
+  	<label for="stopId">Stop ID </label>
+    <input id="stopId" name="stopId" size=20 maxlength=20 required key display><br>
+  	<label for="arrivalTime">Arrival Time</label>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime"><br>
+  	<label for="departureTime">Departure Time</label>
+    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime"><br>
+  	<label for="stopSequence">Stop Sequence</label>
+    <input id="stopSequence" name="stopSequence" size=3 maxlength=3 order><br>
+  	<label for="stopHeadsign">Headsign</label>
+    <input id="stopHeadsign" name="stopHeadsign" size=30 maxlength=100><br>
+</fieldset>
+  </form>
+</div>
+
+<div id="delete" title="Delete Stop Time">
+<form id="delete">
+     Are you sure you want to delete Stop Time 
+      <input readonly name="stopId" size=20 maxlength=20><br>
+	
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: Shapes -->
+
+<div id="Shapes" class="Eric" parent="Trips">
+<div id="select">
+<label>Shape Points</label>
+</div>
+
+<div id="edit" title="Add/Edit Shape Point">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<input id="parentTable" value="Trips" type=hidden>
+	<input id="parentKey" value="tripId" type=hidden>
+	
+  	<label for="shapeId">Shape ID</label>
+    <input id="shapeId" name="shapeId" size=10 maxlength=10 required joinkey><br>
+  	<label for="shapePtLat">Lat </label>
+    <input id="shapePtLat" name="shapePtLat" size=10 maxlength=10 required display><br>
+  	<label for="shapePtLon">Lat </label>
+    <input id="shapePtLon" name="shapePtLon" size=10 maxlength=10 required display><br>
+  	<label for="shapePtSequence">Sequence </label>
+    <input id="shapePtSequence" name="shapePtSequence" size=10 maxlength=10 required order readonly key><br>
+  	<label for="shapeDistTravelled">Distance </label>
+    <input id="shapeDistTravelled" name="shapeDistTravelled" size=10 maxlength=10 required  display><br>
+</fieldset>
+  </form>
+</div>
+
+<div id="delete" title="Delete Shape Point">
+<form id="delete">
+     Are you sure you want to delete Shape Point 
+      <input readonly name="shapeId" size=10 maxlength=10><br>
+      <input readonly name="shapePtSequence" size=10 maxlength=10><br>
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: FareAttributes -->
+
+<div id="FareAttributes" class="Eric" parent="Instance">
+<div id="select">
+<label>Fare Attributes</label>
+</div>
+
+<div id="edit" title="Add/Edit Fare Attribute">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+  	<label for="fareId">Fare ID</label>
+    <input id="fareId" name="fareId" size=10 maxlength=10 display><br>
+  	<label for="pricE">Price</label>
+    <input id="pricE" name="pricE" size=10 maxlength=10><br>
+  	<label for="currencyType">Currency</label>
+    <input id="currencyType" name="currencyType" size=10 maxlength=10><br>
+    
+ </fieldset>
+  </form>
+</div>
+
+<div id="delete" title="Delete Fare Attribute">
+<form id="delete">
+     Are you sure you want to delete Fare Attribute 
+      <input readonly name="fareId" size=10 maxlength=10><br>
+	
+</form>
+</div>
+</div>
+
+<!--  Eric DECLARATION: FareRules -->
+
+<div id="FareRules" class="Eric" parent="Instance">
+<div id="select">
+<label>Fare Rules</label>
+</div>
+
+<div id="edit" title="Add/Edit Fare Rules">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+  	<label for="fareId">Fare ID</label>
+    <input id="fareId" name="fareId" size=10 maxlength=10 display ><br>
+  	<label for="routeId">Route ID</label>
+    <input id="routeId" name="routeId" size=10 maxlength=10><br>
+  	<label for="originId">Origin ID</label>
+    <input id="originId" name="originId" size=10 maxlength=10><br>
+  	<label for="destinationId">Destination ID</label>
+    <input id="destinationId" name="destinationId" size=10 maxlength=10><br>
+  	<label for="containsId">Contains ID</label>
+    <input id="containsId" name="containsId" size=10 maxlength=10><br>
+    
+ </fieldset>
+  </form>
+ </div>
+
+<div id="delete" title="Delete Fare Rules">
+<form id="delete">
+     Are you sure you want to delete Fare Rule 
+      <input readonly name="fareId" size=10 maxlength=10><br>
+      <input readonly name="routeId" size=10 maxlength=10><br>
+      <input readonly name="originId" size=10 maxlength=10><br>
+      <input readonly name="destinationId" size=10 maxlength=10><br>
+      <input readonly name="containsId" size=10 maxlength=10><br>
+	
+</form>
+</div>
+</div>
+
+<div id="Map_Stops" class="Eric" parent="Stops" type="MapEric" title="All Stops">
+</div>
+
+<div id="Map_Trips" class="Eric" parent="StopTimes" type="MapEricTrip" title="Trip Editor">
+</div>
+
+<div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
+</div>
+
+<div id="Map_All_Trips" class="Eric" parent="Instance" type="MapEricAllTrips" title="Route Map">
+</div>
+
+</div> <!-- END OF ERIC DECLARATIONS -->
+
 
 <div id="dialogs"> 
 
@@ -229,391 +728,6 @@ hr { color: #7FA423;
  </form>
  </div>
 
-<div id="dialog-edit-Instance" title="Add/Edit Database" class="edit-dialog">
-<form id="dialog-edit-Instance-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<label for="databaseName">Database Name</label>
-    <input id="databaseName" name="databaseName" size=20 maxlength=20 nospace required key><br>
-	<label for="description">Description </label>
-    <input id="description" name="description" size=30 maxlength=100 required display><br>
-	<label for="publicRead">Public Read</label>
-    <input id="publicRead" name="publicRead" type=checkbox><br>
-	<label for="publicWrite">Public Write</label>
-    <input id="publicWrite" name="publicWrite" type=checkbox><br>
-</fieldset>
- </form>
- </div>
-
-<div id="dialog-delete-Instance" title="Delete Database">
-<form id="dialog-delete-Instance-form">
-     Are you sure you want to delete Database <input readonly name="display" size=20 maxlength=20><br>
-     You will lose all data if you do.
-</form>
-</div>	
-
-<div id="dialog-edit-Stops" title="Add/Edit Stop" class="edit-dialog">
-<form id="dialog-edit-Stops-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<label for="stopId">Stop ID (required)</label>
-    <input id="stopId" name="stopId" size=20 maxlength=20 required key><br>
-	<label for="stopCode">Code (required)</label>
-    <input id="stopCode" name="stopCode" size=30 maxlength=30 required><br>
-	<label for="stopName">Name (required)</label>
-    <input id="stopName" name="stopName" size=30 maxlength=30 required display><br>
-	<label for="stopDesc">Description</label>
-    <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
-	<label for="stopUrl">URL</label>
-    <input id="stopUrl" name="stopUrl" size=30 maxlength=100><br>
-	<label for="stopLat">Latitude (required)</label>
-    <input id="stopLat" name="stopLat" size=30 maxlength=100 required><br>
-	<label for="stopLon">Longitude (required)</label>
-    <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
-</fieldset>
- </form>
-</div>
-
-<div id="dialog-delete-Stops" title="Delete Stops">
-<form id="dialog-delete-Stops-form">
-
-     Are you sure you want to delete  Stop <input readonly name="display" size=20 maxlength=20><br>
-     You will lose any Stop times from any trips that use then if you do.
-</form>
-</div>
-
-
-<div id="dialog-edit-Transfers" title="Add/Edit Transfer Time" class="edit-dialog">
-<form id="dialog-edit-Transfers-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<input id="parentTable" value="Stops" type=hidden>
-	<input id="parentKey" value="fromStopId" type=hidden>
-	
-	<label for="fromStopId">From Stop ID (required)</label>
-    <input id="fromStopId" name="fromStopId" size=20 maxlength=20 required key display><br>
-	<label for="toStopId">To Stop ID (required)</label>
-    <input id="toStopId" name="toStopId" size=20 maxlength=20 required display><br>
-   	<label for="transferType">Exception Type</label>
-    <input id="transferType" name="transferType" size=2 maxlength=2><br>
-   	<label for="minTransferTime">Min Trafser Time</label>
-    <input id="minTransferTime" name="minTransferTime" size=4 maxlength=4><br>
-</fieldset>
- </form>
-</div>
-
-<div id="dialog-delete-Transfers" title="Delete Transfe Time">
-<form id="dialog-delete-Transfers-form">
-
-     Are you sure you want to delete Transfer time for <input readonly name="display" size=20 maxlength=20><br>
-     You will lose any Stop times from any trips that use then if you do.
-</form>
-</div>
-
-
- 
-
-<div id="dialog-edit-Calendar" title="Add/Edit Calendar" class="edit-dialog">
-<form id="dialog-edit-Calendar-form">
-<fieldset>
-	<input id="hibernateId" type=hidden><br>
-	<label for="servceId">ID</label>
-    <input id="serviceId"  name="serviceId" size=20 maxlength=20 key display><br>
-	<label for="monDay">Monday</label>
-    <input id="monDay"  name="monDay" type=checkbox><br>
-	<label for="tuesDay">Tuesday</label>
-    <input id="tuesDay" name="tuesDay" type=checkbox><br>
-	<label for="wednesdDay">Wednesday</label>
-    <input id="wednesDay" name="wednesDay" type=checkbox><br>
-	<label for="thursDay">Thursday</label>
-    <input id="thursDay" type=checkbox><br>
-	<label for="friDay">Friday</label>
-    <input id="friDay" type=checkbox><br>
-	<label for="saturDay">Saturday</label>
-    <input id="saturDay" name="saturDay" type=checkbox><br>
-	<label for="sunDay">Sunday</label>
-    <input id="sunDay" type=checkbox><br>
-	<label for="startDate">Start</label>
-    <input id="startDate" name="startDate" type=text picker="date" required lessthan="endDate"><br>
-	<label for="endDate">End</label>
-    <input id="endDate" name="endDate" type=text picker="date" required greaterthan="startDate"><br>
-</fieldset>
- </form>
-</div>
-
-<div id="dialog-delete-Calendar" title="Delete Calendar">
-<form id="dialog-delete-Calendar-form">
-     Are you sure you want to delete Calendar ID,  <input readonly name="calendarId" size=10 maxlength=10><br>
-</form>
-</div>
-
-<div id="dialog-edit-CalendarDates" title="Add/Edit Calendar Date" class="primary">
-<form id="dialog-edit-CalendarDates-form">
-<fieldset>
-	<input id="hibernateId" type=hidden><br>
-	<input id="parentTable" value="Calendar" type=hidden>
-	<input id="parentKey" value="serviceId" type=hidden>
-	<label for="serviceId">Calendar ID</label>
-    <input id="serviceId" size=20 maxlength=20 required><br>
-	<label for="date">Date</label>
-    <input id="date" name="date"  type=text picker="date" required key display><br>
-	<label for="exceptionType">Exception Type</label>
-    <input id="exceptionType" size=2 maxlength=2><br>
-</fieldset>
- </form>
-</div>
-
-<div id="dialog-delete-CalendarDates" title="Delete Calendar Date">
-<form id="dialog-delete-CalendarDates-form">
-     Are you sure you want to delete Calendar Date,  <input readonly name="date" size=10 maxlength=10><br>
-</form>
-</div>
-
-<div id="dialog-edit-Agency" title="Add/Edit Agency">
-<form id="dialog-edit-Agency-form">
-<fieldset>
-	<input id="hibernateId" type=hidden><br>
-
-	<label for="agencyId">Agency ID</label>
-    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required key><br>
-	
-	<label for="agencyName">Name</label>
-    <input id="agencyName" name="agencyName" size=30 maxlength=30  type="text" required display><br>
-	
-	<label for="agencyUrl">URL</label>
-    <input id="agencyUrl" name="agencyUrl" size=30 maxlength=100><br>
-	
-	<label for="agencyTimezone">Timezone</label>
-    <input id="agencyTimezone" name="agencyTimezone" size=20 maxlength=20><br>
-	
-	<label for="agencyLang">Language</label>
-    <input id="agencyLang" name="agencyLang" size=10 maxlength=10 ><br>
-	
-	<label for="agencyPhone">Phone</label>
-    <input id="agencyPhone" name="agencyPhone" size=20 maxlength=20r>
-</fieldset>
-
- </form>
-</div>
-
-<div id="dialog-delete-Agency" title="Delete Agency">
-<form id="dialog-delete-Agency-form">
-     Are you sure you want to delete Agency ID,  <input readonly name="agencyId" size=10 maxlength=10><br>
-you will lose all the routes, trips and stoptimes if you do
-</form>
-</div>
- 
-<div id="dialog-edit-Routes" title="Add/Edit Route">
-<form id="dialog-edit-Routes-form">
-	<input id="hibernateId" type=hidden>
-	<input id="parentTable" value="Agency" type=hidden>
-	<input id="parentKey" value="agencyId" type=hidden>
-<fieldset>
-	
-	<label for="agencyId">Agency</label>
-    <input id="agencyId" size=10 maxlength=10 required><br>
-	<label for="routeId">Route ID</label>
-    <input id="routeId" name="routeId" size=30 maxlength=30 required key display><br>
-	<label for="routeShortName">Short Name</label>
-    <input id="routeShortName" name="routeShortName" size=30 maxlength=100 required><br>
-	<label for="routeLongName">Long Name</label>
-    <input id="routeLongName" name="routeLongName" size=60 maxlength=60 required><br>
-	<label for="routeDesc">Description</label>
-    <input id="routeDesc" name="routeDesc" size=60 maxlength=60 ><br>
-	<label for="routeType">Type</label>
-    <input id="routeType" name="routeType" size=10 type=text><br>
-	<label for="routeColor">Colour</label>
-    <input id="routeColor"name="routeColor" picker="colour" size=10 type="colour" name="routeColor"><br>
-	<label for="routeTextColor">Text Colour</label>
-    <input id="routeTextColor" name="routeTextColor" picker="colour" size=10 type="colour" name="routetextColour"><br>
- </fieldset>
-  </form>
-</div>
-
-<div id="dialog-delete-Routes" title="Delete Route">
-<form id="dialog-delete-Routes-form">
-     Are you sure you want to delete Route ID <input readonly name="routeId" size=10 maxlength=10><br>
-	you will lose all the trips, and their stop times, if you do.
-</form>
-</div>
- 
-<div id="dialog-edit-Trips" title="Add/Edit Trips">
-<form id="dialog-edit-Trips-form">
-  <fieldset>
-	<input id="hibernateId" type=hidden>
-	<input id="parentTable" value="Routes" type=hidden>
-	<input id="parentKey" value="routeId" type=hidden>
-	<label for="routeId">Route</label>
-    <input id="routeId" size=30 maxlength=30 required><br>
-	<label for="tripId">Trip ID</label>
-    <input id="tripId" name="tripId" size=20 maxlength=20 required key display><br>
-	<label for="serviceId">Service ID</label>
-    <select id="serviceId" name="serviceId" table="Calendar"></select> <br>
-	<label for="tripHeadsign">Head sign</label>
-    <input id="tripHeadsign" size=30 maxlength=100 required><br>
-	<label for="tripShortName">Short Name</label>
-    <input id="tripShortName" name="tripShortName" size=60 maxlength=60 ><br>
-	<label for="shapeId">Shape ID</label>
-    <input id="shapeId" name="shapeId" size=60 maxlength=60 ><br>
-  </fieldset>
-   </form>
- </div>
-
-<div id="dialog-delete-Trips" title="Delete Trip">
-<form id="dialog-delete-Trips-form">
-     Are you sure you want to delete Trip ID <input readonly name="tripId" size=10 maxlength=10><br>
-	you will lose all the stop times if you do.
-</form>
-</div>
-
-<div id="dialog-edit-Frequencies" title="Add/Edit Frequencies">
-<form id="dialog-edit-Frequencies-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<input id="parentTable" value="Trips" type=hidden>
-	<input id="parentKey" value="tripId" type=hidden>
-  	<label for="tripId">Trip ID </label>
-    <input id="tripId" size=10 maxlength=10 required><br>
- 	<label for="tripId">Start</label>
- 	<input id="startTime" name="startTime" type=text picker=time required lessthan="endTime" key display><br>
- 	<label for="endTime">End Time</label>
-    <input id="endTime" name="endTime" type=text picker=time required greaterthan="startTime" ><br>
- 	<label for="headwaySecs">Headway Seconds</label>
-    <input id="headwaySecs" name="headwaySecs" size=30 maxlength=100 required><br>
-</fieldset>
-  </form>
-</div>
-
-<div id="dialog-delete-Frequencies" title="Delete Frequencies">
-<form id="dialog-delete-Frequencies-form">
-     Are you sure you want to delete Frequencies <input readonly name="startTime" size=10 maxlength=10><br>
-	you will lose all the stop times if you do.
-</form>
-</div>
-
- 
-<div id="dialog-edit-StopTimes" title="Add/Edit Stop Time">
-<form id="dialog-edit-StopTimes-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<input id="parentTable" value="Trips" type=hidden>
-	<input id="parentKey" value="tripId" type=hidden>
-	<input id="secondParentTable" value="Stops" type=hidden>
-	<input id="secondParentKey" value="stopId" type=hidden>
-	<input id="shapeDistTraveled" value="0" type=hidden>
-	
-  	<label for="tripId">Trip ID</label>
-    <input id="tripId" name="tripId" size=10 maxlength=10 required><br>
-  	<label for="stopId">Stop ID </label>
-    <input id="stopId" name="stopId" size=20 maxlength=20 required key display><br>
-  	<label for="arrivalTime">Arrival Time</label>
-    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime"><br>
-  	<label for="departureTime">Departure Time</label>
-    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime"><br>
-  	<label for="stopSequence">Stop Sequence</label>
-    <input id="stopSequence" name="stopSequence" size=3 maxlength=3 order><br>
-  	<label for="stopHeadsign">Headsign</label>
-    <input id="stopHeadsign" name="stopHeadsign" size=30 maxlength=100><br>
-</fieldset>
-  </form>
-</div>
-
-<div id="dialog-delete-StopTimes" title="Delete Stop Time">
-<form id="dialog-delete-StopTimes-form">
-     Are you sure you want to delete Stop Time 
-      <input readonly name="stopId" size=20 maxlength=20><br>
-	
-</form>
-</div>
-
-<div id="dialog-edit-Shapes" title="Add/Edit Shape Point">
-<form id="dialog-edit-Shapes-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<input id="parentTable" value="Trips" type=hidden>
-	<input id="parentKey" value="tripId" type=hidden>
-	
-  	<label for="shapeId">Shape ID</label>
-    <input id="shapeId" name="shapeId" size=10 maxlength=10 required key joinkey><br>
-  	<label for="shapePtLat">Lat </label>
-    <input id="shapePtLat" name="shapePtLat" size=10 maxlength=10 required display><br>
-  	<label for="shapePtLon">Lat </label>
-    <input id="shapePtLon" name="shapePtLon" size=10 maxlength=10 required display><br>
-  	<label for="shapePtSequence">Sequence </label>
-    <input id="shapePtSequence" name="shapePtSequence" size=10 maxlength=10 required order readonly><br>
-  	<label for="shapeDistTravelled">Distance </label>
-    <input id="shapeDistTravelled" name="shapeDistTravelled" size=10 maxlength=10 required  display><br>
-</fieldset>
-  </form>
-</div>
-
-<div id="dialog-delete-Shapes" title="Delete Shape Point">
-<form id="dialog-delete-Shapes-form">
-     Are you sure you want to delete Shape Point 
-      <input readonly name="shapeId" size=10 maxlength=10><br>
-      <input readonly name="shapePtSequence" size=10 maxlength=10><br>
-</form>
-</div>
-
-<div id="dialog-edit-FareAttributes" title="Add/Edit Fare Attribute">
-<form id="dialog-edit-FareAttributes-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-  	<label for="fareId">Fare ID</label>
-    <input id="fareId" name="fareId" size=10 maxlength=10 display><br>
-  	<label for="pricE">Price</label>
-    <input id="pricE" name="pricE" size=10 maxlength=10><br>
-  	<label for="currencyType">Currency</label>
-    <input id="currencyType" name="currencyType" size=10 maxlength=10><br>
-    
- </fieldset>
-  </form>
-</div>
-
-<div id="dialog-delete-FareAttributes" title="Delete Fare Attribute">
-<form id="dialog-delete-FareAttributes-form">
-     Are you sure you want to delete Fare Attribute 
-      <input readonly name="fareId" size=10 maxlength=10><br>
-	
-</form>
-</div>
-
-<div id="dialog-edit-FareRules" title="Add/Edit Fare Rules">
-<form id="dialog-edit-FareRules-form">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-  	<label for="fareId">Fare ID</label>
-    <input id="fareId" name="fareId" size=10 maxlength=10 display ><br>
-  	<label for="routeId">Route ID</label>
-    <input id="routeId" name="routeId" size=10 maxlength=10><br>
-  	<label for="originId">Origin ID</label>
-    <input id="originId" name="originId" size=10 maxlength=10><br>
-  	<label for="destinationId">Destination ID</label>
-    <input id="destinationId" name="destinationId" size=10 maxlength=10><br>
-  	<label for="containsId">Contains ID</label>
-    <input id="containsId" name="containsId" size=10 maxlength=10><br>
-    
- </fieldset>
-  </form>
- </div>
-
-<div id="dialog-delete-FareRules" title="Delete Fare Rules">
-<form id="dialog-delete-FareRules-form">
-     Are you sure you want to delete Fare Rule 
-      <input readonly name="fareId" size=10 maxlength=10><br>
-      <input readonly name="routeId" size=10 maxlength=10><br>
-      <input readonly name="originId" size=10 maxlength=10><br>
-      <input readonly name="destinationId" size=10 maxlength=10><br>
-      <input readonly name="containsId" size=10 maxlength=10><br>
-	
-</form>
-</div>
-
-<div id="dialog-edit-TripBlock" title="Trip Stop Times">
-<form id="dialog-edit-TripBlock-form">
-  This will be a trip time block
-</form>
-</div>
 
  <div id="template-select">
  <form id="template-select-form">
@@ -633,16 +747,15 @@ you will lose all the routes, trips and stoptimes if you do
 </body>
 
 <script>
-
+$("#Eric_Declarations").hide();
 $("#template-select").hide();
 $("#dialogs").hide();
 $("#interface").hide();
 $("#menu").hide();
+$("#loading").hide();
 
 $("#welcome").show();
-
-MainSetup();
-
+SetUp();	
 
 </script>
 
