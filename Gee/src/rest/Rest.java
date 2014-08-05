@@ -114,22 +114,19 @@ public class Rest extends HttpServlet {
 
 	    	    	userId = record.get("user_id");
 	        		System.err.print("user_id = " + userId + "\n");
-	  //      		return userId;
 	    	    } else {
 	    	    	// cookie doesnt add up
 	    	    	System.err.print("ERROR, cookie failure, mismatch\n");
-	    	    	return null;
 	    	    }
 	    	} catch (Exception e) {
     	    	System.err.print("ERROR, cookie failure, bad code\n");
 	    	    System.out.println("error message="+e.getMessage());
-	    	    return null;
 	    	} 
 		}
 		
 		Hashtable <String,String> record = new Hashtable <String,String>();	
 		if (userId == null){
-			return null;
+			userId= "guest";
 		}
 		record.put("userId", userId);
 		// we can add email and nice name when we've worked out how to get them

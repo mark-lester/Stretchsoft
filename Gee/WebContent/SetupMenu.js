@@ -39,7 +39,7 @@ function SetupMenu(){
 					async: true,
 					url: $url,
 					complete: function(response){
-						refreshTable('Stops');
+						$KingEric.get("Stops").request("Load",true);
 						}
 				});
 				$( this ).dialog( "close" );
@@ -125,13 +125,13 @@ function SetupMenu(){
 						$("#dialog-import_gtfs-loading" ).hide();
 						$("#dialog-import_gtfs-done" ).show();
 						$("#dialog-import_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
-						refreshAll();
+						$KingEric.get("Instance").request("Load",true);
 						},
 					error: function(xhr, ajaxOptions, thrownError){
 						$("#dialog-import_gtfs-loading" ).hide();
 						$("#dialog-import_gtfs-done" ).show();
 						$("#dialog-import_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
-						refreshAll();
+						$KingEric.get("Instance").request("Load",true);
 						}
 				});	
 				
@@ -172,7 +172,7 @@ function SetupMenu(){
 					dataType: 'JSON',
 					url: $url,
 					success: function(response){
-						refreshAll();
+						$KingEric.get("Instance").request("Load",true);
 						}
 				});
 				$( this ).dialog( "close" );

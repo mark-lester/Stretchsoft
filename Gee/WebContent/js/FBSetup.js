@@ -1,6 +1,7 @@
 // FACEBOOK LOGIN
 
 function FBSetup(dfd){
+	console.log("Hi there");
 window.fbAsyncInit = function() {
 	  FB.init({
 	    appId      : '287612631394075',
@@ -20,19 +21,20 @@ window.fbAsyncInit = function() {
 	      // login status of the person. In this case, we're handling the situation where they 
 	      // have logged in to the app.
 	    	console.log("and we're off");
-	    	$("#template-select").show();
+	    	if ($KingEric && $KingEric.get("Instance")){
+	    		$KingEric.get("Instance").request("Load",true);
+	    	}
 	    	$("#interface").show();
 	    	$("#menu").show();
-
 	    	$("#welcome").hide();
 	      testAPI();
 	      dfd.resolve();	      
 	    } else if (response.status === 'not_authorized') {
-	    	$("#template-select").hide();
-	    	$("#interface").hide();
-	    	$("#menu").hide();
+	    //	$("#template-select").hide();
+	    //	$("#interface").hide();
+	    //	$("#menu").hide();
 
-	    	$("#welcome").show();
+	    //	$("#welcome").show();
 	      // In this case, the person is logged into Facebook, but not into the app, so we call
 	      // FB.login() to prompt them to do so. 
 	      // In real-life usage, you wouldn't want to immediately prompt someone to login 
@@ -43,11 +45,11 @@ window.fbAsyncInit = function() {
 	    	console.log("not logged into app");
 	      FB.login();
 	    } else {
-	    	$("#template-select").hide();
-	    	$("#interface").hide();
-	    	$("#menu").hide();
+	    //	$("#template-select").hide();
+	    //	$("#interface").hide();
+	    //	$("#menu").hide();
 
-	    	$("#welcome").show();
+	    //	$("#welcome").show();
 	      // In this case, the person is not logged into Facebook, so we call the login() 
 	      // function to prompt them to do so. Note that at this stage there is no indication
 	      // of whether they are logged into the app. If they aren't then they'll see the Login

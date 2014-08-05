@@ -7,14 +7,29 @@
  * of ajax is asynch, so you could be loading in say MapEricTrip.js ,wjich inherits from MapEric, 
  * and MapEric hasnt beenevaluated, and it will blow up, and ye wil not know why
  */
+
+/*    
 function loadScripts(scripts){
 	var script;
+	var dfd= new $.Deferred();
+	var queue = jQuery.jqmq({    
+        // Next item will be processed only when queue.next() is called in callback.
+        delay: -1,
+        // Process queue items one-at-a-time.
+        batch: 1,
+        callback: function( request ) {        		
+        	$.when($getScript(request)).done(function (){
+            	queue.next(); 
+            	if (queue.size() == 0){
+            		dfd.resolve();
+            	}
+        	});
+        }
+    });
 	while (script=scripts.shift()){
-		$.getScript(script).done(function (){
-			loadScripts();
-		});
+		queue.add(script);		
 	}
-	
+	return dfd;
 }
 
 loadScripts([
@@ -26,23 +41,18 @@ loadScripts([
             "MapEricShape.js",
             "MapEricSingleTrip.js",
             "MapEricAllTrips.js"]);
-/*
-$.getScript("SetupMenu.js");
-$.getScript("KingEric.js");
-$.getScript("BaseEric.js");
-$.getScript("MapEric.js");
-$.getScript("MapEricTrip.js");
-$.getScript("MapEricShape.js");
-$.getScript("MapEricSingleTrip.js");
-$.getScript("MapEricAllTrips.js");
+
+
 */
+
+
 
 var DEBUG=false;
 var databaseName="gtfs";
 var load_count=0;
 function upcount(){
 	// show gif here, eg:
-//	$("#loading").show();
+	$("#loading").show();
 	load_count++;
 }
 function downcount(){
@@ -61,19 +71,20 @@ function SetUp(){
 		load_count=0;
 		$("#loading").hide();
 	});
-
+	$("#template-select").show();
+	$("#interface").show();
+	$("#welcome").hide();
 	dfd = new $.Deferred();
 	initDBCookie();
 	FBSetup(dfd);
 	MapSetup();
 	SetupMenu();
-	
-	dfd.done(function(){
+//	console.log("waiting for facebook");
+//	$.when(dfd).done(function(){
+//		console.log("got facebook");
 		$KingEric= new KingEric();	
 
-		$("#interface").show();
-		$("#welcome").hide();
-	});
+//	});
 }
 
 
