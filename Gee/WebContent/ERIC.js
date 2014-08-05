@@ -84,6 +84,7 @@
  * 
  * 
 */
+var DEBUG=false;
 var databaseName="gtfs";
 var load_count=0;
 function upcount(){
@@ -130,9 +131,9 @@ function KingEric (){
 	// cant find a way to incrementally build this, so have to add it after building the map layers
 	layercontrol=L.control.layers(baseMaps,overlays).addTo(GeeMap);
 
-	//	for (var index in this.orphans){
-//		this.orphans[index].PrintTree(0);
-//	}
+		for (var index in this.orphans){
+		this.orphans[index].PrintTree(0);
+	}
 	// need to set the database. yucky I know
 	this.subjects["Instance"].seed=databaseName;
 	
@@ -210,16 +211,24 @@ function Eric (ED) {
     this.relations={};
     this.edit_flag=false; // used to re-use the edit dialog for create
     this.seed=null;
+    this.current_request=null;
+    
+    var eric=this;
     
     this.queue = jQuery.jqmq({    
         // Next item will be processed only when queue.next() is called in callback.
         delay: -1,
         // Process queue items one-at-a-time.
         batch: 1,
-        // For each queue item, execute this function, 
+        // For each queue item, execute this function,
+        eric :  this,
         callback: function( request_struct ) {
         	var queue=this;
+        	eric.current_request=request_struct.request;
+        		
         	$.when(this.eric[request_struct.request](request_struct.data)).done(function (){
+              	eric.current_request=null;      			
+   if(DEBUG)console.log("I finished "+request_struct.request+" on "+eric.name);
         		if (request_struct.callback != undefined){
         			request_struct.callback(request_struct);
         		}
@@ -260,11 +269,11 @@ Eric.prototype.PrintTree = function(indent){
 	for (var i=0;i<indent;i++){
 		indent_string=indent_string+"----";
 	}
-	console.log(indent_string+"I am "+this.name+" child of "+this.parent_name+" and I am the parent of");
+if(DEBUG)console.log(indent_string+"I am "+this.name+" child of "+this.parent_name+" and I am the parent of");
 	for (var index in this.children){
 		this.children[index].PrintTree(indent+1);
 	}	
-	console.log(indent_string+"============= end of "+this.name);
+if(DEBUG)console.log(indent_string+"============= end of "+this.name);
 };
 
 // STANDARD CONSTRUCTOR. 
@@ -283,12 +292,17 @@ Eric.prototype.type_specific = function() {
     		// TODO - abstract this into a method we can override for Instance
     		 setCookie("gee_databasename",$(this).val());
     	}
-    	eric.request("Changed");
+    	eric.request("Changed",true);
     });
-}
+};
 
 Eric.prototype.request = function(request,data,callback) {
 	//console.log("requesting "+request+" of "+this.name);
+if(DEBUG)console.log("Asking for  "+request+
+			" on "+this.name+
+			" length "+this.queue.size()+
+			" current request ="+this.current_request
+			);
 	this.queue.add({request : request, data : data, callback:callback});
 };
  
@@ -305,8 +319,14 @@ Eric.prototype.value = function(value) {
 	return $(this.select_entity()).val();
 };
 Eric.prototype.text = function(text) {
+	if (text != undefined)
+		return $(this.select_entity()).text(text);
 	return $(this.select_entity()).text();
 };
+Eric.prototype.first = function() {
+	return $(this.select_entity()).first();
+};
+
 Eric.prototype.currentRecord = function() {
 	return this.record_lookup[this.value()];
 };
@@ -322,7 +342,6 @@ Eric.prototype.getrecord = function(key) {
 
 
 Eric.prototype.RESTUrl = function() {
-	
 	var relations=this.relations;
 	var url=this.RESTUrlBase + relations.method+"?entity="+this.name;
 	
@@ -346,6 +365,7 @@ Eric.prototype.RESTUrl = function() {
 //  here are the requests (WARNING, you could request "request", and it would explode)
 Eric.prototype.Load = function(force) {
 	var eric=this;
+//	this.queue.clear();
 	var $dfd = $.getJSON(this.RESTUrl(), 
 		function( data ) {
 			var outdata=[];
@@ -398,6 +418,7 @@ Eric.prototype.Draw = function(force) {
 		this.request("Changed",force);		
 	}
 	this.seed=null;
+	return null;
 };
 
 Eric.prototype.Changed = function(force) {
@@ -408,12 +429,14 @@ Eric.prototype.Changed = function(force) {
 	}
 	// but either way we've changed, so got get the kids
 	this.request("LoadChildren",force);
+	return null;
 };
 
 Eric.prototype.LoadChildren = function(force) {
 	for (var child in this.children){
 		this.children[child].request("Load",force);
 	}
+	return null;
 };
 
 
@@ -440,13 +463,49 @@ Eric.prototype.create_or_update_entity = function(data) {
 		data: {values: datastring},
 		url: $url,
 		success: function(response){
-			eric.request("Load",true);
+			eric.seed=data[eric.relations.key]; //let draw know where we should be
+			eric.request("PostEdit",data);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			request_error_alert(xhr);
 		}		 
 	 });
 };
+
+Eric.prototype.PostEdit = function(record) {
+	var dfd=null;
+	var eric=this;
+	switch(this.name){ //  on the next refactor I'll abstract this
+	case 'StopTimes':
+		url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
+		
+		dfd=$.ajax({
+			  url: url,
+			  dataType: 'json',
+					success: function(response){
+						eric.request("Load",true);
+						},
+					error: function (xhr, ajaxOptions, thrownError) {
+						request_error_alert(xhr);
+						}
+			  }
+		);
+	break;
+	case 'Instance':
+		if (record['action'] == 'delete') {
+			// we just zapped the current DB, so set the DB cookie to the first one
+			setCookie("gee_databasename",this.first());
+		}
+		if (record['action'] == 'create') {
+			setCookie("gee_databasename",record['databaseName']);
+		}
+		
+	default:
+		eric.request("Load",true);
+	}
+	return dfd;
+};
+
 
 Eric.prototype.remove_entity = function(data) {
 	var datastring = JSON.stringify(data);
@@ -576,7 +635,7 @@ Eric.prototype.ProcessDialogs = function (){
 		}
 	});
 	this.dialogs=dialogs;
-}
+};
 
 Eric.prototype.MakeUIobject = function (){
 	// clone the template
@@ -615,7 +674,7 @@ Eric.prototype.MakeUIobject = function (){
 	this.UIobject = $("#"+this.name+".Eric_Place_Holder");
 	$template.appendTo(this.UIobject);
 	return this.UIobject;
-}	
+};	
 
 Eric.prototype.open_edit_dialog = function (edit_flag){
 	this.edit_flag=edit_flag;
@@ -670,7 +729,7 @@ Eric.prototype.initInputForm = function (formId){
     		});
     	}    
     });	
-}
+};
 
 //RUN TIME FORM HANDLING, THIS STUFF GETS RUN EVERY TIME YOU CLICK EDIT
 
@@ -762,7 +821,7 @@ Eric.prototype.init_edit_values = function (){
 // utility stuff
 function initDBCookie(){
 	databaseName=getURLParameter('databaseName') || getCookie("gee_databasename") || "gtfs";
-	console.log("Database ="+databaseName);
+if(DEBUG)console.log("Database ="+databaseName);
 	if (!check_exists_db(databaseName)) databaseName="gtfs";
 	setCookie("gee_databasename",databaseName);
 }
@@ -781,7 +840,7 @@ function get_permissions(databaseName){
 		url: $url,
 		async: false,
 		success: function(response){
-			console.log("database permissions for "+databaseName+"rec="+response+
+if(DEBUG)console.log("database permissions for "+databaseName+"rec="+response+
 					" exists="+response['exists']);
 			database_permissions[databaseName]=response;
 		 },
@@ -792,8 +851,8 @@ function get_permissions(databaseName){
 }
 
 function getURLParameter(name) {
-	  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
-}
+	  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+};
 
 function getCookie(cname) {
     var name = cname + "=";
@@ -806,7 +865,7 @@ function getCookie(cname) {
 }
 
 function setCookie(cname,value){
-	console.log("setting cookie "+cname+"="+value);
+if(DEBUG)console.log("setting cookie "+cname+"="+value);
 	document.cookie=cname+"="+value;				
 }
 
@@ -819,17 +878,6 @@ function request_error_alert(xhr){
       }
 }
 
-function upcount(){
-	// show gif here, eg:
-	$("#loading").show();
-	load_count++;
-}
-function downcount(){
-	// hide gif here, eg:
-	load_count--;
-	if (load_count < 1)
-		$("#loading").hide();
-}
 
 
 // MAP STUFF
@@ -841,6 +889,8 @@ var shapenodeIcon=null;
 var basemaps={};
 var overlays={};
 var layercontrol;
+
+/************************************************************************/
 
 // MapEric is the base "class" for maps, extending Eric, which is set up for All Stops
 MapEric.prototype = Object.create(Eric.prototype);
@@ -862,7 +912,7 @@ MapEric.prototype.type_specific = function (){
 MapEric.prototype.Load = function (){
 	// stuff to do with fetching any extra data, e.g for the full route map
 	// if we exceed some kind of limit on data fetch, we can turn this object (an Eric of subclass Map) off
-
+	//this.queue.clear();
 	// nothing to do for stops, it's all in the parent
 	this.request("Draw");
 };
@@ -881,19 +931,18 @@ MapEric.prototype.Draw = function (){
 		eric.stop_event_handlers(mapobject,val['stopName']);
 		eric.featureGroup.addLayer(mapobject);
 	});
-	if (first_call || !this.featureGroup.getBounds().contains(GeeMap.getBounds())){
-		GeeMap.fitBounds(this.featureGroup.getBounds());		
+	
+	if (data.length>0){
+		if (first_call || !this.featureGroup.getBounds().contains(GeeMap.getBounds())){
+			GeeMap.fitBounds(this.featureGroup.getBounds());		
+		}		
 	}
+	
 	first_call=false;
 	// we are politey issuing a 'Changed' request incase we have further descendants
 	this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
 };
-
-function isinside(inside,what){
-	
-	return true;
-}
 
 MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 	var eric=this;
@@ -916,7 +965,7 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 
 	mapobject.on("click", function(e){
 		// set the parent value to this stopId
-		eric.parent.value(eric.objectToValue[L.stamp(e.target)])
+		eric.parent.value(eric.objectToValue[L.stamp(e.target)]);
 		});
 		
 	mapobject.on("dblclick", function(e){
@@ -929,7 +978,9 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 	mapobject.on('mouseover', function(e) {
 		this.openPopup();
 		});
-}
+};
+
+/************************************************************************/
 
 MapEricTrip.prototype = Object.create(MapEric.prototype);
 MapEricTrip.prototype.constructor = MapEricTrip;
@@ -945,7 +996,9 @@ MapEricTrip.prototype.Draw = function (){
 	var latlngs = Array();
 	var mapobject=null;
 	//Get latlng from first marker
-
+	if (data.length < 1){
+		return null; // dont try any leaflet stuff with nothing
+	}
 	$.each( data, function( key, val ) {
 		var StopRecord = stops_eric.getrecord(val['stopId']); 
 		mapobject=L.marker([StopRecord['stopLat'],StopRecord['stopLon']], {icon: boldTrainIcon, draggable: true});
@@ -958,7 +1011,8 @@ MapEricTrip.prototype.Draw = function (){
 		color: 'red',
 		opacity : 1
 	});
-	eric.featureGroup.addLayer(mapobject);
+	eric.featureGroup.addLayer(mapobject);		
+	
 	mapobject.on("dblclick",function(e) {
 		create_shape_from_trip($KingEric.get("Trips").value());
 	});
@@ -967,8 +1021,8 @@ MapEricTrip.prototype.Draw = function (){
 	// we are politey issuing a 'Changed' request incase we have further descendants
 	this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
-}
-;
+};
+
 function create_shape_from_trip(tripId){
 	var $url="/Gee/Mapdata";
 	values={};
@@ -1012,7 +1066,7 @@ MapEricTrip.prototype.stop_event_handlers = function (mapobject,stopName){
 
 	mapobject.on("click", function(e){
 		// set the parent value to this stopId
-		eric.parent.value(eric.objectToValue[L.stamp(e.target)])
+		eric.parent.value(eric.objectToValue[L.stamp(e.target)]);
 		});
 		
 	mapobject.on("dblclick", function(e){
@@ -1025,8 +1079,9 @@ MapEricTrip.prototype.stop_event_handlers = function (mapobject,stopName){
 	mapobject.on('mouseover', function(e) {
 		this.openPopup();
 		});
-}
+};
 
+/************************************************************************/
 
 MapEricShape.prototype = Object.create(MapEric.prototype);
 MapEricShape.prototype.constructor = MapEricShape;
@@ -1038,14 +1093,14 @@ MapEricShape.prototype.Draw = function (){
 	this.featureGroup.clearLayers();
 	var eric=this;
     var data = eric.parent.data;
-	var stops_eric=$KingEric.get("Stops");
-	var latlngs = Array();
 	var mapobject=null;
 	//Get latlng from first marker
+	if (data.length < 1){
+		return null; // dont try any leaflet stuff with nothing
+	}
 
 	var previous=null;
 	$.each( data, function( key, val ) {
-		var StopRecord = stops_eric.getrecord(val['stopId']); 
 		mapobject=L.marker([val['shapePtLat'],val['shapePtLon']], {icon: shapenodeIcon, draggable: true});
 		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
 		eric.node_event_handlers(mapobject,val);
@@ -1067,6 +1122,7 @@ MapEricShape.prototype.Draw = function (){
 	// we are politey issuing a 'Changed' request incase we have further descendants
 	this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
+	return null;
 };
 
 
@@ -1128,6 +1184,28 @@ MapEricTrip.prototype.line_event_handlers = function (mapobject,index){
 	});
 };
 
+/************************************************************************/
+
+MapEricSingleTrip.prototype = Object.create(Eric.prototype);
+MapEricSingleTrip.prototype.constructor = MapEricSingleTrip;
+function MapEricSingleTrip(ED){
+	Eric.call(this, ED);	
+}
+
+MapEricSingleTrip.prototype.Load = function (force){
+	this.request("Draw",force);
+};
+MapEricSingleTrip.prototype.Draw = function (force){
+connsole.log("redrawing a trip");
+	$KingEric.get("MapEricAllTrips").request("GetTrip",$KingEric.get("Trips").value());
+};
+
+MapEricSingleTrip.prototype.type_specific = function (){
+};
+
+/************************************************************************/
+
+
 MapEricAllTrips.prototype = Object.create(MapEric.prototype);
 MapEricAllTrips.prototype.constructor = MapEricAllTrips;
 function MapEricAllTrips(ED){
@@ -1135,8 +1213,9 @@ function MapEricAllTrips(ED){
 	this.total_records=0;
 	this.off=false;
 	this.tripIds=[];
+	this.mapobjects=[];
 	this.max_records = $(ED).attr("max_records");
-	if (!this.max_fecords)
+	if (!this.max_records)
 		this.max_records=10000;	
 }
 
@@ -1150,7 +1229,7 @@ MapEricAllTrips.prototype.Draw = function (force){
 	var eric=this;
 	this.tripIds=[];
 	if (this.off){
-		console.log("All Trips Turned Off Cos Too Big");
+if(DEBUG)console.log("All Trips Turned Off Cos Too Big");
 		return;		
 	}
 	
@@ -1172,7 +1251,7 @@ MapEricAllTrips.prototype.AllTripCycle = function(){
 	if (tripId=this.tripIds.pop()){
 		this.request("GetTrip",tripId);
 	}
-}
+};
 
 function TripStruct(){
 	var tripStruct= {};
@@ -1242,7 +1321,11 @@ MapEricAllTrips.prototype.GetTrip = function(tripId){
 MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 	this.total_records+=tripStruct.record_count;
     colour=tripStruct.Trip.routeColor;
-    
+    var mapobject = this.mapobjects[tripStruct.Trip.tripId];
+    if (this.mapobjects[tripStruct.Trip.tripId]){
+    	this.featureGroup.removeLayer(mapobject);    	
+    	this.mapobjects[tripStruct.Trip.tripId]=undefined;
+    }
 	if (tripStruct.shape_points.length > 0){
 		mapobject=L.polyline( tripStruct.shape_points,  {
 			color: 'black'
@@ -1252,7 +1335,7 @@ MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 			color: 'black'
 		});	
 	}
-	
+	this.mapobjects[tripStruct.Trip.tripId]=mapobject;
 	//zap these,we're done
 	tripStruct.shape_points=[];
 	tripStruct.station_points=[];
@@ -1271,6 +1354,7 @@ MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 	this.request("AllTripCycle");
 };
 
+/************************************************************************/
 
 
 

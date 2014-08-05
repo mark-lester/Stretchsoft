@@ -305,7 +305,7 @@ public class Mapdata extends Rest {
 			results = session.createQuery(query).list().toArray();
 			session.close();
 			if (results.length > 0){
-				Print404(response,"There is already a shape for this trip, delete it first");
+				//Print404(response,"There is already a shape for this trip, delete it first");
 				break;
 			}
 
