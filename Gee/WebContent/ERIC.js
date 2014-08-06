@@ -49,18 +49,6 @@ loadScripts([
 
 var DEBUG=false;
 var databaseName="gtfs";
-var load_count=0;
-function upcount(){
-	// show gif here, eg:
-	$("#loading").show();
-	load_count++;
-}
-function downcount(){
-	// hide gif here, eg:
-	load_count--;
-	if (load_count < 1)
-		$("#loading").hide();
-}
 
 function SetUp(){
 	$.ajaxSetup({
@@ -89,6 +77,24 @@ function SetUp(){
 
 
 // utility stuff
+var load_count=0;
+function upcount(){
+	// show gif here, eg:
+	$("#loading").show();
+	load_count++;
+}
+function downcount(){
+	// hide gif here, eg:
+	load_count--;
+	if (load_count < 1)
+		zerocount();
+}
+function zerocount(){
+	// hide gif here, eg:
+	load_count=0;
+	$("#loading").hide();
+}
+
 function initDBCookie(){
 	databaseName=getURLParameter('databaseName') || getCookie("gee_databasename") || "gtfs";
 if(DEBUG)console.log("Database ="+databaseName);

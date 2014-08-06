@@ -68,6 +68,24 @@ function Eric (ED) {
     this.type_specific();
 }
 
+Eric.prototype.request = function(request,data,callback) {
+	if(DEBUG)console.log("Asking for  "+request+
+				" on "+this.name+
+				" length "+this.queue.size()+
+				" current request ="+this.current_request
+				);
+		switch (request){
+		case "Load":
+			this.queue.clear();  //  Load invalidates anything else on the queue
+			switch (this.name){
+			case 'Instance':  //if we are changing db, then take the opportunity to turn the bloody spinner thing off
+				zerocount(); 
+			}
+		}
+		this.queue.add({request : request, data : data, callback:callback});
+	};
+
+
 Eric.prototype.PrintTree = function(indent){
 	var indent_string=""+indent+" ";
 	for (var i=0;i<indent;i++){
@@ -100,15 +118,6 @@ Eric.prototype.type_specific = function() {
     });
 };
 
-Eric.prototype.request = function(request,data,callback) {
-	//console.log("requesting "+request+" of "+this.name);
-if(DEBUG)console.log("Asking for  "+request+
-			" on "+this.name+
-			" length "+this.queue.size()+
-			" current request ="+this.current_request
-			);
-	this.queue.add({request : request, data : data, callback:callback});
-};
  
 Eric.prototype.addChild = function(child) {
     return this.children.push(child);
