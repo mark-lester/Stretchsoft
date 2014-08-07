@@ -1,5 +1,4 @@
 package DBinterface;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
@@ -38,6 +37,7 @@ import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
+import org.jboss.logging.BasicLogger;
 
 import org.hibernate.HibernateException;
 import org.hibernate.AssertionFailure;
@@ -52,7 +52,6 @@ import sax.HibernateConfig;
 import sax.TableMap;
 import tables.ImportedStops;
 import DBinterface.StringOutputStream;
-
 
 public class DBinterface {
     public SessionFactory factory;
@@ -100,6 +99,7 @@ public class DBinterface {
              // broken Java implementations
 
     		 Class.forName("com.mysql.jdbc.Driver").newInstance();
+    		 Class.forName("org.jboss.logging.BasicLogger").newInstance();
          } catch (Exception ex) {
              System.err.println("oops Failed to load com.mysql.jdbc.Driver. " + ex);
          }
@@ -243,11 +243,12 @@ public class DBinterface {
 //        configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
         configuration.configure(hibernateConfigDirectory+"/hibernate.cfg.xml");
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
-         System.err.println(" USERNAME="+
+/*         System.err.println(" USERNAME="+
         	        configuration.getProperty("hibernate.connection.username")+
         	         " password= "+
         	        configuration.getProperty("hibernate.connection.username")
-         );
+        	        );
+*/
         serviceRegistry = new ServiceRegistryBuilder().
                 applySettings(configuration.getProperties()).
                 buildServiceRegistry();   

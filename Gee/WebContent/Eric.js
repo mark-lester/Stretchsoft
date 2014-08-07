@@ -394,6 +394,16 @@ function initSelectForm(tableName){
 		e.preventDefault();
 	    $( "#dialog-delete-"+tableName ).dialog( "open" );
 	});
+
+	$template.find('#template-opener-tabulate')
+	.attr('id',"opener-tabulate-"+tableName)
+	.click(function(e) {
+		e.preventDefault();
+		console.log("redraw on "+tableName);
+		$KingEric.get(tableName).request("Load",true);
+	});
+
+	
 	label=$("#"+tableName).find("h5").text();
 	$("#"+tableName).find("h5").remove();
 	$template.find('label').text(label);

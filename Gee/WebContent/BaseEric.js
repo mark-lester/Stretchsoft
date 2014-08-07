@@ -68,7 +68,7 @@ function Eric (ED) {
     this.type_specific();
 }
 
-Eric.prototype.request = function(request,data,callback) {
+Eric.prototype.request = function(request,data,callback,priority) {
 	if(DEBUG)console.log("Asking for  "+request+
 				" on "+this.name+
 				" length "+this.queue.size()+
@@ -81,8 +81,11 @@ Eric.prototype.request = function(request,data,callback) {
 			case 'Instance':  //if we are changing db, then take the opportunity to turn the bloody spinner thing off
 				zerocount(); 
 			}
+		case 'open_edit_dialog':
+		case 'open_tabular_dialog':
+			priority=true;
 		}
-		this.queue.add({request : request, data : data, callback:callback});
+		this.queue.add({request : request, data : data, callback:callback},priority);
 	};
 
 
@@ -199,8 +202,8 @@ Eric.prototype.Load = function(force) {
 	return $dfd;
 };
 
-//force flag to ensure propogation down the tree with the "Changed" request
-//it will orignate from create_or_update_entity. 
+//force flag to ensure propagation down the tree with the "Changed" request
+//it will originate from create_or_update_entity. 
 Eric.prototype.Draw = function(force) { 
 	this.hid_lookup={};
 	var save_select_value=this.value();
@@ -226,7 +229,7 @@ Eric.prototype.Draw = function(force) {
 		this.value(save_select_value);
 		no_change=true;
 	} 
-	
+	this.PopulateTabular();
 	if (force || !no_change || this.seed != null) { // only do this if we've changed or were seeded
 		this.request("Changed",force);		
 	}
@@ -236,9 +239,13 @@ Eric.prototype.Draw = function(force) {
 
 Eric.prototype.Changed = function(force) {
 	// we may need to go backup and change an ancestoral table, e,g, the stop if we changed stoptimes
+	console.log("in changed for "+this.name);
 	if (this.relations.secondParentTable){
-		$KingEric.get(this.relations.secondParentTable)
-				.value(this.currentRecord()[this.relations.secondParentKey]);
+		var record;
+		if (record=this.currentRecord()){
+			$KingEric.get(this.relations.secondParentTable)
+			.value(record[this.relations.secondParentKey]);
+		}
 	}
 	// but either way we've changed, so got get the kids
 	this.request("LoadChildren",force);
@@ -261,13 +268,14 @@ Eric.prototype.create_or_update_entity = function(data) {
 		if (val === undefined || val == null || val == 'null') val="";	
 		data[key]=""+val;
 	});
-	data['entity']= this.name; //force this, else you coul dupdate somethingelse,whichwould be ok
-								// but then the Draw message wil go to the wrong place
+	data['entity']= this.name; //force this, else you could update a different kind of entity,which  would be ok
+								// but then the Draw message will go to the wrong place
 	
 	if (!data['action'])   // and default to update
 		data['action']='update';
 	
 	var datastring = JSON.stringify(data);
+	console.log("trying to update "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({
@@ -284,6 +292,21 @@ Eric.prototype.create_or_update_entity = function(data) {
 		}		 
 	 });
 };
+
+Eric.prototype.create_or_update_table = function(data) {
+	var one_dfd = new $.Deferred();
+	var dfds=[];
+	for (row in this.data){
+		if (this.data[row].changed){
+			dfds.push(this.create_or_update_entity(this.data[row]));
+		}
+	}
+	$.when.apply($, dfds).done(function(){
+		one_dfd.resolve();
+	});
+	return one_dfd;
+};
+	
 
 Eric.prototype.PostEdit = function(record) {
 	var dfd=null;
@@ -321,7 +344,16 @@ Eric.prototype.PostEdit = function(record) {
 
 
 Eric.prototype.remove_entity = function(data) {
+	$.each( data, function( key, val ) {
+		if (val === undefined || val == null || val == 'null') 
+			val="";
+		
+		data[key]=""+val;
+	});
+	data['entity']= this.name; 
+	data['action']='delete';
 	var datastring = JSON.stringify(data);
+	console.log("trying to delete "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({
@@ -330,7 +362,7 @@ Eric.prototype.remove_entity = function(data) {
 		data: {values: datastring},
 		url: $url,
 		success: function(response){
-			this.request("Load");
+			eric.request("Load");
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			request_error_alert(xhr);
@@ -415,6 +447,33 @@ Eric.prototype.ProcessDialogs = function (){
 			}
 		}
 	});
+
+	this.MakeTabularTemplate();
+	
+	dialogs['tabular']=$("#tabular-"+this.name).dialog({ 
+		open : function (event,ui){
+	//		eric.PopulateTabular();
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 800,
+		resizable : true,
+		dragable : true,
+		dialogClass: "edit-dialog",
+		buttons : {
+			"Update": function() {
+				eric.ProcessTabular();
+				 $( this ).dialog( "close" );
+			},
+			"Create": function() {
+				eric.request("open_edit_dialog");
+				$( this ).dialog( "close" );
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
 	
 	dialogs['remove']=$(this.ED).find( "#delete-"+this.name ).dialog({ 
 		open : function (event,ui){
@@ -422,7 +481,8 @@ Eric.prototype.ProcessDialogs = function (){
 			$(".ui-dialog-titlebar").css("background-color", "red");
 			// there should only by one "do you wanna delete this field
 			// set it to whatever the select text is
-			$(eric.ED).find('#delete input').val(eric.text());		
+			console.log("I wanna delete a "+eric.name +" of value "+eric.value());
+			$(eric.ED).find('#delete input').val(eric.value());		
 		},
 		autoOpen: false, 
 		modal :true,
@@ -433,12 +493,8 @@ Eric.prototype.ProcessDialogs = function (){
 		buttons : {
 			"Delete": function() {
 			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
-				values={};
-	    		values['hibernateId']=eric.hid_lookup[eric.value()];
-	    		values['entity']=eric.name;
-			    values['entity']=tableName;
-			    values['action']='delete';
-				this.request("remove_entity",values);
+				var values=eric.currentRecord();
+				eric.request("remove_entity",values);
 				$( this ).dialog( "close" );
 			    
 			},
@@ -448,6 +504,85 @@ Eric.prototype.ProcessDialogs = function (){
 		}
 	});
 	this.dialogs=dialogs;
+};
+
+/*
+ * <div id="table-row">
+    <input id="stopId" name="stopId" readonly><br>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime">
+    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime">
+   </div>
+ */
+Eric.prototype.MakeTabularTemplate = function (){
+	var elem = document.createElement( "div" );
+	$(elem).attr('id',"tabular-"+this.name)
+	.append($("#tabular-template").clone())
+	.appendTo(this.ED);
+};
+
+Eric.prototype.PopulateTabular = function (){
+	$("#tabular-"+this.name+" #parent").empty();
+	if(this.parent){
+		var parent_row=$(this.parent.ED).find("#table-row").clone();
+		parent_rec= this.parent.currentRecord();
+		this.FillInputs(parent_row,parent_rec);
+		$(parent_row).appendTo("#tabular-"+this.name+" #parent")				
+	}
+	
+	row_container = $("#tabular-template #table").clone();
+	var table_row=$(this.ED).find("#table-row").clone();
+	$("#tabular-"+this.name+" #table").empty();
+	
+	for (row in this.data){
+		var table_row=$(this.ED).find("#table-row").clone();
+		table_row.attr('count',row);
+		this.FillInputs(table_row,this.data[row]);
+		var data_row=this.data[row];
+		$(table_row).appendTo("#tabular-"+this.name+" #table");	
+		button=$(this.ED).find("#tabular-row-delete-button").clone();	
+		$(button).find('#tabular-opener-delete')
+			.attr('id',"tabular-opener-delete-"+this.name)
+			.click(function(e) {
+				e.preventDefault();
+				eric.request("remove_entity",data_row);
+			});
+
+		$(button).appendTo("#tabular-"+this.name+" #table");
+	}
+};
+
+Eric.prototype.FillInputs = function (object,record){
+	if (!record) return;
+	$(object).find("input").each(function(){
+		$(this).val(record[this.id]);
+		record['changed']=false;
+	});
+};
+
+Eric.prototype.FillOutputs = function (object,record){
+	if (!record) return;
+	$(object).find("input").each(function(){
+		if (record[this.id]!=$(this).val()){
+			if(DEBUG)console.log("changing field "+this.id+ " from "+record[this.id]+" to "+$(this).val());
+			record[this.id]=$(this).val();
+			record['changed']=true;
+		}
+	});
+};
+
+Eric.prototype.ProcessTabular = function (){
+	var eric=this;
+	var record_count=0;
+	var parent_record = this.parent.currentRecord();
+	this.FillOutputs($("#tabular-"+this.name+" #parent #table-row"),parent_record);
+	if (parent_record.changed)
+		this.parent.request("create_or_update_entity",parent_record);
+
+	$("#tabular-"+this.name+" #table #table-row").each(function (){
+		eric.FillOutputs(this,eric.data[record_count]);
+		record_count++;
+	});
+	eric.request("create_or_update_table",null,null,true);
 };
 
 Eric.prototype.MakeUIobject = function (){
@@ -481,6 +616,16 @@ Eric.prototype.MakeUIobject = function (){
 	    eric.dialogs.remove.dialog( "open" );
 	});
 	
+	$template.find('#template-opener-tabulate')
+	.attr('id',"opener-tabulate-"+this.name)
+	.click(function(e) {
+		e.preventDefault();
+		console.log("redraw on "+eric.name);
+		eric.request("Load",true);
+		eric.request("open_tabular_dialog",true);
+	});
+
+	
 	$template.find('label').text(
 				$(this.ED).find("#select label").text()
 				);
@@ -489,9 +634,14 @@ Eric.prototype.MakeUIobject = function (){
 	return this.UIobject;
 };	
 
+
 Eric.prototype.open_edit_dialog = function (edit_flag){
 	this.edit_flag=edit_flag;
 	this.dialogs.edit.dialog( "open" );
+};
+
+Eric.prototype.open_tabular_dialog = function (){
+	this.dialogs.tabular.dialog( "open" );
 };
 // form intialisers
 

@@ -136,9 +136,6 @@ hr { color: #7FA423;
 <center>
 
    <img src="img/cow-icon.png" >
-   <h2><b>Please click the Facebook Login button</b></h2>
-   <br>
-       	   <fb:login-button show-faces="true" width="200" max-rows="1"></fb:login-button>
  
 </center>
 </div>
@@ -486,6 +483,14 @@ you will lose all the routes, trips and stoptimes if you do
 	you will lose all the stop times if you do.
 </form>
 </div>
+
+<div id="table-row">
+    <input id="tripId" name="tripId" size=20 maxlength=20 required key display>
+    <select id="serviceId" name="serviceId" table="Calendar"></select> 
+    <input id="tripHeadsign" size=30 maxlength=100 required>
+    <input id="tripShortName" name="tripShortName" size=60 maxlength=60 >
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: Frequencies -->
@@ -519,6 +524,10 @@ you will lose all the routes, trips and stoptimes if you do
 	you will lose all the stop times if you do.
 </form>
 </div>
+
+<div id="table-row">
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: StopTimes -->
@@ -561,6 +570,13 @@ you will lose all the routes, trips and stoptimes if you do
 	
 </form>
 </div>
+
+<div id="table-row">
+    <input id="stopId" name="stopId" size=20 maxlength=20 required key display>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime">
+    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime">   
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: Shapes -->
@@ -679,8 +695,11 @@ you will lose all the routes, trips and stoptimes if you do
 <div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
 </div>
 
+<!-- 
+
 <div id="Map_All_Trips" class="Eric" parent="Instance" type="MapEricAllTrips" title="Route Map">
 </div>
+ -->
 
 </div> <!-- END OF ERIC DECLARATIONS -->
 
@@ -737,9 +756,24 @@ you will lose all the routes, trips and stoptimes if you do
  <button type="button" class="btn btn-primary btn-xs" id="template-opener-add"><span class="glyphicon glyphicon-plus-sign"></span></button>
  <button type="button" class="btn btn-success btn-xs" id="template-opener-edit"><span class="glyphicon glyphicon-edit"></span></button>
  <button type="button" class="btn btn-danger btn-xs" id="template-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
+ <button type="button" class="btn btn-info btn-xs" id="template-opener-tabulate"><span class="glyphicon glyphicon-th-large"></span></button>
  </span>
  </form>
  <hr>
+ </div>
+ 
+ <div id="tabular-template">
+ <form>
+ <div id="parent">
+ 
+ </div>
+ <hr>
+ <div id="table">
+ </div>
+ </form>
+ </div>
+ <div id="tabular-row-delete-button">
+ <button type="button" class="btn btn-danger btn-xs" id="tabular-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
  </div>
  
  </div> <!--  end dialogs -->
@@ -747,15 +781,18 @@ you will lose all the routes, trips and stoptimes if you do
 </body>
 
 <script>
+dfd = new $.Deferred();
+FBSetup(dfd);
 $("#Eric_Declarations").hide();
-$("#template-select").hide();
-$("#dialogs").hide();
-$("#interface").hide();
-$("#menu").hide();
 $("#loading").hide();
-
-$("#welcome").show();
-SetUp();	
+$("#interface").hide();
+$("#dialogs").hide();
+$.when(dfd).done(function(){
+	$( document ).ready(function() {
+		$("#welcome").show();
+		SetUp();	
+	});
+});
 
 </script>
 

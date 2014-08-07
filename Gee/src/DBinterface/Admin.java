@@ -185,10 +185,12 @@ public class Admin extends DBinterface {
 	public Boolean verifyExists(String databaseName){
 		Instance instance=null;
 	    Session session = factory.openSession();
+	
 
 		Object instances[] = session.createQuery("from Instance where databaseName ='"+databaseName+"'").list().toArray();
 		session.close();
 		if (instances.length < 1){
+			System.err.println("Database "+databaseName+" does not exist");
 			return false;
 		}
 		return true;

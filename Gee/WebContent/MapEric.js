@@ -11,7 +11,6 @@ function MapEric(ED){
 
 MapEric.prototype.type_specific = function (){
 // stuff to do with creating layergroups
-	console.log("making map specific stuff");
 	this.featureGroup=L.featureGroup();
 	overlays[this.title]=this.featureGroup;
 	this.featureGroup.addTo(GeeMap);

@@ -1,8 +1,5 @@
 package rest;
-
 import java.io.IOException;
-import java.io.InputStream;
-
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
@@ -12,18 +9,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse; 
 
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.hibernate.Session; 
+import org.jboss.logging.BasicLogger;
 /**
  * Servlet implementation class Entity
  */
 @WebServlet("/User")
 public class User extends Rest {
 	private static final long serialVersionUID = 3L;
-
     /**
      * @see HttpServlet#HttpServlet()
      */

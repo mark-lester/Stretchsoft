@@ -1,53 +1,4 @@
-/*
- *  * 
- * 
-*/
-
-/* my stuff has assignments in it, in aprticular to establish the class stuff 
- * of ajax is asynch, so you could be loading in say MapEricTrip.js ,wjich inherits from MapEric, 
- * and MapEric hasnt beenevaluated, and it will blow up, and ye wil not know why
- */
-
-/*    
-function loadScripts(scripts){
-	var script;
-	var dfd= new $.Deferred();
-	var queue = jQuery.jqmq({    
-        // Next item will be processed only when queue.next() is called in callback.
-        delay: -1,
-        // Process queue items one-at-a-time.
-        batch: 1,
-        callback: function( request ) {        		
-        	$.when($getScript(request)).done(function (){
-            	queue.next(); 
-            	if (queue.size() == 0){
-            		dfd.resolve();
-            	}
-        	});
-        }
-    });
-	while (script=scripts.shift()){
-		queue.add(script);		
-	}
-	return dfd;
-}
-
-loadScripts([
-            "SetupMenu.js",
-            "KingEric.js",
-            "BaseEric.js",
-            "MapEric.js",
-            "MapEricTrip.js",
-            "MapEricShape.js",
-            "MapEricSingleTrip.js",
-            "MapEricAllTrips.js"]);
-
-
-*/
-
-
-
-var DEBUG=false;
+var DEBUG=true;
 var databaseName="gtfs";
 
 function SetUp(){
@@ -56,23 +7,16 @@ function SetUp(){
 		complete:downcount
 	});
 	$(document).ajaxStop(function () {
-		load_count=0;
-		$("#loading").hide();
+		zerocount();
 	});
-	$("#template-select").show();
-	$("#interface").show();
-	$("#welcome").hide();
-	dfd = new $.Deferred();
+	
 	initDBCookie();
-	FBSetup(dfd);
 	MapSetup();
 	SetupMenu();
-//	console.log("waiting for facebook");
-//	$.when(dfd).done(function(){
-//		console.log("got facebook");
-		$KingEric= new KingEric();	
-
-//	});
+	$KingEric= new KingEric();	
+	$("#welcome").hide();
+	$("#interface").show();		
+	$("#menu").show();		
 }
 
 
@@ -97,8 +41,8 @@ function zerocount(){
 
 function initDBCookie(){
 	databaseName=getURLParameter('databaseName') || getCookie("gee_databasename") || "gtfs";
-if(DEBUG)console.log("Database ="+databaseName);
-	if (!check_exists_db(databaseName)) databaseName="gtfs";
+if(DEBUG)console.log("Setting Database Cookie ="+databaseName);
+//	if (!check_exists_db(databaseName)) databaseName="gtfs";
 	setCookie("gee_databasename",databaseName);
 }
 var database_permissions=[];
@@ -142,9 +86,12 @@ function getCookie(cname) {
 
 function setCookie(cname,value){
 if(DEBUG)console.log("setting cookie "+cname+"="+value);
+	deleteCookie(cname);
 	document.cookie=cname+"="+value;				
 }
-
+function deleteCookie( cname ) {
+	  document.cookie = cname + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
 
 function request_error_alert(xhr){
 	if (xhr.status == 404){

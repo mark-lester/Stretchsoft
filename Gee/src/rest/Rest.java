@@ -73,7 +73,9 @@ public class Rest extends HttpServlet {
 
 		Base64 codec = new Base64();
 //		 System.err.println("IN GET USER ID\n");
+		int count=0;
 		for (Cookie cookie : cookies) {
+			System.err.println("in cookie loop "+Integer.toString(count++));
 //			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
 	        if (cookie.getName().equals("fbsr_287612631394075")){
 	        	signed_request = cookie.getValue();
@@ -82,10 +84,12 @@ public class Rest extends HttpServlet {
 	        	access_token = new String(codec.decode(cookie.getValue()));
 	        }
 	        if (cookie.getName().equals("gee_databasename")){
+	        	System.err.println("incoming cookie for databaseName="+cookie.getValue());
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
-//		System.err.println("The databaseName="+databaseName);
+		
+		System.err.println("The databaseName="+databaseName);
 //		System.err.println("request ="+signed_request);
 		
 		if (signed_request != null){
@@ -134,6 +138,7 @@ public class Rest extends HttpServlet {
 	
 		
 		if (databaseName == null || !admin.verifyExists(databaseName)){//we dont have a database  set, so choose the default, "gtfs"
+			System.err.println("setting GTFS to gtfs");
 			databaseName = "gtfs";
 		    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
 		    response.addCookie(cookie1); 
@@ -145,7 +150,6 @@ public class Rest extends HttpServlet {
 	    response.addCookie(user_name_cookie); 
 		
 		gtfs = getGtfs(databaseName,userId);
-		
 		return userId;
 	}
 

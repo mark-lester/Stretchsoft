@@ -53,7 +53,6 @@ KingEric.prototype.Init = function (){
 	$('.Eric').each(function(){
 		var className = $(this).attr('type');
 		if (!className) className = "Eric";
-		console.log("want to build an eric of type "+className);
 		var eric = new window[className](this);
 		
 		if (eric.parent_name){

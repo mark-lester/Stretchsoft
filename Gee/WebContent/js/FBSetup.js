@@ -21,12 +21,6 @@ window.fbAsyncInit = function() {
 	      // login status of the person. In this case, we're handling the situation where they 
 	      // have logged in to the app.
 	    	console.log("and we're off");
-	    	if ($KingEric && $KingEric.get("Instance")){
-	    		$KingEric.get("Instance").request("Load",true);
-	    	}
-	    	$("#interface").show();
-	    	$("#menu").show();
-	    	$("#welcome").hide();
 	      testAPI();
 	      dfd.resolve();	      
 	    } else if (response.status === 'not_authorized') {
