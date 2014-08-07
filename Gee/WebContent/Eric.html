@@ -560,13 +560,17 @@ you will lose all the routes, trips and stoptimes if you do
   	<label for="tripId">Trip ID</label>
     <input id="tripId" name="tripId" size=10 maxlength=10 required><br>
   	<label for="stopId">Stop ID </label>
-    <input id="stopId" name="stopId" size=20 maxlength=20 required key display><br>
+  
+   <select id="stopId" name="stopId" table="Stops" display></select> <br> 
+  <!--  
+      <input id="stopId" name="stopId" size=20 maxlength=20 required key display><br>
+  --> 
   	<label for="arrivalTime">Arrival Time</label>
     <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime"><br>
   	<label for="departureTime">Departure Time</label>
     <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime"><br>
   	<label for="stopSequence">Stop Sequence</label>
-    <input id="stopSequence" name="stopSequence" size=3 maxlength=3 order><br>
+    <input id="stopSequence" name="stopSequence" size=3 maxlength=3 order key><br>
   	<label for="stopHeadsign">Headsign</label>
     <input id="stopHeadsign" name="stopHeadsign" size=30 maxlength=100><br>
 </fieldset>
@@ -582,7 +586,7 @@ you will lose all the routes, trips and stoptimes if you do
 </div>
 
 <div id="table-row">
-    <input id="stopId" name="stopId" size=20 maxlength=20 required key display>
+    <input id="stopName" name="stopName" size=20 maxlength=20 readonly table=Stops>
     <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime">
     <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime">   
 </div>

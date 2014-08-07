@@ -55,6 +55,7 @@ function Eric (ED) {
 			key 				: $(ED).find('#edit input[key]').attr('name'),
 			order 				: $(ED).find('#edit input[order]').attr('name'),
 			joinkey 			: $(ED).find('#edit input[joinkey]').attr('name'),
+			display 			: $(ED).find('#edit input[display]').attr('name'),
 			parentKey 			: $(ED).find('#edit input[id=parentKey]').attr('value'),
 			parentTable 		: $(ED).find('#edit input[id=parentTable]').attr('value'),
 			secondParentKey 	: $(ED).find('#edit input[id=secondParentKey]').attr('value'),
@@ -65,7 +66,8 @@ function Eric (ED) {
 	$(this.ED).find('#edit :input[display]').each(function (){
 		relations.display.push($(this).attr('name'));			
 	});
-	
+	eric=this;
+if(DEBUG)console.log("CONFIG "+this.name+" = "+JSON.stringify(this.relations));
     this.type_specific();
 }
 
@@ -156,8 +158,6 @@ Eric.prototype.getrecord = function(key) {
 	return this.record_lookup[key];
 };
 
-
-
 Eric.prototype.RESTUrl = function() {
 	var relations=this.relations;
 	var url=this.RESTUrlBase + relations.method+"?entity="+this.name;
@@ -173,8 +173,9 @@ Eric.prototype.RESTUrl = function() {
 	
 	if (relations.order != undefined){
 		url+="&order="+relations.order;
+	} else if (relations.display[0] != undefined){
+		url+="&order="+relations.display[0];
 	}
-	
 	return url;
 };
 

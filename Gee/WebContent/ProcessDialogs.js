@@ -3,7 +3,7 @@
 Eric.prototype.ProcessDialogs = function (){
 	var dialogs={};
 	var eric=this;
-    console.log("Processing dialogs for "+this.name);
+if(DEBUG)    console.log("Processing dialogs for "+this.name);
     $(this.ED).find("#edit").attr('id','edit-'+this.name);
 //    $(this.ED).find("#edit form #edit").attr('id','edit-form-'+this.name);
     $(this.ED).find("#delete").attr('id','delete-'+this.name);

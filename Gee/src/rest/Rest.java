@@ -75,7 +75,6 @@ public class Rest extends HttpServlet {
 //		 System.err.println("IN GET USER ID\n");
 		int count=0;
 		for (Cookie cookie : cookies) {
-			System.err.println("in cookie loop "+Integer.toString(count++));
 //			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
 	        if (cookie.getName().equals("fbsr_287612631394075")){
 	        	signed_request = cookie.getValue();
@@ -84,7 +83,7 @@ public class Rest extends HttpServlet {
 	        	access_token = new String(codec.decode(cookie.getValue()));
 	        }
 	        if (cookie.getName().equals("gee_databasename")){
-	        	System.err.println("incoming cookie for databaseName="+cookie.getValue());
+//	        	System.err.println("incoming cookie for databaseName="+cookie.getValue());
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
@@ -104,7 +103,7 @@ public class Rest extends HttpServlet {
 	        payload = codec.decode(encodedPayload);
 	  //      String payload_string = new String(payload);
 	  //      System.err.print("payload = " + payload_string + "\n");
-	        System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
+	  //      System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
 	     
 	        sig = new String(codec.decode(encoded_sig));
 	        try {	  
@@ -117,7 +116,7 @@ public class Rest extends HttpServlet {
 	    			Hashtable<String,String> record = mapper.readValue(payload, Hashtable.class);
 
 	    	    	userId = record.get("user_id");
-	        		System.err.print("user_id = " + userId + "\n");
+	//        		System.err.print("user_id = " + userId + "\n");
 	    	    } else {
 	    	    	// cookie doesnt add up
 	    	    	System.err.print("ERROR, cookie failure, mismatch\n");
