@@ -31,3 +31,87 @@
    the pickers need processing, and we need to think about my lassthan.greaterthan as it's assuming unique instance of fields
    
  */
+
+
+/*
+ * <div id="table-row">
+    <input id="stopId" name="stopId" readonly><br>
+    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime">
+    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime">
+   </div>
+ */
+Eric.prototype.MakeTabularTemplate = function (){
+	var elem = document.createElement( "div" );
+	$(elem).attr('id',"tabular-"+this.name)
+	.append($("#tabular-template").clone())
+	.appendTo(this.ED);
+};
+
+Eric.prototype.PopulateTabular = function (){
+	$("#tabular-"+this.name+" #parent").empty();
+	this.edit_flag=true;
+	if(this.parent){
+		var parent_row=$(this.parent.ED).find("#table-row").clone();
+		parent_rec= this.parent.currentRecord();
+		this.init_edit_values_over_element(parent_row,parent_rec);
+		$(parent_row).appendTo("#tabular-"+this.name+" #parent")				
+	}
+	
+	row_container = $("#tabular-template #table").clone();
+	var table_row=$(this.ED).find("#table-row").clone();
+	$("#tabular-"+this.name+" #table").empty();
+	
+	for (row in this.data){
+		var table_row=$(this.ED).find("#table-row").clone();
+		table_row.attr('count',row);
+		this.init_edit_values_over_element(table_row,this.data[row]);
+		var data_row=this.data[row];
+		$(table_row).appendTo("#tabular-"+this.name+" #table");	
+		button=$(this.ED).find("#tabular-row-delete-button").clone();	
+		$(button).find('#tabular-opener-delete')
+			.attr('id',"tabular-opener-delete-"+this.name)
+			.click(function(e) {
+				e.preventDefault();
+				eric.request("remove_entity",data_row);
+			});
+
+		$(button).appendTo("#tabular-"+this.name+" #table");
+	}
+	this.initInputForm("tabular-"+this.name);
+};
+
+Eric.prototype.FillInputs = function (object,record){
+	if (!record) return;
+	$(object).find("input").each(function(){
+		$(this).val(record[this.id]);
+		record['changed']=false;
+	});
+};
+
+Eric.prototype.FillOutputs = function (object,record){
+	if (!record) return;
+	$(object).find("input").each(function(){
+		if (record[this.id]!=$(this).val()){
+			if(DEBUG)console.log("changing field "+this.id+ " from "+record[this.id]+" to "+$(this).val());
+			record[this.id]=$(this).val();
+			record['changed']=true;
+		}
+	});
+};
+
+Eric.prototype.ProcessTabular = function (){
+	var eric=this;
+	var record_count=0;
+	var parent_record = this.parent.currentRecord();
+	this.FillOutputs($("#tabular-"+this.name+" #parent #table-row"),parent_record);
+	if (parent_record.changed)
+		this.parent.request("create_or_update_entity",parent_record);
+
+	$("#tabular-"+this.name+" #table #table-row").each(function (){
+		eric.FillOutputs(this,eric.data[record_count]);
+		record_count++;
+	});
+	eric.request("create_or_update_table",null,null,true);
+};
+
+

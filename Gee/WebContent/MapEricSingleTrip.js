@@ -10,7 +10,6 @@ MapEricSingleTrip.prototype.Load = function (force){
 	this.request("Draw",force);
 };
 MapEricSingleTrip.prototype.Draw = function (force){
-connsole.log("redrawing a trip");
 	$KingEric.get("MapEricAllTrips").request("GetTrip",$KingEric.get("Trips").value());
 };
 

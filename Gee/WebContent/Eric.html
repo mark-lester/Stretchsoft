@@ -45,6 +45,11 @@
 <script src="MapEricShape.js"></script>
 <script src="MapEricSingleTrip.js"></script>
 <script src="MapEricAllTrips.js"></script>          
+<script src="Tabular.js"></script>   
+<script src="MakeUIObject.js"></script>   
+<script src="ProcessDialogs.js"></script>   
+<script src="FormHandling.js"></script>   
+       
 
 <style>
 .edit-dialog {
@@ -63,6 +68,11 @@ hr { color: #7FA423;
 .col1 {
         height: 600px;
         overflow: auto; }
+        
+.dialog-wrapper {
+   overflow: scroll;
+   height: 70%;
+}
 </style>
         
 <title>Gee - Open Access GTFS Editor</title>
@@ -694,9 +704,7 @@ you will lose all the routes, trips and stoptimes if you do
 
 <div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
 </div>
-
 <!-- 
-
 <div id="Map_All_Trips" class="Eric" parent="Instance" type="MapEricAllTrips" title="Route Map">
 </div>
  -->
@@ -768,7 +776,9 @@ you will lose all the routes, trips and stoptimes if you do
  
  </div>
  <hr>
+ <div class="dialog-wrapper">
  <div id="table">
+ </div>
  </div>
  </form>
  </div>
