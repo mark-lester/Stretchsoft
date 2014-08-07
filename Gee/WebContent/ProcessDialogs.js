@@ -91,8 +91,6 @@ Eric.prototype.ProcessDialogs = function (){
 		open : function (event,ui){
 			$(".ui-dialog-titlebar").css("background-color", "green");
 			$("#tabular-"+eric.name+" form").validate().form();
-			this.init_tabular_values();
-	//		eric.PopulateTabular();  // should be done automagically via Draw
 		},
 		autoOpen: false, 
 		modal :true,

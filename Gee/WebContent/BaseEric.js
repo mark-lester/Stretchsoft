@@ -275,7 +275,7 @@ Eric.prototype.create_or_update_entity = function(data) {
 		data['action']='update';
 	
 	var datastring = JSON.stringify(data);
-	console.log("trying to update "+datastring);
+	if (DEBUG)console.log("trying to update "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({
@@ -344,6 +344,7 @@ Eric.prototype.PostEdit = function(record) {
 
 
 Eric.prototype.remove_entity = function(data) {
+	var eric=this;
 	$.each( data, function( key, val ) {
 		if (val === undefined || val == null || val == 'null') 
 			val="";
@@ -353,7 +354,7 @@ Eric.prototype.remove_entity = function(data) {
 	data['entity']= this.name; 
 	data['action']='delete';
 	var datastring = JSON.stringify(data);
-	console.log("trying to delete "+datastring);
+	if (DEBUG)console.log("trying to delete "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({

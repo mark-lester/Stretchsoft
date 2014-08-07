@@ -48,13 +48,14 @@ Eric.prototype.MakeTabularTemplate = function (){
 };
 
 Eric.prototype.PopulateTabular = function (){
+	var eric=this;
 	$("#tabular-"+this.name+" #parent").empty();
 	this.edit_flag=true;
 	if(this.parent){
 		var parent_row=$(this.parent.ED).find("#table-row").clone();
 		parent_rec= this.parent.currentRecord();
 		this.init_edit_values_over_element(parent_row,parent_rec);
-		$(parent_row).appendTo("#tabular-"+this.name+" #parent")				
+		$(parent_row).appendTo("#tabular-"+this.name+" #parent");				
 	}
 	
 	row_container = $("#tabular-template #table").clone();
@@ -67,17 +68,22 @@ Eric.prototype.PopulateTabular = function (){
 		this.init_edit_values_over_element(table_row,this.data[row]);
 		var data_row=this.data[row];
 		$(table_row).appendTo("#tabular-"+this.name+" #table");	
-		button=$(this.ED).find("#tabular-row-delete-button").clone();	
-		$(button).find('#tabular-opener-delete')
-			.attr('id',"tabular-opener-delete-"+this.name)
-			.click(function(e) {
-				e.preventDefault();
-				eric.request("remove_entity",data_row);
-			});
-
+		button=$("#tabular-row-delete-button").clone();	
+		$(button).attr('id',$(button).attr('id')+"-"+row);
+		
+		this.add_button(button,this.data[row]);
 		$(button).appendTo("#tabular-"+this.name+" #table");
 	}
 	this.initInputForm("tabular-"+this.name);
+};
+
+
+Eric.prototype.add_button = function (button,record){
+	var eric=this;
+	$(button).click(function(e) {
+		e.preventDefault();
+		eric.request("remove_entity",record);
+	});
 };
 
 Eric.prototype.FillInputs = function (object,record){
