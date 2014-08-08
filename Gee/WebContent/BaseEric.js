@@ -47,7 +47,7 @@ function Eric (ED) {
     });
     this.queue.eric = this;
     this.name = $(ED).attr('id');
-    this.title = $(ED).attr('title');
+    this.title = $(ED).attr('title') || $(ED).find("#select label").text();
 	this.parent_name = $(ED).attr('parent') || $(ED).find('#edit input[id=parentTable]').val();
 	this.relations={
 			method 				: $(ED).attr('method') || "Entity",

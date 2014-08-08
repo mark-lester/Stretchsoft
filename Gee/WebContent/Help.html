@@ -55,6 +55,15 @@ but there isnt any UI to that right now, but it wil appear when required.
 beta instance, and subsequentlyy to a live Open Trip Planner web site.
  </ul>
 
+<span style="nowrap">
+<fieldset>
+    <input id="stopName" name="stopName" size="20" maxlength="20" readonly="readonly" table="Stops">
+    <input autocomplete="off" class="ui-timepicker-input" id="arrivalTime" name="arrivalTime" size="8" picker="time" required="" display="" lessthan="departureTime" type="text">
+    <input autocomplete="off" class="ui-timepicker-input" id="departureTime" name="departureTime" size="8" picker="time" required="" greaterthan="arrivalTime" type="text">
+    
+ <button type="button" class="btn btn-danger btn-xs" id="tabular-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
+</fieldset>
+</span>
 
 
 </body>

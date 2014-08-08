@@ -43,6 +43,7 @@
 Eric.prototype.MakeTabularTemplate = function (){
 	var elem = document.createElement( "div" );
 	$(elem).attr('id',"tabular-"+this.name)
+	.attr("title",this.title)
 	.append($("#tabular-template").clone())
 	.appendTo(this.ED);
 };
@@ -62,23 +63,28 @@ Eric.prototype.PopulateTabular = function (){
 	var table_row=$(this.ED).find("#table-row").clone();
 	$("#tabular-"+this.name+" #table").empty();
 	
+	var table_header=$(this.ED).find("#table-header").clone();
+	$(table_header).appendTo("#tabular-"+this.name+" #table");	
 	for (row in this.data){
 		var table_row=$(this.ED).find("#table-row").clone();
 		table_row.attr('count',row);
 		this.init_edit_values_over_element(table_row,this.data[row]);
-		var data_row=this.data[row];
+		button=$("#tabular-row-delete-button button").clone();	
+		var fieldset=$(table_row).find("fieldset");
+//		$(button).attr('id',$(button).attr('id')+"-"+row);
+		this.add_button_click(button,this.data[row]);
+		$(button).appendTo(table_row);
 		$(table_row).appendTo("#tabular-"+this.name+" #table");	
-		button=$("#tabular-row-delete-button").clone();	
-		$(button).attr('id',$(button).attr('id')+"-"+row);
 		
-		this.add_button(button,this.data[row]);
-		$(button).appendTo("#tabular-"+this.name+" #table");
 	}
+	var table_footer=$(this.ED).find("#table-footer").clone();
+	$(table_footer).appendTo("#tabular-"+this.name+" #table");	
+
 	this.initInputForm("tabular-"+this.name);
 };
 
 
-Eric.prototype.add_button = function (button,record){
+Eric.prototype.add_button_click = function (button,record){
 	var eric=this;
 	$(button).click(function(e) {
 		e.preventDefault();

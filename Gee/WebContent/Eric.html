@@ -72,7 +72,13 @@ hr { color: #7FA423;
 .dialog-wrapper {
    overflow: scroll;
    height: 70%;
+   max-height: 500px
 }
+
+.table-row {
+   whitespace: nowrap;
+}
+
 </style>
         
 <title>Gee - Open Access GTFS Editor</title>
@@ -228,6 +234,16 @@ hr { color: #7FA423;
      You will lose all data if you do.
 </form>
 </div>	
+
+<div id="table-row" class=table-row>
+    <input id="databaseName" name="databaseName" size=20 maxlength=20 nospace required key readonly>
+    <input id="description" name="description" size=30 maxlength=100 required display>
+	<label for="publicRead">R</label>
+    <input id="publicRead" name="publicRead" type=checkbox>
+	<label for="publicWrite">W</label>
+    <input id="publicWrite" name="publicWrite" type=checkbox>
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: Stops -->
@@ -265,6 +281,13 @@ hr { color: #7FA423;
      You will lose any Stop times from any trips that use then if you do.
 </form>
 </div>
+<div id="table-row" class=table-row>
+    <input id="stopId" name="stopId" size=10 maxlength=20 required key>
+    <input id="stopName" name="stopName" size=20 maxlength=50 required display>
+    <input id="stopLat" name="stopLat" size=10 maxlength=20 required>
+    <input id="stopLon" name="stopLon" size=10 maxlength=20 required>
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: Transfers -->
@@ -299,6 +322,15 @@ hr { color: #7FA423;
      You will lose any Stop times from any trips that use then if you do.
 </form>
 </div>
+
+<div id="table-row" class=table-row>
+    <input id="fromStopId" name="fromStopId" size=10 maxlength=20 required key display>
+    <input id="toStopId" name="toStopId" size=10 maxlength=20 required display>
+    <input id="transferType" name="transferType" size=2 maxlength=2>
+    <input id="minTransferTime" name="minTransferTime" size=4 maxlength=4>
+</div>
+
+
 </div>
 
 <!--  Eric DECLARATION: Calendar -->
@@ -341,8 +373,24 @@ hr { color: #7FA423;
      Are you sure you want to delete Calendar ID,  <input readonly name="calendarId" size=10 maxlength=10><br>
 </form>
 </div>
-</div>
 
+
+<div id="table-header" class=table-row>
+Service ID, |Start, Finish, M T W T F S S 
+</div>
+<div id="table-row" class=table-row>
+    <input id="serviceId"  name="serviceId" size=10 maxlength=20 key display>
+    <input id="startDate" name="startDate" type=text size=10 picker="date" required lessthan="endDate">
+    <input id="endDate" name="endDate" type=text size=10 picker="date" required greaterthan="startDate">
+    <input id="monDay"  name="monDay" type=checkbox>
+    <input id="tuesDay" name="tuesDay" type=checkbox>
+    <input id="wednesDay" name="wednesDay" type=checkbox>
+    <input id="thursDay" type=checkbox>
+    <input id="friDay" type=checkbox>
+    <input id="saturDay" name="saturDay" type=checkbox>
+    <input id="sunDay" type=checkbox>
+</div>
+</div>
 <!--  Eric DECLARATION: CalendarDates -->
 
 <div id="CalendarDates" class="Eric" parent="Instance" >
@@ -370,6 +418,11 @@ hr { color: #7FA423;
 <form id="delete">
      Are you sure you want to delete Calendar Date,  <input readonly name="date" size=10 maxlength=10><br>
 </form>
+</div>
+
+<div id="table-row" class=table-row>
+    <input id="date" name="date"  type=text size=10 picker="date" required key display><br>
+    <input id="exceptionType" size=2 maxlength=2><br>
 </div>
 </div>
 
@@ -414,6 +467,13 @@ hr { color: #7FA423;
 you will lose all the routes, trips and stoptimes if you do
 </form>
 </div>
+
+<div id="table-row" class=table-row>
+    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required key>
+    <input id="agencyName" name="agencyName" size=20 maxlength=50  type="text" required display>
+    <input id="agencyUrl" name="agencyUrl" size=20 maxlength=100>
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: Routes -->
@@ -456,7 +516,17 @@ you will lose all the routes, trips and stoptimes if you do
 	you will lose all the trips, and their stop times, if you do.
 </form>
 </div>
+
+<div id="table-row" class=table-row>
+    <input id="routeId" name="routeId" size=10 maxlength=30 required key display>
+    <input id="routeShortName" name="routeShortName" size=10 maxlength=100 required>
+    <input id="routeLongName" name="routeLongName" size=20 maxlength=60 required>
+    <input id="routeType" name="routeType" size=2 type=text>
+    <input id="routeColor"name="routeColor" picker="colour" size=10 type="colour" name="routeColor">
+    <input id="routeTextColor" name="routeTextColor" picker="colour" size=10 type="colour" name="routetextColour">
 </div>
+</div>
+
 
 <!--  Eric DECLARATION: Trips -->
 
@@ -495,7 +565,7 @@ you will lose all the routes, trips and stoptimes if you do
 </div>
 
 <div id="table-row">
-    <input id="tripId" name="tripId" size=20 maxlength=20 required key display>
+    <input id="tripId" name="tripId" size=10 maxlength=20 required key display>
     <select id="serviceId" name="serviceId" table="Calendar"></select> 
     <input id="tripHeadsign" size=30 maxlength=100 required>
     <input id="tripShortName" name="tripShortName" size=60 maxlength=60 >
@@ -536,6 +606,9 @@ you will lose all the routes, trips and stoptimes if you do
 </div>
 
 <div id="table-row">
+ 	<input id="startTime" name="startTime" type=text size=10 picker=time required lessthan="endTime" key display><br>
+    <input id="endTime" name="endTime" type=text size=10 picker=time required greaterthan="startTime" ><br>
+    <input id="headwaySecs" name="headwaySecs" size=3 maxlength=100 required><br>
 </div>
 
 </div>
@@ -587,8 +660,8 @@ you will lose all the routes, trips and stoptimes if you do
 
 <div id="table-row">
     <input id="stopName" name="stopName" size=20 maxlength=20 readonly table=Stops>
-    <input id="arrivalTime" name="arrivalTime"  type=text picker=time required display lessthan="departureTime">
-    <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime">   
+    <input id="arrivalTime" name="arrivalTime" size=8 type=text picker=time required display lessthan="departureTime">
+    <input id="departureTime" name="departureTime" size=8 type=text picker=time required greaterthan="arrivalTime">   
 </div>
 
 </div>
@@ -628,6 +701,15 @@ you will lose all the routes, trips and stoptimes if you do
       <input readonly name="shapePtSequence" size=10 maxlength=10><br>
 </form>
 </div>
+
+<div id="table-row">
+    <input id="shapeId" name="shapeId" size=10 maxlength=10 required joinkey readonly><br>
+    <input id="shapePtLat" name="shapePtLat" size=10 maxlength=10 required display><br>
+    <input id="shapePtLon" name="shapePtLon" size=10 maxlength=10 required display><br>
+    <input id="shapePtSequence" name="shapePtSequence" size=3 maxlength=10 required order readonly key><br>
+    <input id="shapeDistTravelled" name="shapeDistTravelled" size=4 maxlength=10 required  display><br>
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: FareAttributes -->
@@ -659,6 +741,15 @@ you will lose all the routes, trips and stoptimes if you do
 	
 </form>
 </div>
+
+<div id="table-row">
+    <input id="fareId" name="fareId" size=10 maxlength=10 display>
+  	<label for="pricE">Price</label>
+    <input id="pricE" name="pricE" size=10 maxlength=10>
+  	<label for="currencyType">Currency</label>
+    <input id="currencyType" name="currencyType" size=10 maxlength=10>
+</div>
+
 </div>
 
 <!--  Eric DECLARATION: FareRules -->
@@ -698,6 +789,17 @@ you will lose all the routes, trips and stoptimes if you do
 	
 </form>
 </div>
+
+<div id="table-header">
+Route, Origin, Destination, Contains
+</div>
+<div id="table-row">
+    <input id="routeId" name="routeId" size=10 maxlength=10><br>
+    <input id="originId" name="originId" size=10 maxlength=10><br>
+    <input id="destinationId" name="destinationId" size=10 maxlength=10><br>
+    <input id="containsId" name="containsId" size=10 maxlength=10><br>
+</div>
+
 </div>
 
 <div id="Map_Stops" class="Eric" parent="Stops" type="MapEric" title="All Stops">
@@ -708,9 +810,11 @@ you will lose all the routes, trips and stoptimes if you do
 
 <div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
 </div>
-
+<!-- 
 <div id="Map_All_Trips" class="Eric" parent="Instance" type="MapEricAllTrips" title="Route Map">
 </div>
+ -->
+
 
 </div> <!-- END OF ERIC DECLARATIONS -->
 

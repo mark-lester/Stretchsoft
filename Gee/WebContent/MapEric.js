@@ -1,6 +1,15 @@
 /************************************************************************/
 
 // MapEric is the base "class" for maps, extending Eric, which is set up for All Stops
+var allStationsLayer=L.featureGroup();
+// all the paths NOT on the currently edited trip
+var tripPathsLayer=L.featureGroup();
+//the path AND the stations of the currently edited trip
+var tripStationsLayer=L.featureGroup();
+// all the trips 
+var allTripsLayer=L.featureGroup();
+
+
 MapEric.prototype = Object.create(Eric.prototype);
 MapEric.prototype.constructor = MapEric;
 
@@ -10,10 +19,14 @@ function MapEric(ED){
 }
 
 MapEric.prototype.type_specific = function (){
-// stuff to do with creating layergroups
+// stuff to do with creating laye
 	this.featureGroup=L.featureGroup();
+	console.log("I just made a feature group for"+this.title+" = "+	this.featureGroup);
+	this.objectstore=[];
+	console.log("leaflet stuff "+this.name+"="
+			+JSON.stringify(this.featureGroup));
 	overlays[this.title]=this.featureGroup;
-	this.featureGroup.addTo(GeeMap);
+//	this.featureGroup.addTo(GeeMap);
 };
 
 
@@ -30,11 +43,13 @@ MapEric.prototype.Draw = function (){
 	// stuff to do with playing about with map objects, using either (normally) the parents data store
 	// or in the case of the route map, local data
 	this.featureGroup.clearLayers();
+	this.objectstore=[];
 	var eric=this;
     var data = eric.parent.data;
 	
 	$.each( data, function( key, val ) {
 		var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: smallTrainIcon, draggable: true});
+		eric.objectstore.push(mapobject);
 		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
 		eric.stop_event_handlers(mapobject,val['stopName']);
 		eric.featureGroup.addLayer(mapobject);
@@ -48,6 +63,7 @@ MapEric.prototype.Draw = function (){
 	
 	first_call=false;
 	// we are politey issuing a 'Changed' request incase we have further descendants
+	this.featureGroup.bringToFront();
 	this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
 };
@@ -82,8 +98,9 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 		});
 	
    	var popup_val=stopName;
-	mapobject.bindPopup(popup_val);
+	popup=mapobject.bindPopup(popup_val);
 	mapobject.on('mouseover', function(e) {
-		this.openPopup();
+		console.log("You're hovering on "+popup_val);
+		popup.openPopup();
 		});
 };

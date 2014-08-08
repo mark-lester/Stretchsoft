@@ -5,8 +5,11 @@ function KingEric (){
 	this.Init();
 
 	// cant find a way to incrementally build this, so have to add it after building the map layers
+	for (key in overlays){
+		console.log("overlay -"+key+"="+overlays[key]);
+	}
 	layercontrol=L.control.layers(baseMaps,overlays).addTo(GeeMap);
-
+console.log("done layer control");
 		for (var index in this.orphans){
 		this.orphans[index].PrintTree(0);
 	}
