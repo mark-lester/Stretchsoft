@@ -5,12 +5,15 @@
 <link rel="stylesheet" href="css/uniform.default.css" media="screen" />
 <!-- Latest compiled and minified JavaScript -->
 
-<script src="js/bootstrap.min.js"></script> 
  <link rel="stylesheet" href="css/jquery-ui.css">
 <script src="js/jquery-1.10.2.js"></script> 
 <script src="js/jquery-ui.js"></script>
+<script src="js/bootstrap.min.js"></script> 
 <link rel="stylesheet" href="css/leaflet.css" />
+<!-- 
 <script src="js/leaflet.js"></script>
+ -->
+<script src='http://openlayers.org/api/OpenLayers.js'></script>
 <script src="js/jquery.uniform.js"></script>
 
 <!-- Bootstrap UI stuff -->
@@ -26,6 +29,7 @@
 <script src="js/jquery.validate.js"></script>
 <link rel="stylesheet" href="css/jquery.timepicker.css">
 
+ <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">  
   
 <script src='js/spectrum.js'></script>
 <link rel='stylesheet' href='css/spectrum.css' />
@@ -48,8 +52,7 @@
 <script src="Tabular.js"></script>   
 <script src="MakeUIObject.js"></script>   
 <script src="ProcessDialogs.js"></script>   
-<script src="FormHandling.js"></script>   
-       
+<script src="FormHandling.js"></script>          
 
 <style>
 .edit-dialog {
@@ -785,8 +788,7 @@ you will lose all the routes, trips and stoptimes if you do
       <input readonly name="routeId" size=10 maxlength=10><br>
       <input readonly name="originId" size=10 maxlength=10><br>
       <input readonly name="destinationId" size=10 maxlength=10><br>
-      <input readonly name="containsId" size=10 maxlength=10><br>
-	
+      <input readonly name="containsId" size=10 maxlength=10><br>	
 </form>
 </div>
 
@@ -799,22 +801,19 @@ Route, Origin, Destination, Contains
     <input id="destinationId" name="destinationId" size=10 maxlength=10><br>
     <input id="containsId" name="containsId" size=10 maxlength=10><br>
 </div>
-
 </div>
 
 <div id="Map_Stops" class="Eric" parent="Stops" type="MapEric" title="All Stops">
 </div>
-
+ 
 <div id="Map_Trips" class="Eric" parent="StopTimes" type="MapEricTrip" title="Trip Editor">
 </div>
 
 <div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
 </div>
-<!-- 
+ 
 <div id="Map_All_Trips" class="Eric" parent="Instance" type="MapEricAllTrips" title="Route Map">
 </div>
- -->
-
 
 </div> <!-- END OF ERIC DECLARATIONS -->
 
@@ -893,22 +892,30 @@ Route, Origin, Destination, Contains
  <button type="button" class="btn btn-danger btn-xs" id="tabular-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
  </div>
  
+ <div id="mapbutton_container">
+ </div>
+
+ <div id="mapbutton_rowcontent">
+ <label></label>    <input id="checkbox" name="toggle_layer" type=checkbox checked><br>
+ </div>
+ 
  </div> <!--  end dialogs -->
 
 </body>
 
 <script>
-dfd = new $.Deferred();
-FBSetup(dfd);
-$("#Eric_Declarations").hide();
-$("#loading").hide();
-$("#interface").hide();
-$("#dialogs").hide();
-$.when(dfd).done(function(){
-	$( document ).ready(function() {
-		$("#welcome").show();
-		SetUp();	
-	});
+$( document ).ready(function() {
+	dfd = new $.Deferred();
+	FBSetup(dfd);
+	$("#welcome").show();
+	$("#Eric_Declarations").hide();
+	$("#loading").hide();
+	$("#interface").hide();
+	$("#dialogs").hide();
+	
+//	$.when(dfd).done(function(){		
+			SetUp();	
+//		});
 });
 
 </script>

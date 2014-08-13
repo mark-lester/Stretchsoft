@@ -88,7 +88,7 @@ public class Rest extends HttpServlet {
 	        }
 		}
 		
-		System.err.println("The databaseName="+databaseName);
+//		System.err.println("The databaseName="+databaseName);
 //		System.err.println("request ="+signed_request);
 		
 		if (signed_request != null){

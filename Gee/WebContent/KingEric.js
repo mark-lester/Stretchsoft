@@ -5,12 +5,14 @@ function KingEric (){
 	this.Init();
 
 	// cant find a way to incrementally build this, so have to add it after building the map layers
-	for (key in overlays){
-		console.log("overlay -"+key+"="+overlays[key]);
+	if (layercontrol){
+		for (key in overlays){
+			console.log("overlay -"+key+"="+overlays[key]);
+		}
+		if (false) layercontroler=L.control.layers(baseMaps,overlays).addTo(GeeMap);
+		console.log("done layer control");	
 	}
-	layercontrol=L.control.layers(baseMaps,overlays).addTo(GeeMap);
-console.log("done layer control");
-		for (var index in this.orphans){
+	for (var index in this.orphans){
 		this.orphans[index].PrintTree(0);
 	}
 	// need to set the database. yucky I know
@@ -18,10 +20,14 @@ console.log("done layer control");
 	
 	// there would normally by one orphan, but i guess you can have multiple trees
 	// send the top a "Load" request and it should cascade down the tree
+}
+
+
+KingEric.prototype.Load = function (eric){
 	for (var index in this.orphans){
 		this.orphans[index].request("Load");
-	}
-}
+	}	
+};
 
 
 KingEric.prototype.add = function (eric){
@@ -69,6 +75,7 @@ KingEric.prototype.Init = function (){
 			eric.parent.addChild(eric);
 		king.add(eric);
 	});	
-	
 };
+
+
 

@@ -8,7 +8,6 @@ function MapEricAllTrips(ED){
 	this.total_records=0;
 	this.off=false;
 	this.tripIds=[];
-	this.mapobjects=[];
 	this.max_records = $(ED).attr("max_records");
 	if (!this.max_records)
 		this.max_records=10000;	
@@ -16,18 +15,21 @@ function MapEricAllTrips(ED){
 
 MapEricAllTrips.prototype.Load = function (force){
 	this.off=false;
+	if (layercontrol)
 	GeeMap.addLayer(this.featureGroup);
 	this.request("Draw",force);
 };
 
 MapEricAllTrips.prototype.Draw = function (force){
+	this.initDraw();
+    
 	var eric=this;
 	this.tripIds=[];
 	if (this.off){
 if(DEBUG)console.log("All Trips Turned Off Cos Too Big");
 		return;		
 	}
-	
+	if (layercontrol)
 	this.featureGroup.clearLayers();
 	tripsUrl= "/Gee/Entity?entity=Trips";
 	return $.getJSON(tripsUrl, 
@@ -116,24 +118,17 @@ MapEricAllTrips.prototype.GetTrip = function(tripId){
 MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 	this.total_records+=tripStruct.record_count;
     colour=tripStruct.Trip.routeColor;
-    var mapobject = this.mapobjects[tripStruct.Trip.tripId];
-    if (this.mapobjects[tripStruct.Trip.tripId]){
-    	this.featureGroup.removeLayer(mapobject);    	
-    	this.mapobjects[tripStruct.Trip.tripId]=undefined;
-    }
-	if (tripStruct.shape_points.length > 0){
+    if (tripStruct.shape_points.length > 0){
 		mapobject=L.polyline( tripStruct.shape_points,  {
-			color: 'black'
+			color: 'black',
+			zIndexOffset : -1000
 		});		
 	} else {
 		mapobject=L.polyline( tripStruct.station_points,  {
-			color: 'black'
+			color: 'black',
+			zIndexOffset : -1000
 		});	
 	}
-	this.mapobjects[tripStruct.Trip.tripId]=mapobject;
-	//zap these,we're done
-	tripStruct.shape_points=[];
-	tripStruct.station_points=[];
 	
 	mapobject.on("click",function(e) {
 		$KingEric.get("Agency").seed = tripStruct.Trip.agencyId;
@@ -145,6 +140,8 @@ MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 	mapobject.on('mouseover', function(e) {
 		this.openPopup();
 		});
-	this.featureGroup.addLayer(mapobject);
+
+	this.objectstore.push(mapobject);
+	if (this.draw_flag) mapobject.addTo(GeeMap);
 	this.request("AllTripCycle");
 };

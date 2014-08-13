@@ -1,5 +1,9 @@
 var DEBUG=false;
+var layercontrol=false;
+var openlayers=false;
+var layercontroler=null;
 var databaseName="gtfs";
+var $KingEric=null;
 
 function SetUp(){
 	$.ajaxSetup({
@@ -11,9 +15,14 @@ function SetUp(){
 	});
 	
 	initDBCookie();
-	MapSetup();
 	SetupMenu();
 	$KingEric= new KingEric();	
+	if (openlayers){
+		MapSetup_openlayers($KingEric);
+	} else {
+		MapSetup_Leaflet($KingEric);
+	}
+	$KingEric.Load();
 	$("#welcome").hide();
 	$("#interface").show();		
 	$("#menu").show();		
@@ -108,10 +117,35 @@ var bigTrainIcon=null;
 var boldTrainIcon=null;
 var shapenodeIcon=null;
 var basemaps={};
-var overlays={};
-var layercontrol;
+var overlays=[];
 
-function MapSetup(){
+function MapSetup_openlayers(king){
+//	GeeMap = new OpenLayers.Map('map',{maxResolution: 0.703125} );
+//    var newLayer = new OpenLayers.Layer.OSM("OSM", "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {numZoomLevels: 19});
+//    GeeMap = new OpenLayers.Map('map', { controls: [] });
+ //   GeeMap.addLayer(newLayer);
+    //GeeMap = new OpenLayers.Map('map');
+    
+    GeeMap = new OpenLayers.Map({
+        div: "map", projection: "EPSG:3857",
+        layers: [new OpenLayers.Layer.OSM(), king.get("Map_Stops").layer], 
+        zoom: 15
+    });
+ 
+  //  var layer = new OpenLayers.Layer.WMS( "OpenLayers WMS", 
+   //     "http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
+    //var mapnik = new OpenLayers.Layer.OSM();
+  
+    //GeeMap.addLayer(mapnik);
+   // GeeMap.addLayer(layer);
+//    GeeMap.setCenter(new OpenLayers.LonLat(0, 0), 0);
+
+    GeeMap.addControl(new OpenLayers.Control.LayerSwitcher());
+    GeeMap.addControl(new OpenLayers.Control.PanZoomBar());
+}
+
+function MapSetup_Leaflet(){
+
 	GeeMap = L.map('map', { zoomControl:false });
 	var osm_tiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	var baselayer = L.tileLayer(osm_tiles, {
@@ -155,10 +189,43 @@ function MapSetup(){
 	var OpenStreetMap_DE = L.tileLayer('http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
 		attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
 	});
+	
 	baseMaps={
 		    "OSM": baselayer,
 		    "Stoner":Stamen_TonerLabels,
 		    "OSM/DE":OpenStreetMap_DE
 		};
 	baselayer.addTo(GeeMap);
+	var newControl = new L.Control.EasyButtons;
+    GeeMap.addControl(newControl);
 }
+
+function set_row_content(row_content,eric){
+	$(row_content).find('label').text(eric.title);
+	$(row_content).find('#checkbox').prop('checked', this.draw_flag);
+	
+	$(row_content).find('#checkbox').change(function(){
+		eric.ToggleDraw();
+		//  belt and braces, just make sure the checkbox matches what the draw_flag now says
+		$(row_content).find('#checkbox').prop('checked', this.draw_flag);		
+	});
+}
+
+L.Control.EasyButtons = L.Control.extend({
+    options: {
+        position: 'topright'
+    },
+
+    onAdd: function () {
+    	console.log("ok I am adding");
+        this.container=$("#mapbutton_container").clone();
+        for (var o in overlays){
+            row_content=$("#mapbutton_rowcontent").clone();
+            set_row_content(row_content,overlays[o]);
+            $(this.container).append(row_content);
+        }
+        
+        return this.container[0];
+    }
+});
+

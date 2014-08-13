@@ -7,8 +7,8 @@ function MapEricTrip(ED){
 }
 
 MapEricTrip.prototype.Draw = function (){
-	this.featureGroup.clearLayers();
-	this.objectstore=[];
+	this.initDraw();
+
 	var eric=this;
     var data = eric.parent.data;
 	var stops_eric=$KingEric.get("Stops");
@@ -18,29 +18,30 @@ MapEricTrip.prototype.Draw = function (){
 		return null; // dont try any leaflet stuff with nothing
 	}
 	$.each( data, function( key, val ) {
-		var StopRecord = $KingEric.get("Stops").getrecord(val['stopId']); 
-		console.log("maperictrip parent stopId ="+val['stopId']);
+		var StopRecord = stops_eric.getrecord(val['stopId']); 
 		var mapobject=L.marker([StopRecord['stopLat'],StopRecord['stopLon']], {icon: boldTrainIcon, draggable: true});
 		eric.objectstore.push(mapobject);
 		latlngs.push(mapobject.getLatLng());
-		eric.objectToValue[L.stamp(mapobject)]=val['stopId'];
 		eric.stop_event_handlers(mapobject,StopRecord.stopName + "<br> A:"+val.arrivalTime+" D:"+val.departureTime);
+		eric.objectToValue[L.stamp(mapobject)]=val['stopId'];
 		eric.featureGroup.addLayer(mapobject);
+		if (eric.draw_flag) mapobject.addTo(GeeMap);
 	});
+	
 	mapobject=L.polyline( latlngs,  {
 		color: 'red',
 		opacity : 1
 	});
-	eric.featureGroup.addLayer(mapobject);		
 	
 	mapobject.on("dblclick",function(e) {
 		create_shape_from_trip($KingEric.get("Trips").value());
 	});
+	this.objectstore.push(mapobject);
+	this.featureGroup.addLayer(mapobject);		
+	if (this.draw_flag) mapobject.addTo(GeeMap);
 	
-	GeeMap.fitBounds(this.featureGroup.getBounds());
+	if (this.draw_flag) GeeMap.fitBounds(this.featureGroup.getBounds());
 	// we are politely issuing a 'Changed' request in case we have further descendants
-	this.featureGroup.addTo(GeeMap);
-	this.featureGroup.bringToFront();
 	
 	this.request("Changed");
 };
@@ -74,7 +75,7 @@ MapEricTrip.prototype.stop_event_handlers = function (mapobject,stopName){
 	mapobject.on('dragend', function(e) {
 	    var marker = e.target;  // you could also simply access the marker through the closure
 	    var coords = marker.getLatLng();  // but using the passed event is cleaner
-	    console.log("in dragend, val="+eric.objectToValue[L.stamp(e.target)]);
+	    if (DEBUG) console.log("in dragend, val="+eric.objectToValue[L.stamp(e.target)]);
 	    var values = $KingEric.get("Stops").getrecord(eric.objectToValue[L.stamp(e.target)]);
 		values['stopLat']=coords['lat'];
 		values['stopLon']=coords['lng'];
