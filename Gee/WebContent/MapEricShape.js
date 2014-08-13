@@ -7,12 +7,7 @@ function MapEricShape(ED){
 }
 
 MapEricShape.prototype.Draw = function (){
-	this.featureGroup.clearLayers();    
-    for (var o in this.objectstore){
-    	GeeMap.removeLayer(this.objectstore[o]);
-    }
-    
-	this.objectstore=[];
+	this.initDraw();
 
 	var eric=this;
     var data = eric.parent.data;
@@ -28,7 +23,9 @@ MapEricShape.prototype.Draw = function (){
 		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
 		eric.node_event_handlers(mapobject,val);
 		eric.featureGroup.addLayer(mapobject);
-		this.objectstore.push(mapobject);
+		eric.objectstore.push(mapobject);
+		if (eric.draw_flag) mapobject.addTo(GeeMap);
+
 		if (previous){	
 			mapobject=L.polyline( [
 		                        [previous.shapePtLat,previous.shapePtLon],
@@ -37,16 +34,14 @@ MapEricShape.prototype.Draw = function (){
 		                       {color: 'blue', opacity : 1});
 			eric.line_event_handlers(mapobject,val);
 			eric.featureGroup.addLayer(mapobject);
-			mapobject.addTo(GeeMap);
-			this.objectstore.push(mapobject);
+			if (eric.draw_flag) mapobject.addTo(GeeMap);
+			eric.objectstore.push(mapobject);
 		}
 		previous=val;
 	});
 	
-	GeeMap.fitBounds(this.featureGroup.getBounds());
+	if (this.draw_flag)GeeMap.fitBounds(this.featureGroup.getBounds());
 	// we are politey issuing a 'Changed' request incase we have further descendants
-	if (layercontrol)
-		this.featureGroup.addTo(GeeMap);
 	this.request("Changed");
 	return null;
 };
