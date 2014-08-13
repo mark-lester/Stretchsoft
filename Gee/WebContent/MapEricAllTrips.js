@@ -35,7 +35,7 @@ if(DEBUG)console.log("All Trips Turned Off Cos Too Big");
 	return $.getJSON(tripsUrl, 
 			function( data ) {			
 				$.each( data, function( key, val ) {
-					eric.tripIds.push(val.tripId);
+					eric.idstore.push(val.tripId);
 				});
 			}
 	).done(function(){
@@ -45,7 +45,7 @@ if(DEBUG)console.log("All Trips Turned Off Cos Too Big");
 };
 
 MapEricAllTrips.prototype.AllTripCycle = function(){
-	if (tripId=this.tripIds.pop()){
+	if (tripId=this.idstore.shift()){
 		this.request("GetTrip",tripId);
 	}
 };

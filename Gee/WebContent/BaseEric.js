@@ -91,6 +91,15 @@ Eric.prototype.request = function(request,data,callback,priority) {
 		this.queue.add({request : request, data : data, callback:callback},priority);
 	};
 
+	
+Eric.prototype.Empty = function (){
+		this.data=null;
+		this.queue.clear();
+		for (var child in this.children){
+			this.children[child].Empty();
+		}
+};
+
 
 Eric.prototype.PrintTree = function(indent){
 	var indent_string=""+indent+" ";
@@ -119,6 +128,7 @@ Eric.prototype.type_specific = function() {
     		// we're changing databases
     		// TODO - abstract this into a method we can override for Instance
     		 setCookie("gee_databasename",$(this).val());
+    		 $KingEric.Empty();  //  clear everything
     	}
     	eric.request("Changed",true);
     });

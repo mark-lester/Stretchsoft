@@ -18,6 +18,7 @@ function MapEric(ED){
 	this.objectToValue={};
 	this.layer=null;
 	this.objectstore=[];
+	this.idstore=[];
 	this.featureGroup=L.featureGroup();	
 	overlays.push(this);
 	this.draw_flag=true;
@@ -38,6 +39,13 @@ MapEric.prototype.type_specific = function (){
 	}
 };
 
+MapEric.prototype.Empty = function (){
+	this.data=null;
+	this.idstore=[];
+	this.queue.clear();
+	this.Clear();
+	this.objectstore=[];
+};
 
 MapEric.prototype.Load = function (){
 	// stuff to do with fetching any extra data, e.g for the full route map

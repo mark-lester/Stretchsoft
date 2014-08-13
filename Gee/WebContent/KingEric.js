@@ -23,9 +23,15 @@ function KingEric (){
 }
 
 
-KingEric.prototype.Load = function (eric){
+KingEric.prototype.Load = function (){
 	for (var index in this.orphans){
 		this.orphans[index].request("Load");
+	}	
+};
+
+KingEric.prototype.Empty = function (){
+	for (var index in this.orphans){
+		this.orphans[index].Empty();
 	}	
 };
 
