@@ -37,9 +37,8 @@
 <script src="js/jquery.timepicker.min.js"></script>
 <script src="js/jquery.validate.js"></script>
 
-<script src="//connect.facebook.net/en_US/all.js"></script>
+
 <script src="ERIC.js"></script>
-<script src="js/FBSetup.js"></script>
 <script src="js/jquery.ba-jqmq.js"></script>
 <script src="SetupMenu.js"></script>
 <script src="KingEric.js"></script>
@@ -141,16 +140,19 @@ hr { color: #7FA423;
 
       <ul class="nav navbar-nav navbar-right">
       	 <li class="active" style="vertical-align: middle;">
-      	 <br>
-      	  <form action="#">
-     	   <fb:login-button show-faces="false" auto_logout_link="true" width="200" max-rows="1"></fb:login-button>
-     	  </form>
+      	 <div id="login_button">
+      	  <form action="https://github.com/login/oauth/authorize?scope=user:email&client_id=d20b14968463e2b9634c">
+        	<button class="btn btn-default navbar-btn btn-xs">Login</button>
+    	  </form>
+      	 </div>
+      	 <div id="logged_in">
+      	 </div>
      	 </li>
       </ul>
       
   </div>
  </nav>  
-<div id="fb-root"></div>
+
 <div id="welcome" name="welcome">
 <center>
 
@@ -811,9 +813,10 @@ Route, Origin, Destination, Contains
 
 <div id="Map_Shapes" class="Eric" parent="Shapes" type="MapEricShape" title="Shape Editor">
 </div>
- 
+ <!-- 
 <div id="Map_All_Trips" class="Eric" parent="Instance" type="MapEricAllTrips" title="Route Map">
 </div>
+  -->
 
 </div> <!-- END OF ERIC DECLARATIONS -->
 
@@ -905,17 +908,12 @@ Route, Origin, Destination, Contains
 
 <script>
 $( document ).ready(function() {
-	dfd = new $.Deferred();
-	FBSetup(dfd);
 	$("#welcome").show();
 	$("#Eric_Declarations").hide();
 	$("#loading").hide();
 	$("#interface").hide();
 	$("#dialogs").hide();
-	
-//	$.when(dfd).done(function(){		
-			SetUp();	
-//		});
+	SetUp();	
 });
 
 </script>

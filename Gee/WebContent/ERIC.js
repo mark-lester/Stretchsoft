@@ -13,7 +13,7 @@ function SetUp(){
 	$(document).ajaxStop(function () {
 		zerocount();
 	});
-	
+	CheckLogin();
 	initDBCookie();
 	SetupMenu();
 	$KingEric= new KingEric();	
@@ -28,6 +28,17 @@ function SetUp(){
 	$("#menu").show();		
 }
 
+function CheckLogin(){
+	var userId=getCookie("gee_user");
+	if (userId == null || userId == "guest"){
+		$("#logged_in").hide();
+		$("#login_button").show();
+	} else {
+		$("#logged_in").text("Logged in as "+userId);
+		$("#logged_in").show();
+		$("#login_button").hide();	
+	}
+}
 
 // utility stuff
 var load_count=0;
@@ -217,7 +228,6 @@ L.Control.EasyButtons = L.Control.extend({
     },
 
     onAdd: function () {
-    	console.log("ok I am adding");
         this.container=$("#mapbutton_container").clone();
         for (var o in overlays){
             row_content=$("#mapbutton_rowcontent").clone();

@@ -2,6 +2,8 @@ package rest;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Hashtable;
 
 import javax.crypto.Mac;
@@ -20,6 +22,9 @@ import DBinterface.Gtfs;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.ServletContext;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Rest extends HttpServlet {
 	public static Gtfs gtfs=null;
 	public static Admin admin=null;
@@ -30,6 +35,8 @@ public class Rest extends HttpServlet {
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
 	ServletContext context;
+	private static final String GITHUB_SECRET="94cf2349e33402db4c886dc6fb0cfae288ab6cfe";
+
 	
     public Rest () {
         super();
@@ -65,10 +72,10 @@ public class Rest extends HttpServlet {
 	
 	public String getUserId(HttpServletRequest request, HttpServletResponse response){
 		Cookie[] cookies = request.getCookies();
-		String signed_request = null;
+		String secure_token = null;
 		byte[] payload=null;
 		String sig = null;
-		String access_token=null;
+		String gee_user=null;
 		String userId=null;
 
 		Base64 codec = new Base64();
@@ -76,55 +83,28 @@ public class Rest extends HttpServlet {
 		int count=0;
 		for (Cookie cookie : cookies) {
 //			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
-	        if (cookie.getName().equals("fbsr_287612631394075")){
-	        	signed_request = cookie.getValue();
+	        if (cookie.getName().equals("gee_securetoken")){
+	        	secure_token = cookie.getValue();
 	        }
-	        if (cookie.getName().equals("gee_fbat")){
-	        	access_token = new String(codec.decode(cookie.getValue()));
+	        
+	        if (cookie.getName().equals("gee_user")){
+	        	gee_user = cookie.getValue();
 	        }
 	        if (cookie.getName().equals("gee_databasename")){
 //	        	System.err.println("incoming cookie for databaseName="+cookie.getValue());
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
-		
-//		System.err.println("The databaseName="+databaseName);
-//		System.err.println("request ="+signed_request);
-		
-		if (signed_request != null){
-			String[] sr_parts = signed_request.split("\\.",2);
-			String encoded_sig = sr_parts[0];
-		
-		  // decode the data
-		
-			String encodedPayload = sr_parts[1];
-	    
+		if (gee_user == null || secure_token == null){
+			return "guest";
+		}
 
-	        payload = codec.decode(encodedPayload);
-	  //      String payload_string = new String(payload);
-	  //      System.err.print("payload = " + payload_string + "\n");
-	  //      System.err.print("FACEBOOK_SECRET = " + FACEBOOK_SECRET + "\n");
-	     
-	        sig = new String(codec.decode(encoded_sig));
-	        try {	  
-	    	    SecretKeySpec secret = new SecretKeySpec(FACEBOOK_SECRET.getBytes(),"hmacSHA256");
-		   	    Mac mac = Mac.getInstance("hmacSHA256");
-	    	    mac.init(secret);
-	    	    String sig_comp = new String(mac.doFinal(encodedPayload.getBytes()));
-	    	    if (sig.equals(sig_comp)){
-	    			ObjectMapper mapper = new ObjectMapper();
-	    			Hashtable<String,String> record = mapper.readValue(payload, Hashtable.class);
-
-	    	    	userId = record.get("user_id");
-	//        		System.err.print("user_id = " + userId + "\n");
-	    	    } else {
-	    	    	// cookie doesnt add up
-	    	    	System.err.print("ERROR, cookie failure, mismatch\n");
-	    	    }
-	    	} catch (Exception e) {
-    	    	System.err.print("ERROR, cookie failure, bad code\n");
-	    	    System.out.println("error message="+e.getMessage());
-	    	} 
+		String encrypted = rest.Utils.encrypt(gee_user,GITHUB_SECRET);
+		if (!encrypted.equals(secure_token)){
+			System.err.println("Use authentication error");
+			userId= "guest";
+		} else {
+			userId=gee_user;
 		}
 		
 		Hashtable <String,String> record = new Hashtable <String,String>();	
@@ -133,6 +113,7 @@ public class Rest extends HttpServlet {
 		}
 		record.put("userId", userId);
 		// we can add email and nice name when we've worked out how to get them
+		System.err.println("should be adding user "+userId);
 		admin.getUser(record);
 	
 		
@@ -142,11 +123,6 @@ public class Rest extends HttpServlet {
 		    Cookie cookie1 = new Cookie("gee_databasename", databaseName);
 		    response.addCookie(cookie1); 
 		}
-		// this is only done as I dont know how to find out what you are actually
-		// called on the client side. All verification is done by unpacking
-		// the facebook cookie. I just need to send this back so we can make DBs named after them
-	    Cookie user_name_cookie = new Cookie("gee_username", userId);
-	    response.addCookie(user_name_cookie); 
 		
 		gtfs = getGtfs(databaseName,userId);
 		return userId;
