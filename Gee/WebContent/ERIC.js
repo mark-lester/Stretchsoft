@@ -1,4 +1,4 @@
-var DEBUG=false;
+var DEBUG=true;
 var layercontrol=false;
 var openlayers=false;
 var layercontroler=null;
@@ -209,6 +209,14 @@ function MapSetup_Leaflet(){
 	baselayer.addTo(GeeMap);
 	var newControl = new L.Control.EasyButtons;
     GeeMap.addControl(newControl);
+	GeeMap.on('dblclick',function(e) {
+		console.log("got a double click event");
+		var Stops=$KingEric.get("Stops");
+		Stops.dialogs.edit.data["stopLat"]=e.latlng.lat;
+		Stops.dialogs.edit.data["stopLon"]=e.latlng.lng;
+		Stops.request("open_edit_dialog",false);
+	});
+
 }
 
 function set_row_content(row_content,eric){

@@ -45,8 +45,11 @@ if(DEBUG)console.log("All Trips Turned Off Cos Too Big");
 };
 
 MapEricAllTrips.prototype.AllTripCycle = function(){
+	var eric=this;
 	if (tripId=this.idstore.shift()){
-		this.request("GetTrip",tripId);
+		setTimeout(function(){
+			eric.request("GetTrip",tripId);
+			},3);
 	}
 };
 

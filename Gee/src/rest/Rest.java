@@ -96,7 +96,8 @@ public class Rest extends HttpServlet {
 	        }
 		}
 		if (gee_user == null || secure_token == null){
-			return "guest";
+			userId="guest";
+			gee_user="guest";
 		}
 
 		String encrypted = rest.Utils.encrypt(gee_user,GITHUB_SECRET);
@@ -113,7 +114,7 @@ public class Rest extends HttpServlet {
 		}
 		record.put("userId", userId);
 		// we can add email and nice name when we've worked out how to get them
-		System.err.println("should be adding user "+userId);
+//		System.err.println("should be adding user "+userId);
 		admin.getUser(record);
 	
 		

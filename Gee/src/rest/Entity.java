@@ -46,7 +46,7 @@ public class Entity extends Rest {
 			return; // your cookie doesnt add up
 		}
 		response.setContentType("text/html");
-//		System.err.print("In GET database="+databaseName+"\n"); 
+		System.err.print("In GET database="+databaseName+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
 		String query="FROM "+request.getParameter("entity")+" as child_table";
 		if (!admin.verifyReadAccess(databaseName,userId)){
@@ -103,6 +103,7 @@ public class Entity extends Rest {
 		if (request.getParameter("order_parent") != null){
 			query+=" ORDER BY parent_table."+request.getParameter("order_parent");
 		}
+	
 		
 //		System.err.print("Want query for "+query+"\n"); 
 		

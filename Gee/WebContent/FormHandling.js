@@ -102,8 +102,10 @@ Eric.prototype.init_edit_values_over_element = function (element,record){
     		    break;
     		    
     			case 'colour':
-    				$(this).val(record[this.id]);
-    				$(this).spectrum("set",record[this.id]);
+       				if (record != null && record[this.id] != null ){
+        				$(this).val(record[this.id]);
+        				$(this).spectrum("set",record[this.id]);       					
+       				}
     		    break;
     		    
        			default:
@@ -113,18 +115,23 @@ Eric.prototype.init_edit_values_over_element = function (element,record){
            				var from_record=from.getrecord(record[from.relations.key]);
            				$(this).val(from_record[this.id]);
            			} else {
-       					$(this).val(record[this.id]);           				
+           				if (record != null && record[this.id] != null )
+           					$(this).val(record[this.id]);           				
            			}
         		}    			
     		} else { // we're in create, this is an editable field, so zap it
 	    		$(this).val("");
 	    		$(this).attr("readonly",false);
+	    		if (eric.dialogs.edit.data[this.id]){
+		    		$(this).val(eric.dialogs.edit.data[this.id]);
+	    		}
     		}
         }
     });
 
     $(element).find('select').each(function() {
-    	$(this).val(record[this.id]);
+    	if (record != null && record[this.id] != null )
+    		$(this).val(record[this.id]);
     });	    
 };
 

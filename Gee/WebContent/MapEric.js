@@ -158,8 +158,9 @@ MapEric.prototype.Draw = function (){
 		if (eric.draw_flag)	mapobject.addTo(GeeMap);			
 	});
 	
-	if (this.draw_flag)
+	if (this.draw_flag && eric.parent.data.length)
 		if (first_call || !GeeMap.getBounds().contains(this.featureGroup.getBounds())){
+			if (DEBUG) console.log("fitting to bounds");
 			GeeMap.fitBounds(this.featureGroup.getBounds());		
 		}		
    
