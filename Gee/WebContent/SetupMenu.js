@@ -27,10 +27,10 @@ function SetupMenu(){
 				values={};
 				
 				$url= "/Gee/ImportStops?"+
-				"n="+map.getBounds().getNorth()+
-				"&s="+map.getBounds().getSouth()+
-				"&e="+map.getBounds().getEast()+
-				"&w="+map.getBounds().getWest()+
+				"n="+GeeMap.getBounds().getNorth()+
+				"&s="+GeeMap.getBounds().getSouth()+
+				"&e="+GeeMap.getBounds().getEast()+
+				"&w="+GeeMap.getBounds().getWest()+
 				"&t="+$( "#stop_type").val()
 				;
 				$.ajax({

@@ -33,6 +33,7 @@ public class ImportStops extends Rest {
 		String stop_type=request.getParameter("t");
 		String userId = getUserId(request,response);
 		if (userId == null){
+			System.err.println("aborting stops import");
 			return; // your cookie doesnt add up
 		}
 
