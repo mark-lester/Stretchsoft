@@ -22,8 +22,6 @@ Nothing
 <h2>Who do I complain to when it doesnt work ?</h2>
 mc_lester@yahoo.co.uk
 <h2>Are there any instructions?</h2>
-A video and a proper looking doco page coming soon....<br>
-For now, 
 <ul>
 <li> choose a database that you have access rights to. e,g. ""Bangladesh Railways" which is currently a publicly available sratchpad.
 <li> click on a station not on the current trip (i.e. red or blue line shown and dark), you wil get green lines showing other trips that use this staion
@@ -42,27 +40,34 @@ are in sequence with the other stops (else your route will dart off there first)
 <li> delete all the blue shape nodes and the red line will reappear
 <li> you can also navigate the GTFS schema via the select listrs on the left. For each entity type (agency, route etc) there is a select list showing all the values that match any parent values 
 that have been selected. e.g if we select a specific agency, only routes for that agency are shown, for any route select (initially the first in the list) only trips belonging to that route are shown, and the first one is selected. etc.
-<li> next to each list there are blue green and red icons for create, edit and delete.  To create a new entity click the blue buttton, to edit the currently selected entity click green, anbd to delete this entity click red.
+<li> next to each list there are blue green, red and light blue icons for create, edit, delete and "tabular edit".  To create a new entity click the blue buttton, to edit the currently selected entity click green, anbd to delete this entity click red.
 <hr>
 <li> creating new databases is fraught with danger right now, but you could give it a go
 <li> hit the blue (create) button on instance and give it a nice no spaces database name 
 <li> you can then import a GTFS to it. Go get one from GTFS exchange or wherever and hit the upload button.
 <li> hit the download button to make yourself a GTFS zip file
-<li> in theory you can also import stops directly from OSM via Turbo though it needs testing and developing a little
+<li> in theory you can also import stops directly from OSM via Turbo though it needs testing and developing a little.You need to set the value to "station"
 <li> there is the underlying structure to have private collaborative groups,i.e you can give read, write or admin access to specific users. 
 but there isnt any UI to that right now, but it wil appear when required.
 <li> apart from debugging what we have already, the next phase is a publication manager to allow you to push you GTFS to an OTP 
 beta instance, and subsequentlyy to a live Open Trip Planner web site.
- </ul>
+<li> If you hit the light blue (tabular edit) icon you wil be able to edit the currently selected row in that table, AND all the relevant child rows in the child table. So if you hit that on trips you wilget a nice timetable for that specific trip.
 
-<span style="nowrap">
-<fieldset>
-    <input id="stopName" name="stopName" size="20" maxlength="20" readonly="readonly" table="Stops">
-    <input autocomplete="off" class="ui-timepicker-input" id="arrivalTime" name="arrivalTime" size="8" picker="time" required="" display="" lessthan="departureTime" type="text">
-    <input autocomplete="off" class="ui-timepicker-input" id="departureTime" name="departureTime" size="8" picker="time" required="" greaterthan="arrivalTime" type="text">
-    
- <button type="button" class="btn btn-danger btn-xs" id="tabular-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
-</fieldset>
+ </ul>
+ 
+<h3>Installation</h3> 
+Clone and load in Eclipse the repo here <a href="https://github.com/mark-lester/Stretchsoft/tree/master/Gee">https://github.com/mark-lester/Stretchsoft/tree/master/Gee</a>
+Make a war file and install it on tomcat.
+The following should obviously be scripted. For now you have to run a few sql files to initialise the admin db and make an initial gtfs. Note that you can have as many gtfs DBs as you like.<p>
+
+You now need to create the admin database and an initial GTFS DB called "gtfs". Startup a mysql client and run this
+ https://github.com/mark-lester/Stretchsoft/blob/master/Gee/src/hibernate/admin/create-admin.sql
+ You then need to create an initial GTFS, create a db called "gtfs", use it and run this
+ https://github.com/mark-lester/Stretchsoft/blob/master/Gee/src/rest/create-gtfs.sql
+ You then need to insert a row in the instance table in the admin db. so "use admin" and go<br>
+
+ insert into instance values ('gtfs','my transit operator','guest',1,1,1);
+ 
 </span>
 
 
