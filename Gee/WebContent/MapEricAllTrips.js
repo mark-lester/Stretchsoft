@@ -61,7 +61,7 @@ function TripStruct(){
 	return tripStruct;
 }
 
-
+var sem=0;
 MapEricAllTrips.prototype.GetTrip = function(tripId){
 	var tripStruct= {};
 	tripStruct['Trip']=[];
@@ -69,12 +69,12 @@ MapEricAllTrips.prototype.GetTrip = function(tripId){
 	tripStruct['station_points']=[];
 
 	var tripUrl="/Gee/Entity?entity=Trips&field=tripId&join_table=Routes&join_key=routeId&value="+tripId;
-	var stopTimesUrl= "/Gee/Entity?entity=Stops&parent_order=stopSequence&join_table=StopTimes&join_key=stopId&parent_field=tripId&value="+tripId;
+	var stopTimesUrl= "/Gee/Entity?entity=Stops&order_parent=stopSequence&join_table=StopTimes&join_key=stopId&parent_field=tripId&value="+tripId;
 	var shapePointsUrl="/Gee/Entity?entity=Shapes&parent_field=tripId&order=shapePtSequence&join_key=shapeId&join_table=Trips&value="+tripId;
 	if (this.off)
 		return null;
 	var eric=this;
-	trip_df = $.getJSON(tripUrl, 
+	var trip_df = $.getJSON(tripUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
 					// hibernate returns an array of two records on a join
@@ -84,18 +84,23 @@ MapEricAllTrips.prototype.GetTrip = function(tripId){
 			}
 			);
 	
-	stops_df = $.getJSON(stopTimesUrl, 
+	var stops_df = $.getJSON(stopTimesUrl, 
 			function( data ) {
+			var last=0;
 				$.each( data, function( key, val ) {
 					// hibernate returns an array of two records on a join
 					$.extend(val[0],val[1]);
 					tripStruct.station_points.push([val[0]['stopLat'],val[0]['stopLon']]);
+//					if (val[0]['stopSequence'] != 1+last){
+//						alert("out of sequence in "+tripId);
+//					}
+					last=val[0]['stopSequence'];
 					eric.record_count++;
 				});
 			}
 			);
 	
-	shapes_df = $.getJSON(shapePointsUrl, 
+	var shapes_df = $.getJSON(shapePointsUrl, 
 			function( data ) {
 				$.each( data, function( key, val ) {
 					// hibernate returns an array of two records on a join
@@ -128,7 +133,7 @@ MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 		});		
 	} else {
 		mapobject=L.polyline( tripStruct.station_points,  {
-			color: 'black',
+			color: "#"+((1<<24)*Math.random()|0).toString(16),//'black',
 			zIndexOffset : -1000
 		});	
 	}
@@ -146,5 +151,6 @@ MapEricAllTrips.prototype.DrawTrip = function (tripStruct){
 
 	this.objectstore.push(mapobject);
 	if (this.draw_flag) mapobject.addTo(GeeMap);
+	sem--;
 	this.request("AllTripCycle");
 };
