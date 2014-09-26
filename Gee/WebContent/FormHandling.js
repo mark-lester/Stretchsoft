@@ -13,8 +13,10 @@ Eric.prototype.initInputForm = function (formId){
     		
     		case 'time':
 	    	$(this).timepicker({
-	    	    timeFormat: 'H:i:s',
-	    	    step:1
+	    	    timeFormat: 'Z:i:s',
+	    	    step:1,
+    		    minTime:0,
+    		    maxTime:172800
 	   		});
 	    	break;
 
@@ -50,10 +52,9 @@ Eric.prototype.initInputForm = function (formId){
 Eric.prototype.init_edit_values = function (){
 	var record=[];
 	if (this.edit_flag){
-		console.log("init edit vals for "+this.name);
 		record=this.currentRecord();
 		if (record == null){
-			console.log("oh shit");
+			console.log("oh, no data");
 		}
 	} else {
 		record=[];

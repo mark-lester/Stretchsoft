@@ -657,7 +657,7 @@ public int createRecord(String className,Hashtable <String,String> record) throw
 
   public int updateRecordInner(Session session, Transaction tx,String entityName,Hashtable <String,String> inputRecord) throws HibernateException{
 	 int hibernateId = Integer.parseInt(inputRecord.get("hibernateId"));
-		System.err.println("In updateRecordInner after parse of hid="+inputRecord.get("hibernateId")+" class="+entityName); 
+//		System.err.println("In updateRecordInner after parse of hid="+inputRecord.get("hibernateId")+" class="+entityName); 
 
 	 Integer recordId = -1;
      try {

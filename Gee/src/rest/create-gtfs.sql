@@ -125,8 +125,8 @@ CREATE TABLE `trips` (
 CREATE TABLE `stop_times` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	trip_id VARCHAR(255) NOT NULL,
-	arrival_time TIME,
-	departure_time TIME,
+	arrival_time VARCHAR(255),
+	departure_time VARCHAR(255),
 	stop_id VARCHAR(255) NOT NULL,
 	stop_sequence SMALLINT UNSIGNED NOT NULL,
 	stop_headsign VARCHAR(255),

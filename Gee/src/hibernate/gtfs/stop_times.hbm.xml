@@ -12,8 +12,8 @@
          <generator class="native"/>
       </id>
       <property name="tripId" column="trip_id" type="string" unique="true" index="trip_stop_id"/>
-      <property name="arrivalTime" column="arrival_time" type="time"/>
-      <property name="departureTime" column="departure_time" type="time"/>
+      <property name="arrivalTime" column="arrival_time" type="string"/>
+      <property name="departureTime" column="departure_time" type="string"/>
       <property name="stopId" column="stop_id" type="string" unique="true"/>
       <property name="stopSequence" column="stop_sequence" type="integer"/>
       <property name="stopHeadsign" column="stop_headsign" type="string"/>

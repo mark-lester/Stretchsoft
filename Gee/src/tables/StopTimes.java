@@ -1,6 +1,11 @@
 package tables;
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
+import java.util.Calendar;
+import java.util.Hashtable;
+import java.util.Locale;
+
+
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
@@ -10,8 +15,8 @@ import java.text.ParseException;
 public class StopTimes extends GtfsBase{
 
 String tripId;
-Date arrivalTime;
-Date departureTime;
+String arrivalTime;
+String departureTime;
 String stopId;
 int stopSequence;
 String stopHeadsign;
@@ -22,8 +27,8 @@ public StopTimes(){}
 
 public StopTimes(
 		String tripId,
-		Date arrivalTime,
-		Date departureTime,
+		String arrivalTime,
+		String departureTime,
 		String stopId,
 		int stopSequence,
 		String stopHeadsign,
@@ -58,6 +63,7 @@ public void update(Hashtable <String,String> record) throws ParseException{
 			record.put("arrivalTime", "00:00:00");			
 		}
 	}
+	
 	if (record.get("departureTime") == null ||
 			record.get("departureTime").isEmpty() 
 			){
@@ -65,17 +71,8 @@ public void update(Hashtable <String,String> record) throws ParseException{
 	}
 			
 		this.tripId=record.get("tripId");
-		try {
-			this.arrivalTime=new SimpleDateFormat("HH:mm:ss",Locale.getDefault()).parse(record.get("arrivalTime"));
-		} catch (ParseException ex){
-			System.err.println("arrival time = :"+record.get("arrivalTime")+":");
-					System.err.println(ex);		
-		}
-		try {
-			this.departureTime=new SimpleDateFormat("HH:mm:ss",Locale.getDefault()).parse(record.get("departureTime"));
-		} catch (ParseException ex){
-					System.err.println(ex);		
-		}
+			this.arrivalTime=record.get("arrivalTime");
+			this.departureTime=record.get("departureTime");
 		this.stopId=record.get("stopId");
 		try {
 			this.stopSequence=Integer.parseInt(record.get("stopSequence"));
@@ -114,11 +111,9 @@ public void update(Hashtable <String,String> record) throws ParseException{
 
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
-	record.put("tripId",this.tripId);
-    SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");  
-    
-	record.put("arrivalTime",df.format(this.arrivalTime));
-	record.put("departureTime",df.format(this.departureTime));
+	record.put("tripId",this.tripId);   
+	record.put("arrivalTime",this.arrivalTime);	
+	record.put("departureTime",this.departureTime);
 	record.put("stopId",this.stopId);
 	record.put("stopSequence",Integer.toString(this.stopSequence));
 	if (this.stopHeadsign == null)this.stopHeadsign = "";
@@ -129,6 +124,13 @@ public Hashtable <String,String> hash(){
 	return record;
 }
 
+private String df_format(Date d){
+    SimpleDateFormat df = new SimpleDateFormat(":mm:ss");  
+    Calendar cal = Calendar.getInstance();    
+    cal.setTime(d);
+    return String.format("%02d",cal.DAY_OF_YEAR * 24 + cal.HOUR_OF_DAY) +df.format(d);
+}
+
 
 public void settripId(String tripId){
 		this.tripId = tripId;
@@ -137,18 +139,18 @@ public void settripId(String tripId){
 public String gettripId(){
 		return this.tripId;
 	}
-public void setarrivalTime(Date arrivalTime){
+public void setarrivalTime(String arrivalTime){
 		this.arrivalTime = arrivalTime;
 	}
 
-public Date getarrivalTime(){
+public String getarrivalTime(){
 		return this.arrivalTime;
 	}
-public void setdepartureTime(Date departureTime){
+public void setdepartureTime(String departureTime){
 		this.departureTime = departureTime;
 	}
 
-public Date getdepartureTime(){
+public String getdepartureTime(){
 		return this.departureTime;
 	}
 public void setstopId(String stopId){
