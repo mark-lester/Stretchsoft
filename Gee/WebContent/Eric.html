@@ -140,12 +140,20 @@ hr { color: #7FA423;
 
       <ul class="nav navbar-nav navbar-right">
       	 <li class="active" style="vertical-align: middle;">
-      	 <div id="login_button">
-      	  <form action="https://github.com/login/oauth/authorize?scope=user:email&client_id=d20b14968463e2b9634c">
-        	<button class="btn btn-default navbar-btn btn-xs">Login</button>
+      	 
+      	 <div id="logged_out">
+      	  <form action="https://github.com/login/oauth/authorize" method="GET" >
+    	<input name="scope" type=hidden value="user:email">
+    	<input name="client_id" type=hidden value="d20b14968463e2b9634c">
+        	<button type="submit" class="btn btn-default navbar-btn btn-xs">Login with GitHub</button>
     	  </form>
       	 </div>
+      	 
       	 <div id="logged_in">
+      	 <div id="logged_in_text"></div>
+      	  <form action="/Gee/Security?sign_out=1" method="GET">
+        	<button type="submit" class="btn btn-default navbar-btn btn-xs">Logout</button>
+    	  </form>  	
       	 </div>
      	 </li>
       </ul>
@@ -907,12 +915,15 @@ Route, Origin, Destination, Contains
 </body>
 
 <script>
+$("#logged_in").hide();
+
 $( document ).ready(function() {
 	$("#welcome").show();
 	$("#Eric_Declarations").hide();
 	$("#loading").hide();
 	$("#interface").hide();
 	$("#dialogs").hide();
+	
 	SetUp();	
 });
 

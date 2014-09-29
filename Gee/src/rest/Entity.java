@@ -46,9 +46,11 @@ public class Entity extends Rest {
 			return; // your cookie doesnt add up
 		}
 		response.setContentType("text/html");
-		System.err.print("In GET database="+databaseName+"\n"); 
+	//	System.err.print("In GET database="+databaseName+"\n"); 
 		ObjectMapper mapper = new ObjectMapper();
-		String query="FROM "+request.getParameter("entity")+" as child_table";
+		String entity = request.getParameter("entity");
+		entity = entity == null ? "Stops" : entity;
+		String query="FROM "+entity+" as child_table";
 		if (!admin.verifyReadAccess(databaseName,userId)){
 			Print404(response,"You do not have read permission for this database");
 			return;
@@ -105,7 +107,7 @@ public class Entity extends Rest {
 		}
 	
 		
-		System.err.print("Want query for "+query+"\n"); 
+//		System.err.print("Want query for "+query+"\n"); 
 		
 		Session session = gtfs.factory.openSession();
 		Object entities[] = session.createQuery(query).list().toArray();
@@ -140,6 +142,7 @@ public class Entity extends Rest {
 		}
 		
 		String className = record.get("entity");
+		className= className == null ? "Stops" : className;// default prints all the stops
 		className = "tables."+className;
 		System.err.print("In POST className "+className+" action="+record.get("action")+"\n"); 
 		int recordId=0;

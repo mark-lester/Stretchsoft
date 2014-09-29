@@ -49,8 +49,8 @@ import org.json.JSONObject;
 @WebServlet("/Security")
 public class Security extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static final String GITHUB_SECRET="94cf2349e33402db4c886dc6fb0cfae288ab6cfe";
-	private static final String GEE_SECRET="9A194A26AFBC67B4";
+	private static String GITHUB_SECRET=null;
+	private static String GEE_SECRET=null;
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -58,35 +58,50 @@ public class Security extends HttpServlet {
     public Security() {
         super();
     }
-    
+    @Override
+    public void init() throws ServletException {
+    	GITHUB_SECRET = getServletContext().getInitParameter("GITHUB_SECRET");
+    	GEE_SECRET = getServletContext().getInitParameter("GEE_SECRET");
+//    	FACEBOOK_SECRET = getInitParameter("FACEBOOK_SECRET");
+//	    System.err.println("got facebook secret"+FACEBOOK_SECRET);
+    }
+
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 		TODO - change this to use prepared statements else it's gonna blow up once apostrophe gets used
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String code = request.getParameter("code");
-	    String url = "https://github.com/login/oauth/access_token";
-	    String query = "&client_id=d20b14968463e2b9634c";
-	    query += "&client_secret="+GITHUB_SECRET;
-	    query += "&code="+code;
-	    query += "&accept=json";
-	    String github_response = executePost(url,query);
-        Map<String, String> qmap=
-                splitQuery(github_response);
-        url="https://api.github.com/user?access_token="+qmap.get("access_token");
-	    String github_user = executeGet(url);
-        JSONObject jsonObject;
-		
-		String userId=null;
-		try {
-			jsonObject = new JSONObject(github_user);
-			userId=jsonObject.get("login").toString();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
         String encrypted=null;
+		String userId=null;
+		String code = request.getParameter("code");
+		if (code == null){ // no code set so just log out
+			System.err.println("SECURITY zapping userId");
+			userId="guest";
+		} else {
+			
+		    String url = "https://github.com/login/oauth/access_token";
+		    String query = "&client_id=d20b14968463e2b9634c";
+		    query += "&client_secret="+GITHUB_SECRET;
+		    query += "&code="+code;
+		    query += "&accept=json";
+		    String github_response = executePost(url,query);
+	        Map<String, String> qmap=
+	                splitQuery(github_response);
+	        url="https://api.github.com/user?access_token="+qmap.get("access_token");
+		    String github_user = executeGet(url);
+	        JSONObject jsonObject;
+			
+			try {
+				jsonObject = new JSONObject(github_user);
+				userId=jsonObject.get("login").toString();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		System.err.println("SECURITY gee_user="+userId);
         encrypted = rest.Utils.encrypt(userId,GEE_SECRET);
+		
         Cookie cookie1 = new Cookie("gee_securetoken", encrypted);
 	    Cookie cookie2 = new Cookie("gee_user", userId);
 	    response.addCookie(cookie1); 

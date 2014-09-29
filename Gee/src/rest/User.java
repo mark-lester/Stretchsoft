@@ -19,7 +19,7 @@ import org.jboss.logging.BasicLogger;
  */
 @WebServlet("/User")
 public class User extends Rest {
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 1L;
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -40,8 +40,11 @@ public class User extends Rest {
 		response.setContentType("text/html");
 		
 		String query="FROM Instance where (ownerUserId='"+userId+"' or publicRead='1')";
-
-		switch (request.getParameter("entity")){
+		String entity=request.getParameter("entity");
+		if (entity==null){
+			entity="";
+		}
+		switch (entity){
 		case "Instance":
 			query="FROM Instance where (ownerUserId='"+userId+"' or publicRead='1')";
 // UNION			query="FROM Instance,Access where Instance.databaseName Access.databseName and Access.userId='"+userId+"' or publicRead='1'";
@@ -71,7 +74,7 @@ public class User extends Rest {
 		if (request.getParameter("order") != null){
 			query+=" ORDER BY "+request.getParameter("order");
 		}
-		System.err.print("Want query for "+query+"\n"); 
+//		System.err.print("In User Want query for "+query+"\n"); 
 		
 		Object entities[] = session.createQuery(query).list().toArray();
 		session.close();
@@ -152,7 +155,7 @@ public class User extends Rest {
 		default:
 			return;
 		}
-		System.err.print("Got past security\n");
+//		System.err.print("Got past security\n");
 		// fussy old java doesnt like null as the switch arg, 
 		if (action == null){
 			action="";

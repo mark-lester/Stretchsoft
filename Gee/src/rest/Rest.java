@@ -35,7 +35,8 @@ public class Rest extends HttpServlet {
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
 	ServletContext context;
-	private static final String GITHUB_SECRET="94cf2349e33402db4c886dc6fb0cfae288ab6cfe";
+	private static String GITHUB_SECRET="";
+	private static String GEE_SECRET="";
 
 	
     public Rest () {
@@ -54,10 +55,10 @@ public class Rest extends HttpServlet {
     
     @Override
     public void init() throws ServletException {
-    	FACEBOOK_SECRET = getInitParameter("FACEBOOK_SECRET");
-	    System.err.println("got facebook secret"+FACEBOOK_SECRET);
-	    // having problems with eclipse and my web.xml :(
-	    FACEBOOK_SECRET = "2a20c183f3998aa8313671322990d777";
+    	GITHUB_SECRET = getServletContext().getInitParameter("GITHUB_SECRET");
+    	GEE_SECRET = getServletContext().getInitParameter("GEE_SECRET");
+//    	FACEBOOK_SECRET = getInitParameter("FACEBOOK_SECRET");
+//	    System.err.println("got facebook secret"+FACEBOOK_SECRET);
     }
 
 /*
@@ -100,9 +101,12 @@ public class Rest extends HttpServlet {
 			gee_user="guest";
 		}
 
-		String encrypted = rest.Utils.encrypt(gee_user,GITHUB_SECRET);
+		String encrypted = rest.Utils.encrypt(gee_user,GEE_SECRET);
+//		System.err.println("secure token = "+secure_token);
+//		System.err.println("encytped = "+encrypted);
+		
 		if (!encrypted.equals(secure_token)){
-			System.err.println("Use authentication error");
+			System.err.println("User authentication error for :"+gee_user+":");
 			userId= "guest";
 		} else {
 			userId=gee_user;

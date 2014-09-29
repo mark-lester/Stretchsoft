@@ -10,14 +10,10 @@ import org.apache.commons.codec.binary.Base64;
 
 public class Utils {
 	public static String encrypt(String str,String secret) {
-System.err.println("I want to encrypt "+str);
+//System.err.println("I want to encrypt "+str);
 		  try {
-			  secret="12345678";
-			  System.err.println("secret "+secret);
 			  SecretKeySpec key = new SecretKeySpec(secret.getBytes(),"DES");
-//			  SecretKey key = KeyGenerator.getInstance("DES").generateKey();
 			  String keystring = new String(key.getEncoded());
-			  System.err.println("KEY "+keystring);
 			    Cipher ecipher;
 				ecipher = Cipher.getInstance("DES");
 			    ecipher.init(Cipher.ENCRYPT_MODE, key);
@@ -29,7 +25,8 @@ System.err.println("I want to encrypt "+str);
 			// encode to base64
 			  	Base64 codec = new Base64();
 			  	byte[] encoded= codec.encodeBase64(enc);
-			  	return new String(encoded);
+			  	String encoded_str=new String(encoded);
+			  	return encoded_str;
 			  } catch (Exception e) {
 			  	e.printStackTrace();
 			  }

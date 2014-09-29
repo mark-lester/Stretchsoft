@@ -30,13 +30,13 @@ function SetUp(){
 
 function CheckLogin(){
 	var userId=getCookie("gee_user");
-	if (userId == null || userId == "guest"){
+	if (userId == null || userId == "" || userId == "guest"){
 		$("#logged_in").hide();
-		$("#login_button").show();
+		$("#logged_out").show();
 	} else {
-		$("#logged_in").text("Logged in as "+userId);
+		$("#logged_in_text").text('Logged in as <'+userId+'>');
 		$("#logged_in").show();
-		$("#login_button").hide();	
+		$("#logged_out").hide();	
 	}
 }
 
