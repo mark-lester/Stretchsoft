@@ -200,7 +200,7 @@ Eric.prototype.Load = function(force) {
 			$.each( data, function( key, values ) {
 				if (eric.relations.joinkey){
 					// flatten out composite tuple records from hibernate
-					values=$.extend(values[0], values[1]); 
+					values=$.extend(values[1], values[0]); 
 				} 
 				// save these for use by the edit and delete dialogs
 				eric.hid_lookup[values[eric.relations.key]]=values['hibernateId'];
@@ -286,7 +286,7 @@ Eric.prototype.create_or_update_entity = function(data) {
 		data['action']='update';
 	
 	var datastring = JSON.stringify(data);
-	if (DEBUG)console.log("trying to update "+datastring);
+	console.log("trying to update "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	return $.ajax({

@@ -662,8 +662,7 @@ public int createRecord(String className,Hashtable <String,String> record) throw
 	 Integer recordId = -1;
      try {
          Class<?> cls = Class.forName(entityName);
-         Method m = cls.getMethod("update", inputRecord.getClass());
-
+         Method m = cls.getMethod("update", inputRecord.getClass());         
          Object hibernateRecord = (Object)session.get(cls,hibernateId);
          m.invoke(hibernateRecord,inputRecord);
          recordId = (Integer) session.save(hibernateRecord);
