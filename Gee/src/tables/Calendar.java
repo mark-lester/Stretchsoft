@@ -18,8 +18,8 @@ int thursDay;
 int friDay;
 int saturDay;
 int sunDay;
-Date startDate;
-Date endDate;
+String startDate;
+String endDate;
 public Calendar(){}
 
 public Calendar(
@@ -31,8 +31,8 @@ public Calendar(
 		int friDay,
 		int saturDay,
 		int sunDay,
-		Date startDate,
-		Date endDate
+		String startDate,
+		String endDate
 		){
 		this.serviceId=serviceId;
 		this.monDay=monDay;
@@ -101,26 +101,9 @@ public void update(Hashtable <String,String> record){
 		this.sunDay=0;
 	}
 
-	try {
-		this.startDate=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("startDate"));
-	} catch (ParseException ex){
-		try{
-		this.startDate=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("startDate"));
-		} catch (ParseException ex2){
-		System.err.println(ex2);
-		}
+	this.startDate = record.get("startDate");
+	this.endDate = record.get("endDate");
 	}
-	
-	try {
-		this.endDate=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("endDate"));
-	} catch (ParseException ex){
-		try{
-		this.endDate=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("endDate"));
-		} catch (ParseException ex2){
-		System.err.println(ex2);
-		}
-	}
-}
 
 public Hashtable <String,String>  hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
@@ -133,12 +116,9 @@ public Hashtable <String,String>  hash(){
     record.put("friDay",Integer.toString(this.friDay));
     record.put("saturDay",Integer.toString(this.saturDay));
     record.put("sunDay",Integer.toString(this.sunDay));
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");  
-    if (this.startDate != null)
-    	record.put("startDate",df.format(this.startDate));
-    if (this.startDate != null)
-    	record.put("endDate",df.format(this.endDate));
-	return record;
+    record.put("startDate",this.startDate);
+    record.put("endDate",this.endDate);
+    return record;
 }
 
 public void setserviceId(String serviceId){
@@ -197,18 +177,18 @@ public void setsunDay(int sunDay){
 public int getsunDay(){
 		return this.sunDay;
 	}
-public void setstartDate(Date startDate){
+public void setstartDate(String startDate){
 		this.startDate = startDate;
 	}
 
-public Date getstartDate(){
+public String getstartDate(){
 		return this.startDate;
 	}
-public void setendDate(Date endDate){
+public void setendDate(String endDate){
 		this.endDate = endDate;
 	}
 
-public Date getendDate(){
+public String getendDate(){
 		return this.endDate;
 	}
 }

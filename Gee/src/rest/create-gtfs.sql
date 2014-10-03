@@ -52,8 +52,8 @@ CREATE TABLE `calendar` (
 	friday INTEGER,
 	saturday INTEGER,
 	sunday INTEGER,
-	start_date DATE ,	
-	end_date DATE 
+	start_date  VARCHAR(255),	
+	end_date  VARCHAR(255)
 );
 
 
@@ -153,7 +153,7 @@ DROP TABLE IF EXISTS calendar_dates;
 CREATE TABLE `calendar_dates` (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	service_id VARCHAR(255) NOT NULL,
-	`date` DATE ,
+	`date`  VARCHAR(255) ,
 	exception_type INTEGER,
 	KEY `service_id` (service_id),
 	KEY `exception_type` (exception_type),

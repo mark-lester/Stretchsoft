@@ -12,7 +12,7 @@
          <generator class="native"/>
       </id>
       <property name="serviceId" column="service_id" type="string"/>
-      <property name="date" column="date" type="date"/>
+      <property name="date" column="date" type="string"/>
       <property name="exceptionType" column="exception_type" type="integer"/>
    </class>
 </hibernate-mapping>

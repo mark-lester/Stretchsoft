@@ -24,6 +24,12 @@ public class OSMStops extends DefaultHandler {
 	    		if (atts.getValue("k").matches("name")){
 		    		record.put("name", atts.getValue("v"));
 	    		}
+	    		if (atts.getValue("k").matches("name:en")){
+		    		record.put("name:en", atts.getValue("v"));
+	    		}
+	    		if (atts.getValue("k").matches("int_name")){
+		    		record.put("name_int", atts.getValue("v"));
+	    		}
 	    		if (atts.getValue("k").matches("ref")){
 		    		record.put("ref", atts.getValue("v"));
 	    		}
@@ -35,7 +41,23 @@ public class OSMStops extends DefaultHandler {
   				String localName,
   				String qName)
    	throws SAXException {
+		   String name=null;
 	    	if (localName.matches("node")){
+	    		name = record.get("name_int");
+	    		if (name == null){
+		    		name = record.get("name_int");	    			
+	    		}
+	    		if (name == null){
+		    		name = record.get("name:en");	    			
+	    		}
+	    		if (name == null){
+		    		name = record.get("name");	    			
+	    		}
+	    		if (name != null){
+	    			record.put("name", name );
+	    		} else {
+	    			record.put("name", "NO NAME SET");	    			
+	    		}
 	    		records.add(record);
 	    		System.err.println("name = "+record.get("name")+" lat ="+record.get("lat")+" lon ="+record.get("lon"));
 	    	}		   

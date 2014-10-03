@@ -7,7 +7,7 @@ Eric.prototype.initInputForm = function (formId){
     		case 'date':
     		$(this).datepicker({
     		    showAnim: 'slideDown',
-    		    dateFormat: 'yy-mm-dd'
+    		    dateFormat: 'yyyymmdd'
     		});
     		break;
     		
