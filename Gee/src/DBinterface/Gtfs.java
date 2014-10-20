@@ -7,6 +7,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+
+import org.codehaus.jackson.map.ObjectMapper;
 import org.hibernate.Session; 
 import org.hibernate.Transaction;
 
@@ -24,6 +26,42 @@ public class Gtfs extends DBinterface {
 	}
 	public Gtfs(String hibernateConfigDirectory,String databaseName){
 		super(hibernateConfigDirectory,databaseName);
+	}
+	
+	public void ReplicateTrip(String sourceTripId,String targetTripId,String shiftMinutes){
+	    System.err.println("doing a replication of "+sourceTripId+ " to "+targetTripId+ " mins "+shiftMinutes);
+	       	
+		ObjectMapper mapper = new ObjectMapper();
+		String query="FROM Trips where tripId=\'"+sourceTripId+"\'";
+		Session session = this.factory.openSession();
+		Object entities[] = session.createQuery(query).list().toArray();
+		session.close();
+		tables.Trips trip = (tables.Trips) entities[0];
+		trip.settripId(targetTripId);
+		this.createRecord("tables.Trips",trip.hash());
+
+		query="FROM StopTimes where tripId=\'"+sourceTripId+"\'";
+		session = this.factory.openSession();
+		entities = session.createQuery(query).list().toArray();
+		session.close();
+		for (Object o : entities){
+			StopTimes s = (StopTimes)o;
+			s.settripId(targetTripId);
+			s.setarrivalTime(addShift(s.getarrivalTime(),shiftMinutes));
+			s.setdepartureTime(addShift(s.getdepartureTime(),shiftMinutes));
+			this.createRecord("tables.StopTimes",s.hash());
+		}
+	}
+	
+	public String addShift(String input,String shiftMinutes){
+		String[] parts =input.split(":");
+		int hours = Integer.parseInt(parts[0]);
+		int minutes = Integer.parseInt(parts[1]);
+		int shift_minutes = Integer.parseInt(shiftMinutes);
+		minutes += shift_minutes;
+		hours += minutes/60;
+		minutes = minutes % 60;
+		return String.format("%02d:%02d:00", hours,minutes);
 	}
 	
 	public void StopsImport(String north, String south, String east, String west, String stop_type) {

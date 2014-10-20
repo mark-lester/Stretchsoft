@@ -106,7 +106,7 @@ public class Rest extends HttpServlet {
 //		System.err.println("encytped = "+encrypted);
 		
 		if (!encrypted.equals(secure_token)){
-			System.err.println("User authentication error for :"+gee_user+":");
+//			System.err.println("User authentication error for :"+gee_user+":");
 			userId= "guest";
 		} else {
 			userId=gee_user;

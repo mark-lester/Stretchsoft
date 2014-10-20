@@ -166,6 +166,14 @@ public class Entity extends Rest {
 			case "update":
 				recordId = gtfs.updateRecord(className,record);
 			break;
+			
+			case "replicate":
+				// only works for trips
+				gtfs.ReplicateTrip(
+						record.get("sourceTripId"),
+						record.get("targetTripId"),
+						record.get("shiftMinutes"));	
+			break;
 		
 			// assume "create"
 			default:

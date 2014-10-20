@@ -13,8 +13,8 @@
       </id>
       
       <property name="tripId" column="trip_id" type="string"/>
-      <property name="startTime" column="start_time" type="time"/>
-      <property name="endTime" column="end_time" type="time"/>
+      <property name="startTime" column="start_time" type="string"/>
+      <property name="endTime" column="end_time" type="string"/>
       <property name="headwaySecs" column="headway_secs" type="integer"/>
    </class>
 </hibernate-mapping>

@@ -10,15 +10,15 @@ import java.text.ParseException;
 public class Frequencies extends GtfsBase {
 
 String tripId="";
-Date startTime;
-Date endTime;
+String startTime;
+String endTime;
 int headwaySecs=0;
 public Frequencies(){}
 
 public Frequencies(
 		String tripId,
-		Date startTime,
-		Date endTime,
+		String startTime,
+		String endTime,
 		int headwaySecs
 		){
 		this.tripId=tripId;
@@ -32,28 +32,17 @@ public Frequencies(Hashtable <String,String> record){
 }
 
 public void update(Hashtable <String,String> record){
-		this.tripId=record.get("tripId");
-		try {
-			this.startTime=new SimpleDateFormat("HH:mm:ss",Locale.getDefault()).parse(record.get("startTime"));
-		} catch (ParseException ex){
-					System.err.println(ex);		
-		}
-		try {
-			this.endTime=new SimpleDateFormat("HH:mm:ss",Locale.getDefault()).parse(record.get("endTime"));
-		} catch (ParseException ex){
-					System.err.println(ex);		
-		}
-		this.headwaySecs=Integer.parseInt(record.get("headwaySecs"));
+	this.tripId=record.get("tripId");
+	this.startTime=record.get("startTime");
+	this.endTime=record.get("endTime");
+	this.headwaySecs=Integer.parseInt(record.get("headwaySecs"));
 	}
 
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 	record.put("tripId",this.tripId);
-    SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");  
-    
-	record.put("startTime",df.format(this.startTime));
-	record.put("endTime",df.format(this.endTime));
-	
+	record.put("startTime",this.startTime);
+	record.put("endTime",this.endTime);
 	record.put("headwaySecs",Integer.toString(this.headwaySecs));
 
 	return record;
@@ -67,18 +56,18 @@ public void settripId(String tripId){
 public String gettripId(){
 		return this.tripId;
 	}
-public void setstartTime(Date startTime){
+public void setstartTime(String startTime){
 		this.startTime = startTime;
 	}
 
-public Date getstartTime(){
+public String getstartTime(){
 		return this.startTime;
 	}
-public void setendTime(Date endTime){
+public void setendTime(String endTime){
 		this.endTime = endTime;
 	}
 
-public Date getendTime(){
+public String getendTime(){
 		return this.endTime;
 	}
 public void setheadwaySecs(int headwaySecs){

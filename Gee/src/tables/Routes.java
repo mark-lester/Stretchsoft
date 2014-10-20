@@ -52,6 +52,9 @@ public void update(Hashtable <String,String> record){
 		this.routeShortName=record.get("routeShortName");
 		this.routeLongName=record.get("routeLongName");
 		this.routeDesc=record.get("routeDesc");
+		if (record.get("routeType").matches("")){
+			record.put("routeType", "0");
+		}
 		this.routeType=Integer.parseInt(record.get("routeType"));
 		this.routeUrl=record.get("routeUrl");
 		this.routeColor=record.get("routeColor");

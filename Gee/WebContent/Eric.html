@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="css/uniform.default.css" media="screen" />
 <!-- Latest compiled and minified JavaScript -->
 
- <link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="stylesheet" href="css/jquery-ui.css">
 <!-- 
 <script src="js/jquery-1.10.2.js"></script> 
 <script src="js/jquery-ui.js"></script>
@@ -584,6 +584,16 @@ you will lose all the routes, trips and stoptimes if you do
 </form>
 </div>
 
+<div id="replicate" title="Replicate Trip">
+<form id="replicate">
+<input readonly type="hidden" name="entity">
+     Replicate Trip ID <input readonly id="sourceTripId" size=10 maxlength=10 value="test"><br>
+     New Trip Id <input id="targetTripId" size=10 maxlength=10><br>
+     Shift time in munutes <input id="shiftMinutes" size=10 maxlength=10 value=60><br>
+</form>
+</div>
+
+
 <div id="table-row">
     <input id="tripId" name="tripId" size=10 maxlength=20 required key display>
     <select id="serviceId" name="serviceId" table="Calendar"></select> 
@@ -889,6 +899,7 @@ Route, Origin, Destination, Contains
  <button type="button" class="btn btn-success btn-xs" id="template-opener-edit"><span class="glyphicon glyphicon-edit"></span></button>
  <button type="button" class="btn btn-danger btn-xs" id="template-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
  <button type="button" class="btn btn-info btn-xs" id="template-opener-tabulate"><span class="glyphicon glyphicon-th-large"></span></button>
+ <button type="button" class="btn btn-warning btn-xs" id="template-opener-replicate"><span class="glyphicon glyphicon-fire"></span></button> 
  </span>
  </form>
  <hr>

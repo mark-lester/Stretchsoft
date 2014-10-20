@@ -11,6 +11,7 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 //	var validator = $("#edit-"+eric.name).validate();
 //	console.log("validator is "+validator);
 //	validator.form();
+    $(this.ED).find("#replicate").attr('id','replicate-'+this.name);
     
 	dialogs['edit']=$("#edit-"+this.name).dialog({ 
 		open : function (event,ui){
@@ -116,7 +117,7 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 	
 	dialogs['remove']=$(this.ED).find( "#delete-"+this.name ).dialog({ 
 		open : function (event,ui){
-			// need to get these working 
+			// need to get these working
 			$(".ui-dialog-titlebar").css("background-color", "red");
 			// there should only by one "do you wanna delete this field
 			// set it to whatever the select text is
@@ -142,6 +143,53 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 			}
 		}
 	});
+
+	if ($(this.ED).find( "#replicate-"+this.name ).length)  // only do if there is a form to match, this stuff only works for trips right now
+		{
+		console.log("BEFORE starting value was "+$(this.ED).find('#sourceTripId').val());		
+	dialogs['replicate']=$(this.ED).find( "#replicate-"+this.name ).dialog({ 
+		open : function (event,ui){
+			// need to get these working 
+			$(".ui-dialog-titlebar").css("background-color", "brown");
+			// needs generalising beyond Trips
+			$('#replicate-'+eric.name +' #sourceTripId').val(eric.value());
+			var base,number;
+			var matches = eric.value().match(/^(.*?)(\-?)([0-9]*)$/);
+			var count=2;
+			if (matches[1]) {
+			   count= matches[2]+1;				
+			} else {
+				matches[0]=eric.value();
+			}
+			target=matches[0]+"-"+count;
+			$('#replicate-'+eric.name +' #targetTripId').val(target);		
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+
+		buttons : {
+			"Replicate": function() {
+			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+				var values=eric.currentRecord();
+				$("#replicate-"+eric.name +' input').each(function(){
+					values[this.id]=$(this).val();
+				});
+				
+				eric.request("replicate_entity",values);
+				$( this ).dialog( "close" );
+			    
+			},
+			Cancel: function() {
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
+	
+		}
+	
 	this.dialogs=dialogs;
 };
 

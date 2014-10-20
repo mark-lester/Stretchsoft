@@ -36,7 +36,18 @@ Eric.prototype.MakeUIobject = function (){
 		eric.request("Load",true);
 		eric.request("open_tabular_dialog",true);
 	});
-
+	
+    if (eric.dialogs.replicate){
+    	$template.find('#template-opener-replicate')
+    	.attr('id',"opener-replicate-"+this.name)
+    	.click(function(e) {
+    		e.preventDefault();
+    		eric.dialogs.replicate.dialog( "open" );
+    	});    	
+    } else {
+    	$template.find('#template-opener-replicate').remove();    	
+    }
+    
 	
 	$template.find('label').text(
 				$(this.ED).find("#select label").text()

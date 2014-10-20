@@ -391,3 +391,34 @@ Eric.prototype.open_edit_dialog = function (edit_flag){
 Eric.prototype.open_tabular_dialog = function (){
 	this.dialogs.tabular.dialog( "open" );
 };
+
+Eric.prototype.replicate_entity = function (data){
+	var eric=this;
+	$.each( data, function( key, val ) {
+		if (val === undefined || val == null || val == 'null') 
+			val="";
+		
+		data[key]=""+val;
+	});
+	console.log("IN DO REPLICATE sourceTripId="+data.sourceTripId);
+	data['entity']= this.name; 
+	data['action']='replicate';
+	
+	var datastring = JSON.stringify(data);
+	if (DEBUG)console.log("trying to replicate "+datastring);
+	var $url=this.RESTUrlBase+this.relations.method;
+
+	return $.ajax({
+		method:"POST",
+		dataType: 'JSON',
+		data: {values: datastring},
+		url: $url,
+		success: function(response){
+			eric.request("Load");
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			request_error_alert(xhr);
+		}
+	});
+
+};
