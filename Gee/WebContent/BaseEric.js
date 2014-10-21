@@ -403,6 +403,13 @@ Eric.prototype.replicate_entity = function (data){
 	console.log("IN DO REPLICATE sourceTripId="+data.sourceTripId);
 	data['entity']= this.name; 
 	data['action']='replicate';
+	if (data['newStartTime']){
+		 var ham=$KingEric.get("StopTimes").currentRecord().departureTime.split(':');
+		 var new_ham=data['newStartTime'].split(':');
+		 var ot=ham[0]*60 + (ham[1]*1);
+		 var nt=new_ham[0]*60+(new_ham[1]*1);
+		 data['shiftMinutes']="" + (nt - ot);
+	}
 	
 	var datastring = JSON.stringify(data);
 	if (DEBUG)console.log("trying to replicate "+datastring);
