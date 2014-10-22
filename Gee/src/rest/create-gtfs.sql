@@ -206,8 +206,8 @@ CREATE TABLE shapes (
 CREATE TABLE frequencies (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	trip_id VARCHAR(255) NOT NULL,
-	start_time TIME NOT NULL,
-	end_time TIME NOT NULL,
+	start_time VARCHAR(255) NOT NULL,
+	end_time VARCHAR(255) NOT NULL,
 	headway_secs MEDIUMINT NOT NULL,
 	FOREIGN KEY (trip_id) references trips(trip_id)
 );
