@@ -33,15 +33,10 @@
 
 <script src="js/jquery.validate.js"></script>
 <link rel="stylesheet" href="css/jquery.timepicker.css">
-
- <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">  
-  
+<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">  
 <script src='js/spectrum.js'></script>
 <link rel='stylesheet' href='css/spectrum.css' />
- 
 <script src="js/jquery.timepicker.js"></script>
- 
-
 <script src="js/jquery.validate.js"></script>
 
 
@@ -521,7 +516,17 @@ you will lose all the routes, trips and stoptimes if you do
 	<label for="routeDesc">Description</label>
     <input id="routeDesc" name="routeDesc" size=60 maxlength=60 ><br>
 	<label for="routeType">Type</label>
-    <input id="routeType" name="routeType" size=10 type=text><br>
+	<select id="routeType" name="routeType" >
+	  <option value="0">Tram</option>
+	  <option value="1">Tube</option>
+	  <option value="2">Train</option>
+	  <option value="3">Bus</option>
+	  <option value="4">Boat</option>
+	  <option value="5">SF Style Tram</option>
+	  <option value="6">Cable Car</option>
+	  <option value="7">Funicular</option>
+	</select> <br>
+	
 	<label for="routeColor">Colour</label>
     <input id="routeColor"name="routeColor" picker="colour" size=10 type="colour" name="routeColor"><br>
 	<label for="routeTextColor">Text Colour</label>
@@ -541,7 +546,16 @@ you will lose all the routes, trips and stoptimes if you do
     <input id="routeId" name="routeId" size=10 maxlength=30 required key display>
     <input id="routeShortName" name="routeShortName" size=10 maxlength=100 required>
     <input id="routeLongName" name="routeLongName" size=20 maxlength=60 required>
-    <input id="routeType" name="routeType" size=2 type=text>
+	<select id="routeType" name="routeType" >
+	  <option value="0">Tram</option>
+	  <option value="1">Tube</option>
+	  <option value="2">Train</option>
+	  <option value="3">Bus</option>
+	  <option value="4">Boat</option>
+	  <option value="5">SF Style Tram</option>
+	  <option value="6">Cable Car</option>
+	  <option value="7">Funicular</option>
+	</select>
     <input id="routeColor"name="routeColor" picker="colour" size=10 type="colour" name="routeColor">
     <input id="routeTextColor" name="routeTextColor" picker="colour" size=10 type="colour" name="routetextColour">
 </div>

@@ -94,7 +94,7 @@ Eric.prototype.add_button_click = function (button,record){
 
 Eric.prototype.FillInputs = function (object,record){
 	if (!record) return;
-	$(object).find("input").each(function(){
+	$(object).find("input,select").each(function(){
 		$(this).val(record[this.id]);
 		record['changed']=false;
 	});
@@ -102,7 +102,7 @@ Eric.prototype.FillInputs = function (object,record){
 
 Eric.prototype.FillOutputs = function (object,record){
 	if (!record) return;
-	$(object).find("input").each(function(){
+	$(object).find("input,select").each(function(){
 		if (record[this.id]!=$(this).val()){
 			if(DEBUG)console.log("changing field "+this.id+ " from "+record[this.id]+" to "+$(this).val());
 			record[this.id]=$(this).val();

@@ -140,8 +140,9 @@ Eric.prototype.populate_selects_in_form_over_element = function (element){
 	var eric=this;
 	$(element).find('select').each(function(){
 		this_select=this;
-		$(this).empty();
 		var tableName=$(this).attr('table');
+		if (!tableName) return;
+		$(this).empty();
 		var selectSource=$KingEric.get(tableName);
 		var data = selectSource.data;
 		var keyName=selectSource.relations.key;
