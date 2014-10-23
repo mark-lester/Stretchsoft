@@ -16,6 +16,7 @@ MapEric.prototype.constructor = MapEric;
 function MapEric(ED){
 	Eric.call(this, ED);
 	this.objectToValue={};
+	this.valueToObject={};
 	this.layer=null;
 	this.objectstore=[];
 	this.idstore=[];
@@ -153,6 +154,7 @@ MapEric.prototype.Draw = function (){
 		last=mapobject;
 		eric.objectstore.push(mapobject);
 		eric.objectToValue[L.stamp(mapobject)]=val[eric.parent.relations.key];
+		eric.valueToObject[val[eric.parent.relations.key]]=mapobject;
 		eric.stop_event_handlers(mapobject,val['stopName']);
 		eric.featureGroup.addLayer(mapobject);
 		if (eric.draw_flag)	mapobject.addTo(GeeMap);			
@@ -167,6 +169,15 @@ MapEric.prototype.Draw = function (){
 	first_call=false;
 	// we are politely issuing a 'Changed' request incase we have further descendants
 	this.request("Changed");		
+};
+
+MapEric.prototype.Changed = function(force) {
+	var object=null;
+	// we may need to go backup and change an ancestoral table, e,g, the stop if we changed stoptimes
+	if (object = this.valueToObject[this.parent.value()]){
+		object.openPopup();
+	}
+	return null;
 };
 
 MapEric.prototype.Draw_openlayers = function (){

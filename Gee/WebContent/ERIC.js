@@ -1,4 +1,4 @@
-var DEBUG=true;
+var DEBUG=false;
 var layercontrol=false;
 var openlayers=false;
 var layercontroler=null;
