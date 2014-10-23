@@ -153,7 +153,6 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 			$(".ui-dialog-titlebar").css("background-color", "brown");
 			// needs generalising beyond Trips
 			$('#replicate-'+eric.name +' #sourceTripId').val(eric.value());
-			var base,number;
 			var matches = eric.value().match(/^(.*?)(\-?)([0-9]*)$/);
 			var count=2;
 			if (matches[1]) {
@@ -175,7 +174,21 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
 				var values=eric.currentRecord();
 				$("#replicate-"+eric.name +' input').each(function(){
-					values[this.id]=$(this).val();
+			    	switch ($(this).attr('type')){
+		    		case 'checkbox':
+		    			if ($(this).is(':checked')){
+		    				values[this.id]="1";
+		    			} else {
+		    				values[this.id]="0";
+		    			}
+		    		break;
+		    		case 'color':
+		    				values[this.id]=$(this).spectrum("get").toHex();
+		    		break;
+			    		
+			    	default:
+					    values[this.id] = $(this).val();
+			    	}
 				});
 				
 				eric.request("replicate_entity",values);
