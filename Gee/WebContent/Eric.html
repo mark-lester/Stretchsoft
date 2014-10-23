@@ -576,8 +576,9 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="parentTable" value="Routes" type=hidden>
 	<input id="parentKey" value="routeId" type=hidden>
 	<label for="routeId">Route</label>
-    <input id="routeId" size=30 maxlength=30 required><br>
-	<label for="tripId">Trip ID</label>
+	<select id="routeId" name="routeId" table="Routes" display></select> <br> 
+ <!--  <input id="routeId" size=30 maxlength=30 required><br>  -->  
+    <label for="tripId">Trip ID</label>
     <input id="tripId" name="tripId" size=20 maxlength=20 required key display><br>
 	<label for="serviceId">Service ID</label>
     <select id="serviceId" name="serviceId" table="Calendar"></select> <br>
