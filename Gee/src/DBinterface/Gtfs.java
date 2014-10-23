@@ -108,10 +108,10 @@ public class Gtfs extends DBinterface {
 	public String addShift(String input,String shiftMinutes){
 		String[] parts =input.split(":");
 		int hours = Integer.parseInt(parts[0]);
-		int minutes = Integer.parseInt(parts[1]);
+		int minutes = hours * 60 + Integer.parseInt(parts[1]);
 		int shift_minutes = Integer.parseInt(shiftMinutes);
 		minutes += shift_minutes;
-		hours += minutes/60;
+		hours = minutes/60;
 		minutes = minutes % 60;
 		return String.format("%02d:%02d:00", hours,minutes);
 	}
