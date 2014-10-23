@@ -172,7 +172,8 @@ public class Entity extends Rest {
 				gtfs.ReplicateTrip(
 						record.get("sourceTripId"),
 						record.get("targetTripId"),
-						record.get("shiftMinutes"));	
+						record.get("shiftMinutes"),
+						record.get("invertTrip"));	
 			break;
 		
 			// assume "create"

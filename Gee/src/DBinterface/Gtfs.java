@@ -1,5 +1,6 @@
 package DBinterface;
 import java.util.Hashtable;
+import java.util.ArrayList; 
 import tables.*;
 
 import java.io.*;
@@ -28,7 +29,7 @@ public class Gtfs extends DBinterface {
 		super(hibernateConfigDirectory,databaseName);
 	}
 	
-	public void ReplicateTrip(String sourceTripId,String targetTripId,String shiftMinutes){
+	public void ReplicateTrip(String sourceTripId,String targetTripId,String shiftMinutes,String invertFlag){
 	    System.err.println("doing a replication of "+sourceTripId+ " to "+targetTripId+ " mins "+shiftMinutes);
 	       	
 		ObjectMapper mapper = new ObjectMapper();
@@ -41,15 +42,66 @@ public class Gtfs extends DBinterface {
 		this.createRecord("tables.Trips",trip.hash());
 
 		query="FROM StopTimes where tripId=\'"+sourceTripId+"\'";
+		query += " order by stop_sequence";			
 		session = this.factory.openSession();
 		entities = session.createQuery(query).list().toArray();
+		ArrayList <String> arrival_times = new ArrayList<String>();
+		ArrayList <String> departure_times = new ArrayList<String>();
+		
 		session.close();
 		for (Object o : entities){
 			StopTimes s = (StopTimes)o;
 			s.settripId(targetTripId);
-			s.setarrivalTime(addShift(s.getarrivalTime(),shiftMinutes));
+			s.setarrivalTime(addShift(s.getarrivalTime(),shiftMinutes));			
 			s.setdepartureTime(addShift(s.getdepartureTime(),shiftMinutes));
+			arrival_times.add(s.getarrivalTime());
+			departure_times.add(s.getdepartureTime());
 			this.createRecord("tables.StopTimes",s.hash());
+		}
+		
+		if (invertFlag.matches("invert")){
+			query="FROM StopTimes where tripId=\'"+targetTripId+"\'";
+			query += " order by stop_sequence desc";			
+			session = this.factory.openSession();
+			entities = session.createQuery(query).list().toArray();
+			session.close();
+			boolean first=true;
+			String arrival_time=null;
+			String departure_time=null;
+			String last_departure_time=null;
+			int stopSequence=1;
+			int time_to_travel;
+			int time_to_wait;
+			for (Object o : entities){
+				StopTimes s = (StopTimes)o;
+				if (!first){
+					time_to_travel=timeDiff(
+							departure_times.get(departure_times.size()-2),
+							arrival_times.get(arrival_times.size()-1));
+					
+					arrival_time=addShift(last_departure_time,Integer.toString(time_to_travel));
+					time_to_wait=timeDiff(
+							departure_times.get(departure_times.size()-2),
+							arrival_times.get(arrival_times.size()-2));
+					last_departure_time=departure_time=addShift(arrival_time,Integer.toString(time_to_wait));
+					
+					s.setarrivalTime(arrival_time);
+					s.setdepartureTime(departure_time);
+					arrival_times.remove(arrival_times.size() - 1);
+					departure_times.remove(departure_times.size() - 1);
+				} else {
+					s.setarrivalTime(arrival_times.get(0));
+					s.setdepartureTime(departure_times.get(0));
+					last_departure_time=departure_times.get(0);
+					first=false;
+				}
+				s.setstopSequence(stopSequence++);
+				// TODO fix the base method in GtfsBase to copy the hibernteId
+				Hashtable <String,String> inputRecord=s.hash();
+				inputRecord.put("hibernateId",Integer.toString(s.gethibernateId()));
+
+				this.updateRecord("tables.StopTimes",inputRecord);
+			}
 		}
 	}
 	
@@ -62,6 +114,16 @@ public class Gtfs extends DBinterface {
 		hours += minutes/60;
 		minutes = minutes % 60;
 		return String.format("%02d:%02d:00", hours,minutes);
+	}
+
+	public int timeDiff(String from,String to){
+		String[] from_parts =from.split(":");
+		String[] to_parts =to.split(":");
+		int from_hours = Integer.parseInt(from_parts[0]);
+		int from_minutes = Integer.parseInt(from_parts[1]);
+		int to_hours = Integer.parseInt(to_parts[0]);
+		int to_minutes = Integer.parseInt(to_parts[1]);
+		return (to_hours * 60 + to_minutes) - (from_hours * 60 + from_minutes);
 	}
 	
 	public void StopsImport(String north, String south, String east, String west, String stop_type) {

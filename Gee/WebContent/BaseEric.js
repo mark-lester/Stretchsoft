@@ -410,6 +410,9 @@ Eric.prototype.replicate_entity = function (data){
 		 var nt=new_ham[0]*60+(new_ham[1]*1);
 		 data['shiftMinutes']="" + (nt - ot);
 	}
+	if (data['invertTrip']){
+		data['invertTrip']="invert";
+	}
 	
 	var datastring = JSON.stringify(data);
 	if (DEBUG)console.log("trying to replicate "+datastring);
