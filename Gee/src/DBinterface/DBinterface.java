@@ -614,7 +614,13 @@ public int createRecord(String className,Hashtable <String,String> record) throw
 //     className = "tables."+className;
      Session session = factory.openSession();
      Transaction tx = session.beginTransaction();
+     try {
      recordId=createRecordInner(session,tx,className,record);
+     } catch (HibernateException e){
+         if (tx!=null) tx.rollback();
+         session.close();
+         throw(e);
+     }
      tx.commit();
      session.close();
      return recordId;

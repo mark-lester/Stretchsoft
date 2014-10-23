@@ -271,7 +271,8 @@ Eric.prototype.LoadChildren = function(force) {
 };
 
 
-// this request accepts edit and create, 
+// this request accepts edit and create,
+var create_dfd;
 Eric.prototype.create_or_update_entity = function(data) {
 	var eric=this;
 	
@@ -289,23 +290,28 @@ Eric.prototype.create_or_update_entity = function(data) {
 	console.log("trying to update "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
-	return $.ajax({
+	create_dfd = new $.Deferred();
+	$.ajax({
 		method:"POST",
 		dataType: 'JSON',
 		data: {values: datastring},
 		url: $url,
 		success: function(response){
 			eric.seed=data[eric.relations.key]; //let draw know where we should be
+			create_dfd.resolve();
 			eric.request("PostEdit",data);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
+			create_dfd.resolve();
 			request_error_alert(xhr);
 		}		 
 	 });
+	return create_dfd;
 };
 
+var create_table_dfd;
 Eric.prototype.create_or_update_table = function(data) {
-	var one_dfd = new $.Deferred();
+	create_tabe_dfd = new $.Deferred();
 	var dfds=[];
 	for (row in this.data){
 		if (this.data[row].changed){
@@ -313,26 +319,30 @@ Eric.prototype.create_or_update_table = function(data) {
 		}
 	}
 	$.when.apply($, dfds).done(function(){
-		one_dfd.resolve();
+		create_table_dfd.resolve();
 	});
-	return one_dfd;
+	return create_table_dfd;
 };
 	
-
+var edit_dfd;
 Eric.prototype.PostEdit = function(record) {
-	var dfd=null;
+	edit_dfd=null;
 	var eric=this;
 	switch(this.name){ //  on the next refactor I'll abstract this
 	case 'StopTimes':
 		url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
 		
-		dfd=$.ajax({
+		edit_dfd=new $.Deferred();
+		
+		$.ajax({
 			  url: url,
 			  dataType: 'json',
 					success: function(response){
+						edit_dfd.resolve();
 						eric.request("Load",true);
 						},
 					error: function (xhr, ajaxOptions, thrownError) {
+						edit_dfd.resolve();
 						request_error_alert(xhr);
 						}
 			  }
@@ -353,7 +363,7 @@ Eric.prototype.PostEdit = function(record) {
 	return dfd;
 };
 
-
+var remove_dfd;
 Eric.prototype.remove_entity = function(data) {
 	var eric=this;
 	$.each( data, function( key, val ) {
@@ -367,19 +377,23 @@ Eric.prototype.remove_entity = function(data) {
 	var datastring = JSON.stringify(data);
 	if (DEBUG)console.log("trying to delete "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
+	remove_dfd=new $.Deferred(); 
 
-	return $.ajax({
+	$.ajax({
 		method:"POST",
 		dataType: 'JSON',
 		data: {values: datastring},
 		url: $url,
 		success: function(response){
+			remove_dfd.resolve();
 			eric.request("Load");
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
+			remove_dfd.resolve();
 			request_error_alert(xhr);
 		}
 	});
+	return remove_dfd;
 };
 
 
@@ -392,6 +406,7 @@ Eric.prototype.open_tabular_dialog = function (){
 	this.dialogs.tabular.dialog( "open" );
 };
 
+var replicate_dfd;
 Eric.prototype.replicate_entity = function (data){
 	var eric=this;
 	$.each( data, function( key, val ) {
@@ -418,17 +433,20 @@ Eric.prototype.replicate_entity = function (data){
 	if (DEBUG)console.log("trying to replicate "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
-	return $.ajax({
+	replicate_dfd=new $.Deferred(); 
+	$.ajax({
 		method:"POST",
 		dataType: 'JSON',
 		data: {values: datastring},
 		url: $url,
 		success: function(response){
+			replicate_dfd.resolve();
 			eric.request("Load");
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			request_error_alert(xhr);
+			replicate_dfd.resolve();
 		}
 	});
-
+	return replicate_dfd;
 };
