@@ -48,11 +48,7 @@ MapEric.prototype.Empty = function (){
 	this.objectstore=[];
 };
 
-MapEric.prototype.Load = function (){
-	// stuff to do with fetching any extra data, e.g for the full route map
-	// if we exceed some kind of limit on data fetch, we can turn this object (an Eric of subclass Map) off
-	//this.queue.clear();
-	// nothing to do for stops, it's all in the parent
+MapEric.prototype.Load = function (force){
 	this.request("Draw");
 };
 

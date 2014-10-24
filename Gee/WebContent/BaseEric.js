@@ -360,7 +360,7 @@ Eric.prototype.PostEdit = function(record) {
 	default:
 		eric.request("Load",true);
 	}
-	return dfd;
+	return edit_dfd;
 };
 
 var remove_dfd;

@@ -76,7 +76,8 @@ Eric.prototype.init_edit_values_over_element = function (element,record){
     	if (this.id == relations.key && eric.edit_flag){			    	
 			// dont let them edit the key on edit else any kids will be orphaned 
     		//(actually constraints stop nasty stuff happening, but we stil dont want them trying to edit it)
-			$(this).attr("readonly",true);			        
+
+    		//			$(this).attr("readonly",true);			        
     		$(this).val(record[this.id]);
     	} else if (this.id == relations.parentKey){
     		$(this).attr("readonly",true);			        

@@ -94,7 +94,7 @@ CREATE TABLE `routes` (
 	KEY `agency_id` (agency_id),
 	 FOREIGN KEY (agency_id) 
         REFERENCES agency(agency_id)
-        ON DELETE CASCADE
+        on delete cascade on update cascade
 );
 
 /*==========================================*/
@@ -115,7 +115,7 @@ CREATE TABLE `trips` (
 	KEY `service_id` (service_id),
 	KEY `direction_id` (direction_id),
 	KEY `block_id` (block_id),
-	FOREIGN KEY (route_id) references routes(route_id),
+	FOREIGN KEY (route_id) references routes(route_id) on delete cascade on update cascade,
 	FOREIGN KEY (service_id) references calendar(service_id)
 );
 
@@ -140,8 +140,8 @@ CREATE TABLE `stop_times` (
 	KEY `stop_sequence` (stop_sequence),
 	KEY `pickup_type` (pickup_type),
 	KEY `drop_off_type` (drop_off_type),
-	FOREIGN KEY (trip_id) references trips(trip_id),
-	FOREIGN KEY (stop_id) references stops(stop_id)
+	FOREIGN KEY (trip_id) references trips(trip_id) on delete cascade on update cascade,
+	FOREIGN KEY (stop_id) references stops(stop_id) on delete cascade on update cascade
 )ENGINE=InnoDB;
 
 /*==========================================*/
@@ -157,7 +157,7 @@ CREATE TABLE `calendar_dates` (
 	exception_type INTEGER,
 	KEY `service_id` (service_id),
 	KEY `exception_type` (exception_type),
-	FOREIGN KEY (service_id) references calendar(service_id)
+	FOREIGN KEY (service_id) references calendar(service_id) on delete cascade on update cascade
 );
 
 /*==========================================*/
@@ -209,7 +209,7 @@ CREATE TABLE frequencies (
 	start_time VARCHAR(255) NOT NULL,
 	end_time VARCHAR(255) NOT NULL,
 	headway_secs MEDIUMINT NOT NULL,
-	FOREIGN KEY (trip_id) references trips(trip_id)
+	FOREIGN KEY (trip_id) references trips(trip_id) on delete cascade on update cascade
 );
 
 /*==========================================*/
@@ -221,8 +221,8 @@ CREATE TABLE transfers (
 	to_stop_id VARCHAR(255) NOT NULL,
 	transfer_type INTEGER,
 	min_transfer_time MEDIUMINT NOT NULL,
-	FOREIGN KEY (from_stop_id) references stops(stop_id),
-	FOREIGN KEY (to_stop_id) references stops(stop_id)
+	FOREIGN KEY (from_stop_id) references stops(stop_id) on delete cascade on update cascade,
+	FOREIGN KEY (to_stop_id) references stops(stop_id) on delete cascade on update cascade
 );
 
 /*==========================================*/

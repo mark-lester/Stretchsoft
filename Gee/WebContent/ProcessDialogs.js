@@ -121,8 +121,8 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 			$(".ui-dialog-titlebar").css("background-color", "red");
 			// there should only by one "do you wanna delete this field
 			// set it to whatever the select text is
-			console.log("I wanna delete a "+eric.name +" of value "+eric.value());
-			$(eric.ED).find('#delete input').val(eric.value());		
+			if (DEBUG) console.log("I wanna delete a "+eric.name +" of value "+eric.value());
+			$("#delete-"+eric.name +" :input" ).val(eric.value());		
 		},
 		autoOpen: false, 
 		modal :true,
