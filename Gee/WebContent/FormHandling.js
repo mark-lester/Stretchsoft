@@ -131,13 +131,13 @@ Eric.prototype.init_edit_values_over_element = function (element,record){
         }
     });
 
-	console.log("finding selects ");
+    if (DEBUG) console.log("finding selects ");
 
     $(element).find('select').each(function() {
-		console.log("detected select "+this.id);
+		if (DEBUG) console.log("detected select "+this.id);
 
     	if (record != null && record[this.id] != null ){
-    		console.log("setting select "+this.id+" to "+record[this.id]);
+    		if (DEBUG) console.log("setting select "+this.id+" to "+record[this.id]);
     		$(this).val(record[this.id]);    		
     	}
     });	    
