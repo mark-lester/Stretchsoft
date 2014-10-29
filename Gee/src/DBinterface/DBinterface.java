@@ -416,7 +416,8 @@ InputSource i = new InputSource(s);
          // read it to get the field names, for which we can make up a hashtable
          // all the table handlers have a constructor which takes a hash of <string,string>
          // and will map them accordingly (e.g. using Integer.parseInt and catching the parse exception if need be
-         TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
+    
+        	 TableMap tableMap = hibernateConfig.tableMaps.get(resourceFile);
              Enumeration ekeys = tableMap.map.keys();
              Set <String> keys = tableMap.map.keySet();
 //             String[] keyArray = keys.toArray(new String[0]);

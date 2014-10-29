@@ -35,8 +35,9 @@ public class Rest extends HttpServlet {
 	private static ServletConfig servletConfig;
 	protected String FACEBOOK_SECRET;
 	ServletContext context;
-	private static String GITHUB_SECRET="";
-	private static String GEE_SECRET="";
+	public static String GITHUB_SECRET="";
+	public static String GEE_SECRET="";
+	public static String github_access_token=null;
 
 	
     public Rest () {
@@ -78,7 +79,7 @@ public class Rest extends HttpServlet {
 		String sig = null;
 		String gee_user=null;
 		String userId=null;
-
+		github_access_token=null;
 		Base64 codec = new Base64();
 //		 System.err.println("IN GET USER ID\n");
 		int count=0;
@@ -90,6 +91,9 @@ public class Rest extends HttpServlet {
 	        
 	        if (cookie.getName().equals("gee_user")){
 	        	gee_user = cookie.getValue();
+	        }
+	        if (cookie.getName().equals("github_access_token")){
+	        	github_access_token = cookie.getValue();
 	        }
 	        if (cookie.getName().equals("gee_databasename")){
 //	        	System.err.println("incoming cookie for databaseName="+cookie.getValue());
@@ -113,15 +117,12 @@ public class Rest extends HttpServlet {
 		}
 		
 		Hashtable <String,String> record = new Hashtable <String,String>();	
-		if (userId == null){
-			userId= "guest";
-		}
+
 		record.put("userId", userId);
 		// we can add email and nice name when we've worked out how to get them
 //		System.err.println("should be adding user "+userId);
 		admin.getUser(record);
 	
-		
 		if (databaseName == null || !admin.verifyExists(databaseName)){//we dont have a database  set, so choose the default, "gtfs"
 			System.err.println("setting GTFS to gtfs");
 			databaseName = "gtfs";
@@ -130,6 +131,7 @@ public class Rest extends HttpServlet {
 		}
 		
 		gtfs = getGtfs(databaseName,userId);
+		
 		return userId;
 	}
 

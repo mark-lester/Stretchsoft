@@ -418,6 +418,9 @@ Eric.prototype.replicate_entity = function (data){
 	console.log("IN DO REPLICATE sourceTripId="+data.sourceTripId);
 	data['entity']= this.name; 
 	data['action']='replicate';
+	
+	if (!data['shiftMinutes']) data['shiftMinutes']= "0";
+	
 	if (data['newStartTime']){
 		 var ham=$KingEric.get("StopTimes").currentRecord().departureTime.split(':');
 		 var new_ham=data['newStartTime'].split(':');
@@ -425,6 +428,7 @@ Eric.prototype.replicate_entity = function (data){
 		 var nt=new_ham[0]*60+(new_ham[1]*1);
 		 data['shiftMinutes']="" + (nt - ot);
 	}
+
 	if (data['invertTrip'] == "1"){
 		data['invertTrip']="invert";
 	}

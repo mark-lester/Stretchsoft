@@ -24,5 +24,6 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/mysql-connector-java-5.1.28-bin.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/jboss-logging-3.1.1.GA.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/gson-2.2.2.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

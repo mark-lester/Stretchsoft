@@ -196,12 +196,12 @@ public class Admin extends DBinterface {
 		return true;
 	}
 
-	public String getInstance(Hashtable <String,String> record){
+	public Instance getInstanceO(Hashtable <String,String> record){
 		Instance instance=null;
 	    Session session = factory.openSession();
 
-		Object entities[] = session.createQuery("from Instance where ownerId ='"+record.get("userId")+
-				"' and databaseName='"+record.get("databaseName")+"'").list().toArray();
+		Object entities[] = session.createQuery("from Instance where (ownerUserId ='"+record.get("userId")+"' or publicRead='1')"+
+				" and databaseName='"+record.get("databaseName")+"'").list().toArray();
 		session.close();
 		if (entities.length > 1){
 			// ASSERTION FAILURE
@@ -210,10 +210,18 @@ public class Admin extends DBinterface {
 			instance = (Instance)entities[0];
 		} else {
 			int recordId = createRecord("admin.Instance",record);
-			return record.get("userId");
+			if (recordId > 0){
+				return getInstanceO(record);
+			} else {
+				return null;
+			}
 		}
-		return instance.getdatabaseName();
+		return instance;
 	}	
+
+	public String getInstance(Hashtable <String,String> record){
+		return getInstanceO(record).getdatabaseName();
+	}
 	
 	public boolean CreateMySqlDatabase(String databaseName,InputStream s) {
 	    try {

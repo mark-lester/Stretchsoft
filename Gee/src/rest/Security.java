@@ -47,10 +47,8 @@ import org.json.JSONObject;
  * Servlet implementation class Entity
  */
 @WebServlet("/Security")
-public class Security extends HttpServlet {
+public class Security extends Rest {
 	private static final long serialVersionUID = 1L;
-	private static String GITHUB_SECRET=null;
-	private static String GEE_SECRET=null;
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -68,7 +66,6 @@ public class Security extends HttpServlet {
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-		TODO - change this to use prepared statements else it's gonna blow up once apostrophe gets used
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String encrypted=null;
@@ -87,7 +84,8 @@ public class Security extends HttpServlet {
 		    String github_response = executePost(url,query);
 	        Map<String, String> qmap=
 	                splitQuery(github_response);
-	        url="https://api.github.com/user?access_token="+qmap.get("access_token");
+	        github_access_token=qmap.get("access_token");
+	        url="https://api.github.com/user?access_token="+github_access_token;
 		    String github_user = executeGet(url);
 	        JSONObject jsonObject;
 			
@@ -95,8 +93,7 @@ public class Security extends HttpServlet {
 				jsonObject = new JSONObject(github_user);
 				userId=jsonObject.get("login").toString();
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				userId="guest";
 			}
 		}
 		System.err.println("SECURITY gee_user="+userId);
@@ -104,75 +101,134 @@ public class Security extends HttpServlet {
 		
         Cookie cookie1 = new Cookie("gee_securetoken", encrypted);
 	    Cookie cookie2 = new Cookie("gee_user", userId);
+	    Cookie cookie3 = new Cookie("github_access_token", github_access_token);
+	    
 	    response.addCookie(cookie1); 
 	    response.addCookie(cookie2); 
+	    response.addCookie(cookie3); 
 	    response.sendRedirect(response.encodeRedirectURL("/Gee/Eric.html") ); 
    }
 	
 	
-public static String executePost(String targetURL, String urlParameters)
-	  {
-	    URL url;
-	    HttpURLConnection connection = null;  
-	    try {
-	      //Create connection
-	      url = new URL(targetURL);
-	      connection = (HttpURLConnection)url.openConnection();
-	      connection.setRequestMethod("POST");
-	      connection.setRequestProperty("Content-Type", 
-	           "application/x-www-form-urlencoded");
-				
-	      connection.setRequestProperty("Content-Length", "" + 
-	               Integer.toString(urlParameters.getBytes().length));
-	      connection.setRequestProperty("Content-Language", "en-US");  
-				
-	      connection.setUseCaches (false);
-	      connection.setDoInput(true);
-	      connection.setDoOutput(true);
+	
+public static String executePost(String targetURL, String urlParameters){
+    URL url;
+    HttpURLConnection connection = null;  
+    try {
+        //Create connection
+        url = new URL(targetURL);
+        connection = (HttpURLConnection)url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", 
+             "application/x-www-form-urlencoded");
+        if (github_access_token != null) connection.setRequestProperty("Authorization", 
+                "token "+github_access_token);
+  			
+        connection.setRequestProperty("Content-Length", "" + 
+                 Integer.toString(urlParameters.getBytes().length));
+        connection.setRequestProperty("Content-Language", "en-US");  
+  			
+        connection.setUseCaches (false);
+        connection.setDoInput(true);
+        connection.setDoOutput(true);
 
-	      //Send request
-	      DataOutputStream wr = new DataOutputStream (
-	                  connection.getOutputStream ());
-	      wr.writeBytes (urlParameters);
-	      wr.flush ();
-	      wr.close ();
+        //Send request
+        DataOutputStream wr = new DataOutputStream (
+                    connection.getOutputStream ());
+        wr.writeBytes (urlParameters);
+        wr.flush ();
+        wr.close ();
 
-	      //Get Response	
-	      InputStream is = connection.getInputStream();
-	      BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-	      String line;
-	      StringBuffer response = new StringBuffer(); 
-	      while((line = rd.readLine()) != null) {
-	        response.append(line);
-	        response.append('\r');
-	      }
-	      rd.close();
-	      return response.toString();
+        //Get Response	
+        InputStream is = connection.getInputStream();
+        BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+        String line;
+        StringBuffer response = new StringBuffer(); 
+        while((line = rd.readLine()) != null) {
+          response.append(line);
+          response.append('\r');
+        }
+        rd.close();
+        return response.toString();
 
-	    } catch (Exception e) {
+    } catch (Exception e) {
+        return null;
+    } finally {
+        if(connection != null) {
+            connection.disconnect(); 
+        }
+    }
+}
 
-	      e.printStackTrace();
-	      return null;
+public static String executePut(String targetURL, String jsonString)
+{
+  URL url;
+  HttpURLConnection connection = null;  
+  try {
+    //Create connection
+    url = new URL(targetURL);
+    connection = (HttpURLConnection)url.openConnection();
+    connection.setRequestMethod("PUT");
+    connection.setRequestProperty("Content-Type", 
+            "application/x-www-form-urlencoded");
+    if (github_access_token != null) connection.setRequestProperty("Authorization", 
+            "token "+github_access_token);
+			
+    connection.setRequestProperty("Content-Length", "" + 
+             Integer.toString(jsonString.getBytes().length));
+    connection.setRequestProperty("Content-Language", "en-US");  
+			
+    connection.setUseCaches (false);
+    connection.setDoInput(true);
+    connection.setDoOutput(true);
 
-	    } finally {
+    //Send request
+    DataOutputStream wr = new DataOutputStream (
+                connection.getOutputStream ());
+    wr.writeBytes (jsonString);
+    wr.flush ();
+    wr.close ();
 
-	      if(connection != null) {
-	        connection.disconnect(); 
-	      }
-	    }
-	  }
-	 
-	 public String executeGet(String urlToRead) {
+    //Get Response	
+    InputStream is = connection.getInputStream();
+    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+    String line;
+    StringBuffer response = new StringBuffer(); 
+    while((line = rd.readLine()) != null) {
+      response.append(line);
+      response.append('\r');
+    }
+    rd.close();
+    return response.toString();
+
+  } catch (Exception e) {
+
+    e.printStackTrace();
+    return null;
+
+  } finally {
+
+    if(connection != null) {
+      connection.disconnect(); 
+    }
+  }
+}
+
+
+
+	public String executeGet(String urlToRead) {
 	      URL url;
-	      HttpURLConnection conn;
+	      HttpURLConnection connection;
 	      BufferedReader rd;
 	      String line;
 	      String result = "";
 	      try {
 	         url = new URL(urlToRead);
-	         conn = (HttpURLConnection) url.openConnection();
-	         conn.setRequestMethod("GET");
-	         rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+	         connection = (HttpURLConnection) url.openConnection();
+	         connection.setRequestMethod("GET");
+	         if (github_access_token != null) connection.setRequestProperty("Authorization", 
+	                 "token "+github_access_token);
+	         rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 	         while ((line = rd.readLine()) != null) {
 	            result += line;
 	         }
@@ -184,6 +240,7 @@ public static String executePost(String targetURL, String urlParameters)
 	      }
 	      return result;
 	   }
+	 
 	 public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
 		    Map<String, String> query_pairs = new LinkedHashMap<String, String>();
 		    String[] pairs = query.split("&");

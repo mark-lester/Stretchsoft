@@ -144,6 +144,60 @@ function SetupMenu(){
 		}
 	});
 
+	$( "#publish_gtfs" ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-publish_gtfs" ).dialog( "open" );
+	    
+	});
+	
+	$("#dialog-publish_gtfs" ).dialog({ 
+		open : function (event,ui){
+			$("#dialog-publish_gtfs-loading" ).hide();
+			$("#dialog-publish_gtfs-done" ).hide();
+			$(".ui-dialog-titlebar").css("background-color", "purple");
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+		buttons : {
+			"Publish": function() {
+			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
+			    // this horrid global nested hash was the only way I could map 
+			    // from tableName + gtfs-id value to hibernateId
+				$("#dialog-publish_gtfs-loading" ).show();
+				$("#dialog-publish_gtfs-done" ).hide();
+				$url= "/Gee/GitHub";
+				
+				xhr=$.ajax({
+					method:"GET",
+					dataType: 'text',
+					url: $url,
+					success: function(data,textStatus,xhr){
+						$("#dialog-publish_gtfs-loading" ).hide();
+						$("#dialog-publish_gtfs-done" ).show();
+						obj = JSON.parse(xhr.responseText);
+						$("#dialog-publish_gtfs-done-text" ).html("<pre>"+obj.message+"</pre>");
+						},
+					error: function(xhr, ajaxOptions, thrownError){
+						$("#dialog-publish_gtfs-loading" ).hide();
+						$("#dialog-publish_gtfs-done" ).show();
+						$("#dialog-publish_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
+						}
+				});	
+				
+			    
+			},
+			Cancel: function() {
+				downcount();
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
+	
+
+
 	$( "#export_gtfs" ).click(function(e) {
 	    e.preventDefault();
 	    export_gtfs();
