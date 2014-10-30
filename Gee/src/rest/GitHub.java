@@ -52,22 +52,33 @@ public class GitHub extends Security {
 		if (action == null) action="commit";
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
+		String success_string=null;
+		
 		switch (action){
 		case "commit":
-			out.println(commit(request,response));
+			try {
+				success_string=commit(request,response);
+			} catch (Exception e){
+				out.println("{message :\"We have a problem...<br>"+e.getMessage()+"\"}");	
+			}
+			out.println(success_string); // should be a nice json string
 		}
 	}
 	
-	protected String commit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected String commit(HttpServletRequest request, HttpServletResponse response) throws Exception, IOException {
 		String userId=getUserId(request,response);
 		Hashtable<String, String> r = new Hashtable <String,String>();
 		r.put("databaseName", databaseName);
 		r.put("userId", userId);
 		Instance in = admin.getInstanceO(r);
-		String github_name = in.getdescription();
+		String github_name = in.getgitHubName();
 		String query=null;
-		checkWikiTimetable(github_name);
-		checkUserRepository(userId,github_name);
+		if (!checkWikiTimetable(github_name)){
+			throw new Exception("Error: failed to create GitHub repository for WikiTimetable/"+github_name);
+		}
+		if (!checkUserRepository(userId,github_name)){
+			return "Error: failed to create GitHub repository for "+userId+"/"+github_name;
+		}
 
         for (String resourceFile : gtfs.hibernateConfig.resources) {
     		TableMap tableMap = gtfs.hibernateConfig.tableMaps.get(resourceFile);
@@ -82,7 +93,7 @@ public class GitHub extends Security {
 		return pull_request(userId,github_name);
 	}
 	
-protected void checkWikiTimetable(String github_name){
+protected boolean checkWikiTimetable(String github_name) throws Exception {
     String url=domain+"/repos/WikiTimetable/"+github_name+"/contents";
     String github_response = executeGet(url);
     System.err.println("check wikitimetable "+github_response);
@@ -96,10 +107,12 @@ protected void checkWikiTimetable(String github_name){
 	}
     
     if (arr == null)
-    	createWikiTimetable(github_name);
+    	return createWikiTimetable(github_name);
+    
+    return true;
 }
 
-protected void checkUserRepository(String userId,String github_name){
+protected boolean checkUserRepository(String userId,String github_name) throws Exception {
     String url=domain+"/repos/"+userId+"/"+github_name+"/contents";
     String github_response = executeGet(url);
     System.err.println("check user rep "+github_response);
@@ -112,12 +125,13 @@ protected void checkUserRepository(String userId,String github_name){
 	}
     
 	if (arr == null)
-		createUserRepository(userId,github_name);
+		return createUserRepository(userId,github_name);
+	return true;
 }
 
 
 //POST /orgs/:org/repos
-protected void createWikiTimetable(String github_name){
+protected boolean createWikiTimetable(String github_name) throws Exception{
 	 String url=domain+"/orgs/WikiTimetable/repos";
 	 Map<String,String> rec = new HashMap<String,String>();
 	 Gson gson = new Gson();
@@ -125,6 +139,22 @@ protected void createWikiTimetable(String github_name){
 	 String jsonString = gson.toJson(rec);
 	 String github_response = executePost(url,jsonString);
 	 System.err.println("create wiki rep "+github_response);
+	 
+	 JSONObject obj=null;
+	 if (github_response == null) {
+		 throw new Exception ("failed to create WikiTimetable/"+github_name+
+				 "<br> request access here (handy link to github) to create a new WikiTimetable on GitHub");
+	 }
+	 
+	    try {
+			obj = new JSONObject(github_response);
+			Integer id=obj.getInt("id"); 
+		} catch (JSONException e) {
+			// if we didnt get a nice one back it failed
+			 throw new Exception ("failed to create WikiTimetable/"+github_name+"<br>"+github_response);
+		}
+
+	 
      for (String resourceFile : gtfs.hibernateConfig.resources) {
  		TableMap tableMap = gtfs.hibernateConfig.tableMaps.get(resourceFile);
          Set <String> keys = tableMap.map.keySet();
@@ -132,24 +162,44 @@ protected void createWikiTimetable(String github_name){
          String tableName=tableMap.tableName;
 
  		String fileName=tableName+".txt";
- 		commit_file("WikiTimetable",github_name,resourceFile,fileName);
+ 		if (!commit_file("WikiTimetable",github_name,resourceFile,fileName)){
+ 			return false;
+ 		}
      }
+     return true;
 }
 
 ///POST repos/:owner/:repo/forks
 
-protected void createUserRepository(String userId, String github_name){
+protected boolean createUserRepository(String userId, String github_name) throws Exception{
 	 String url=domain+"/repos/WikiTimetable/"+github_name+"/forks";
 	 Map<String,String> rec = new HashMap<String,String>();
 	 Gson gson = new Gson();
 	 String jsonString = gson.toJson(rec);
 	 String github_response = executePost(url,jsonString);
 	 System.err.println("create fork  "+github_response);
+	 JSONObject obj=null;
+	 String error_message="Failed to fork WikiTimetable/"+github_name+" into your account"+
+				"<br This may be because you have disabled Gee access to your repositories, which is understandable if you use GitHub for anything else"+
+				 "<br> but it's OK, you can fork or clone this yourself to create a workspace for yourself on GitHub"+
+				"<br> you can then download the GTFS with the Export option in Gee, and commit and make a pull request yourself";
+	 
+	 if (github_response == null)
+		 throw new Exception (error_message);
+	 
+	 try {
+			obj = new JSONObject(github_response);
+			Integer id=obj.getInt("id"); 
+		} catch (JSONException e) {
+			 throw new Exception (error_message);
+			// if we didnt get a nice one back it failed
+		}
+	 return true;   
 }
 
 //PUT /repos/:owner/:repo/contents/:path
 // will create a file if it doesnt exist
-   protected void commit_file(String userId,String github_name,String resourceFile,String fileName){	    
+   protected boolean commit_file(String userId,String github_name,String resourceFile,String fileName) throws Exception {	    
 	    String url=domain+"/repos/"+userId+"/"+github_name+"/contents/"+fileName;
 	    String github_response = executeGet(url);
 	    System.err.println("got commit "+github_response);
@@ -159,17 +209,11 @@ protected void createUserRepository(String userId, String github_name){
 	    if (github_response != null)
 	    try {
 			obj = new JSONObject(github_response);
-		} catch (JSONException e) {
-			obj=null;
-		}
-
-	    if (obj != null)
-		try {
 			sha=obj.getString("sha");
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			sha=null;
+			// ignore, assume it's a new file
 		}
+
 		Hashtable <String,String> fileHash = new Hashtable <String,String>();
         Map<String,String> rec = new HashMap<String,String>();
         String charset = "UTF-8";
@@ -185,6 +229,7 @@ protected void createUserRepository(String userId, String github_name){
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new Exception("Unsupported Encoding for Base64, call the doctor");
 		}
         
     //    Hashtable <String,String> rec = new Hashtable <String,String>();
@@ -196,13 +241,24 @@ protected void createUserRepository(String userId, String github_name){
         String jsonString = gson.toJson(rec);
         github_response=executePut(url,jsonString);
         System.err.println("commit repsonse="+github_response);
+   	 if (github_response == null)
+		throw new Exception("Can't commit file "+fileName+" to your GitHub workspace");
+	 
+	 try {
+			obj = new JSONObject(github_response);
+			obj.getJSONObject("commit").getString("sha"); 
+		} catch (JSONException e) {
+			throw new Exception("Can't commit file "+fileName+" to your GitHub workspace GitHub response="+github_response);
+		}
+	 return true;
     }
    
    //POST /repos/:owner/:repo/pulls title, head, base,body
-   protected String pull_request(String userId,String github_name){	    
+   protected String pull_request(String userId,String github_name) throws Exception {	    
 	    String url=domain+"/repos/WikiTimetable/"+github_name+"/pulls";
-        String github_response=executeGet(url);
-        System.err.println("wikitimetable pull request listing="+github_response);  
+//        String github_response=executeGet(url);
+//        System.err.println("wikitimetable pull request listing="+github_response);  
+
         Map<String,String> rec = new HashMap<String,String>();
         rec.put("title","auto title");
         rec.put("body","auto body");
@@ -212,28 +268,33 @@ protected void createUserRepository(String userId, String github_name){
         String jsonString = gson.toJson(rec);
 //        System.out.println("access token = " + github_access_token);
         
-        github_response=executePost(url,jsonString);
-        System.err.println("pull request repsonse="+github_response);  
+        String github_response=executePost(url,jsonString);
+        System.err.println("pull request repsonse="+github_response);
+        if (github_response == null)
+			throw new Exception("Can't make a pull request for "+github_name);
+        
         JSONObject obj=null;
+		String request_number=null;
 	    try {
 			obj = new JSONObject(github_response);
-		} catch (JSONException e) {
-			obj = null;
-		}
-		if (obj == null)
-			return null;
-		String request_number=null;
-		try {
 			request_number=Integer.toString(obj.getInt("number"));
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			return null;
+			throw new Exception("Can't make a pull request for "+github_name+" no request number returned. GitHub response="+github_response);
 		}
-		url+="/"+request_number+"/merge";
+
+	    url+="/"+request_number+"/merge";
         rec = new HashMap<String,String>();
         rec.put("commit_message","auto merge comment");
         jsonString = gson.toJson(rec);
-        return github_response=executePut(url,jsonString);
+        github_response=executePut(url,jsonString);
+        if (github_response == null)
+			throw new Exception("Can't merge your changes for "+github_name+
+					" <br> But a pull request has been issued. You can ask for permission to publish updates yourself here (handy GitHib link)");
+        // TODO stick the torque stuff in here
+		pbsTorque.Job j = new pbsTorque.Job("batch","/home/mcl/torque/test.pbs");
+		j.queue();
+
+        return github_response;
    }	
 
 	/**

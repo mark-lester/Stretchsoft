@@ -9,6 +9,7 @@ public class Instance extends AdminBase {
 
 String databaseName;
 String description;
+String gitHubName;
 String ownerUserId;
 int publicRead;
 int publicWrite;
@@ -18,12 +19,14 @@ public Instance(){}
 public Instance (
 		String databaseName,
 		String description,
+		String gitHubName,
 		String ownerUserId,
 		int publicRead,
 		int publicWrite
 		){
 		this.databaseName=databaseName;
 		this.description=description;
+		this.gitHubName=gitHubName;
 		this.ownerUserId=ownerUserId;
 		this.publicRead=publicRead;
 		this.publicWrite=publicWrite;
@@ -35,6 +38,7 @@ public Instance(Hashtable <String,String> record){
 
 public void update(Hashtable <String,String> record){
 	this.databaseName=record.get("databaseName");
+	this.gitHubName=record.get("gitHubName");
 	this.ownerUserId=record.get("ownerUserId");
 	this.description=record.get("description");
 	
@@ -57,6 +61,7 @@ public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 	record.put("databaseName",this.databaseName);
 	record.put("description",this.description);
+	record.put("gitHubName",this.gitHubName);
 	record.put("ownerUserId",this.ownerUserId);
 	record.put("publicRead",Integer.toString(this.publicRead));
 	record.put("publicWrite",Integer.toString(this.publicWrite));
@@ -68,6 +73,14 @@ public void setdatabaseName(String databaseName){
 
 public String getdatabaseName(){
 	return this.databaseName;
+}
+
+public void setgitHubName(String gitHubName){
+	this.gitHubName = gitHubName;
+}
+
+public String getgitHubName(){
+	return this.gitHubName;
 }
 
 public void setdescription(String description){
