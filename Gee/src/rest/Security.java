@@ -106,7 +106,9 @@ public class Security extends Rest {
 	    response.addCookie(cookie1); 
 	    response.addCookie(cookie2); 
 	    response.addCookie(cookie3); 
-	    response.sendRedirect(response.encodeRedirectURL("/Gee/Eric.html") ); 
+		System.err.println("SECURITY github_access_token="+github_access_token);
+
+	    response.sendRedirect(response.encodeRedirectURL("//Eric.html") ); 
    }
 	
 	

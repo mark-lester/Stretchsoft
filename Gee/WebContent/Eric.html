@@ -149,11 +149,7 @@ hr { color: #7FA423;
       	 <li class="active" style="vertical-align: middle;">
       	 
       	 <div id="logged_out">
-      	  <form action="https://github.com/login/oauth/authorize" method="GET" >
-    	<input name="scope" type=hidden value="repo,gist">
-    	<input name="client_id" type=hidden value="d20b14968463e2b9634c">
-        	<button type="submit" class="btn btn-default navbar-btn btn-xs">Login with GitHub</button>
-    	  </form>
+        	<button class="btn btn-default navbar-btn btn-xs" name="login_button" id="logged_out">Login</button>
       	 </div>
       	 
       	 <div id="logged_in">
@@ -1348,6 +1344,25 @@ Route, Origin, Destination, Contains
 <form id="dialog-zap_gtfs-form">
   You Damn Sure You Wanna Do This Buddy ?
  </form>
+ </div>
+ 
+<div id="dialog-login" title="Login Using GitHub" class="edit-dialog">
+ <center><h1 style="color:red">WARNING</h1>
+ You are about to Login to Gee using GitHub. If you don't already have an account on GitHub, then 
+ the process wil take you through opening one. 
+ You will then be asked to grant Gee access to your repositories. This is so that Gee can create a version of the 
+ GTFS you are editing in your own account. Gee can then submit your edits to your copy, and then request them
+ to be merged into the WikiTimetable public edition. <br>
+ If you dont want to grant Gee this access, perhaps
+ because you already have an account on Github, then you can still publish to WikiTimetable, but you
+ will have to fork and make pull requests "manually". Just grant Gee the minimal access so we at least know who
+ you are.
+       	  <form action="https://github.com/login/oauth/authorize" method="GET" >
+    	<input name="scope" type=hidden value="repo">
+    	<input name="client_id" type=hidden value="d20b14968463e2b9634c">
+        	<button type="submit" class="btn btn-default navbar-btn btn-xs">Login with GitHub</button>
+    	  </form>
+    	  </center>
  </div>
 
 

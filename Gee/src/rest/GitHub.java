@@ -59,9 +59,13 @@ public class GitHub extends Security {
 			try {
 				success_string=commit(request,response);
 			} catch (Exception e){
-				out.println("{message :\"We have a problem...<br>"+e.getMessage()+"\"}");	
+		        Map<String,String> rec = new HashMap<String,String>();
+		        rec.put("message","We have a problem..."+e.getMessage());
+		        Gson gson = new Gson();
+		       success_string = gson.toJson(rec);
+			} finally {
+				out.println(success_string); // should be a nice json string
 			}
-			out.println(success_string); // should be a nice json string
 		}
 	}
 	
@@ -73,6 +77,7 @@ public class GitHub extends Security {
 		Instance in = admin.getInstanceO(r);
 		String github_name = in.getgitHubName();
 		String query=null;
+		System.err.println("github_name="+github_name);
 		if (!checkWikiTimetable(github_name)){
 			throw new Exception("Error: failed to create GitHub repository for WikiTimetable/"+github_name);
 		}
@@ -290,7 +295,9 @@ protected boolean createUserRepository(String userId, String github_name) throws
         if (github_response == null)
 			throw new Exception("Can't merge your changes for "+github_name+
 					" <br> But a pull request has been issued. You can ask for permission to publish updates yourself here (handy GitHib link)");
-        // TODO stick the torque stuff in here
+
+        System.err.println("merge repsonse="+github_response);
+
 		pbsTorque.Job j = new pbsTorque.Job("batch","/home/mcl/torque/test.pbs");
 		j.queue();
 

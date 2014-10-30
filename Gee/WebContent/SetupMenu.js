@@ -196,6 +196,16 @@ function SetupMenu(){
 		}
 	});
 	
+	$("#dialog-login" ).dialog({ 
+		open : function (event,ui){
+			$(".ui-dialog-titlebar").css("background-color", "purple");
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true
+	});
 
 
 	$( "#export_gtfs" ).click(function(e) {
@@ -206,6 +216,12 @@ function SetupMenu(){
 	$( "#zap_gtfs" ).click(function(e) {
 	    e.preventDefault();
 	    $( "#dialog-zap_gtfs" ).dialog( "open" );
+	    
+	});
+
+	$( "#logged_out" ).click(function(e) {
+	    e.preventDefault();
+	    $( "#dialog-login" ).dialog( "open" );
 	    
 	});
 	
