@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import javax.xml.ws.http.HTTPException;
+
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -82,9 +86,9 @@ public class GitHub extends Security {
 			throw new Exception("Error: failed to create GitHub repository for WikiTimetable/"+github_name);
 		}
 		if (!checkUserRepository(userId,github_name)){
-			return "Error: failed to create GitHub repository for "+userId+"/"+github_name;
+			throw new Exception("Error: failed to create GitHub repository for "+userId+"/"+github_name);
 		}
-
+		boolean changed=false;
         for (String resourceFile : gtfs.hibernateConfig.resources) {
     		TableMap tableMap = gtfs.hibernateConfig.tableMaps.get(resourceFile);
             Set <String> keys = tableMap.map.keySet();
@@ -92,9 +96,11 @@ public class GitHub extends Security {
             String tableName=tableMap.tableName;
 
     		String fileName=tableName+".txt";
-    		commit_file(userId,github_name,resourceFile,fileName);
+    		changed = changed || commit_file(userId,github_name,resourceFile,fileName);
         }
-        	    
+        if (!changed){
+			throw new Exception("Nothing changed so nothing to do for "+github_name);
+        }
 		return pull_request(userId,github_name);
 	}
 	
@@ -207,18 +213,21 @@ protected boolean createUserRepository(String userId, String github_name) throws
    protected boolean commit_file(String userId,String github_name,String resourceFile,String fileName) throws Exception {	    
 	    String url=domain+"/repos/"+userId+"/"+github_name+"/contents/"+fileName;
 	    String github_response = executeGet(url);
-	    System.err.println("got commit "+github_response);
+	    System.err.println("got content "+github_response);
 
 	    String sha=null;
 	    JSONObject obj=null;
+	    String original=null;
 	    if (github_response != null)
 	    try {
 			obj = new JSONObject(github_response);
 			sha=obj.getString("sha");
+			original=obj.getString("content");
 		} catch (JSONException e) {
 			// ignore, assume it's a new file
 		}
-
+//	    original.replace("\n", "");
+	    original=original.replaceAll("[^a-zA-Z0-9=]", "");
 		Hashtable <String,String> fileHash = new Hashtable <String,String>();
         Map<String,String> rec = new HashMap<String,String>();
         String charset = "UTF-8";
@@ -236,7 +245,8 @@ protected boolean createUserRepository(String userId, String github_name) throws
 			e.printStackTrace();
 			throw new Exception("Unsupported Encoding for Base64, call the doctor");
 		}
-        
+        if (original != null && rec.get("content").matches(original)) return false;
+                
     //    Hashtable <String,String> rec = new Hashtable <String,String>();
         rec.put("path",fileName);
         rec.put("message","Auto Gee "+ (sha != null ? "Commit" : "Create"));
@@ -273,7 +283,16 @@ protected boolean createUserRepository(String userId, String github_name) throws
         String jsonString = gson.toJson(rec);
 //        System.out.println("access token = " + github_access_token);
         
-        String github_response=executePost(url,jsonString);
+        String github_response=null;
+        try {
+        	github_response=executePost(url,jsonString);
+        } catch (HTTPException e){
+        	switch(e.getStatusCode()){
+        	case 422:
+        		throw new Exception("Unprocessable entity complaint from GitHub for "+url);
+        	}
+    		throw new Exception("Bad response from GitHub, code="+e.getStatusCode()+" url="+url);
+        }
         System.err.println("pull request repsonse="+github_response);
         if (github_response == null)
 			throw new Exception("Can't make a pull request for "+github_name);
@@ -297,9 +316,26 @@ protected boolean createUserRepository(String userId, String github_name) throws
 					" <br> But a pull request has been issued. You can ask for permission to publish updates yourself here (handy GitHib link)");
 
         System.err.println("merge repsonse="+github_response);
-
-		pbsTorque.Job j = new pbsTorque.Job("batch","/home/mcl/torque/test.pbs");
-		j.queue();
+        try {  
+            Process p = Runtime.getRuntime().exec("pwd");  
+            BufferedReader in = new BufferedReader(  
+                                new InputStreamReader(p.getInputStream()));  
+            String line = null;  
+            while ((line = in.readLine()) != null) {  
+                System.err.println("PWD="+line);  
+            }  
+            p = Runtime.getRuntime().exec("qsub -q batch /home/mcl/otp/run_"+databaseName+".pbs");  
+            in = new BufferedReader(  
+                                new InputStreamReader(p.getInputStream()));  
+            line = null;  
+            while ((line = in.readLine()) != null) {  
+                System.err.println("PBS="+line);  
+            }  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+//		pbsTorque.Job j = new pbsTorque.Job("batch","/home/mcl/otp/run_"+databaseName+".pbs");
+//		j.queue();
 
         return github_response;
    }	

@@ -1,6 +1,7 @@
 package rest;
 
 import java.io.DataOutputStream;
+import javax.xml.ws.http.HTTPException;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -111,7 +112,7 @@ public class Security extends Rest {
 	
 	
 	
-public static String executePost(String targetURL, String urlParameters){
+public static String executePost(String targetURL, String urlParameters) throws HTTPException {
     URL url;
     HttpURLConnection connection = null;  
     try {
@@ -152,7 +153,15 @@ public static String executePost(String targetURL, String urlParameters){
         return response.toString();
 
     } catch (Exception e) {
-        return null;
+    	HTTPException h=null;
+		try {
+			h = new HTTPException(connection.getResponseCode());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.err.println("throwing exception code "+h.getStatusCode());
+		throw h;
     } finally {
         if(connection != null) {
             connection.disconnect(); 
