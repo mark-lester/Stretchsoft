@@ -59,8 +59,10 @@ public class DBinterface {
     private ServiceRegistry serviceRegistry;
     public static final Hashtable <String,HibernateConfig> configStore = new  Hashtable <String,HibernateConfig>();
     public HibernateConfig hibernateConfig=null;
+
     public String dataDirectory="/home/Gee/gtfs/";
     public String databaseName="gtfs";
+    public String serverName="localhost";
     public String hibernateConfigDirectory="";//"/home/Gee/config/";
     public static final int ZIP_BUFFER_SIZE = 50;
     public SAXParserFactory spf;
@@ -76,14 +78,27 @@ public class DBinterface {
 //    public Session session = null;
 
 //TODO merge these two constructors
-    public DBinterface(String hibernateConfigDirectory,String databaseName, String userName){
+//	GITHUB_SECRET = getServletContext().getInitParameter("GITHUB_SECRET");
+
+    public DBinterface(String hibernateConfigDirectory,String databaseName, String userName,String serverName){
+   System.err.println("DBInterface on server name "+serverName);
+    	this.serverName=serverName;    	
     	this.dataDirectory="/home/Gee/users/"+userName;    	
-    	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
+    	this.hibernateConfigDirectory=hibernateConfigDirectory;    
+    	this.databaseName=databaseName;
+    	init();
+    }
+
+    public DBinterface(String hibernateConfigDirectory,String databaseName, String userName){
+    	   System.err.println("DBInterface on username "+userName);
+    	this.dataDirectory="/home/Gee/users/"+userName;    	
+    	this.hibernateConfigDirectory=hibernateConfigDirectory;    
     	this.databaseName=databaseName;
     	init();
     }
     
     public DBinterface(String hibernateConfigDirectory,String databaseName){
+    	   System.err.println("DBInterface on "+databaseName);
     	this.hibernateConfigDirectory=hibernateConfigDirectory;    	
     	this.databaseName=databaseName;
     	init();
@@ -242,7 +257,8 @@ public class DBinterface {
         configuration = new Configuration();   
 //        configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
         configuration.configure(hibernateConfigDirectory+"/hibernate.cfg.xml");
-         configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost/"+ databaseName+"?autoReconnect=true");
+        System.err.println("doing a session for db "+databaseName+" hosts "+serverName);
+         configuration.setProperty("hibernate.connection.url", "jdbc:mysql://"+serverName+"/"+ databaseName+"?autoReconnect=true");
 /*         System.err.println(" USERNAME="+
         	        configuration.getProperty("hibernate.connection.username")+
         	         " password= "+

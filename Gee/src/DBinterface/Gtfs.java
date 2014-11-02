@@ -22,6 +22,9 @@ import org.hibernate.HibernateException;
 
 public class Gtfs extends DBinterface {
 
+	public Gtfs(String hibernateConfigDirectory,String databaseName,String userId,String serverName){
+		super(hibernateConfigDirectory,databaseName,userId,serverName);
+	}
 	public Gtfs(String hibernateConfigDirectory,String databaseName,String userId){
 		super(hibernateConfigDirectory,databaseName,userId);
 	}

@@ -50,8 +50,8 @@ public class Admin extends DBinterface {
 		super("./hibernate/admin","admin");
 	}
 	
-	public Admin(String hibernateConfigDirectory,String databaseName){
-		super(hibernateConfigDirectory,databaseName);
+	public Admin(String hibernateConfigDirectory,String databaseName,String userId,String serverName){
+		super(hibernateConfigDirectory,databaseName,userId,serverName);
 	}
 	
 

@@ -37,18 +37,13 @@ public class Rest extends HttpServlet {
 	ServletContext context;
 	public static String GITHUB_SECRET="";
 	public static String GEE_SECRET="";
+	public static String GEE_DATABASE_SERVER="localhost";
 	public static String github_access_token=null;
 
 	
     public Rest () {
         super();
-//		server_root=System.getProperty("catalina.base");
-//		context = getServletContext();
-		//this.getServletContext().getRealPath("/");
 
-        if (admin == null){
-        	admin = new Admin("hibernate/admin/","admin");
-        }
         if (gtfsStore == null){
             gtfsStore = new Hashtable <String,Gtfs>();        	
         }
@@ -58,8 +53,12 @@ public class Rest extends HttpServlet {
     public void init() throws ServletException {
     	GITHUB_SECRET = getServletContext().getInitParameter("GITHUB_SECRET");
     	GEE_SECRET = getServletContext().getInitParameter("GEE_SECRET");
+    	GEE_DATABASE_SERVER = getServletContext().getInitParameter("GEE_DATABASE_SERVER");
+    	if (GEE_DATABASE_SERVER == null || GEE_DATABASE_SERVER.matches("")) GEE_DATABASE_SERVER = "localhost";
 //    	FACEBOOK_SECRET = getInitParameter("FACEBOOK_SECRET");
-//	    System.err.println("got facebook secret"+FACEBOOK_SECRET);
+        if (admin == null){
+        	admin = new Admin("hibernate/admin/","admin","dummy-user",GEE_DATABASE_SERVER);
+        }
     }
 
 /*
@@ -138,7 +137,7 @@ public class Rest extends HttpServlet {
 	public Gtfs getGtfs(String databaseName, String userId){
 		if (gtfsStore.get(databaseName) == null){
 			// TODO make sure it's there, or at least in the instances table.
-			gtfsStore.put(databaseName, new Gtfs("hibernate/gtfs/",databaseName,userId));
+			gtfsStore.put(databaseName, new Gtfs("hibernate/gtfs/",databaseName,userId,GEE_DATABASE_SERVER));
 		}
 		
 		return gtfsStore.get(databaseName);
