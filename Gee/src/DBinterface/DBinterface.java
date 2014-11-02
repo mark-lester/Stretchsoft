@@ -255,9 +255,9 @@ public class DBinterface {
     
     public SessionFactory configureSessionFactory() throws HibernateException { 	
         configuration = new Configuration();   
-//        configuration.configure(new File(hibernateConfigDirectory+"/hibernate.cfg.xml"));
-        configuration.configure(hibernateConfigDirectory+"/hibernate.cfg.xml");
-        System.err.println("doing a session for db "+databaseName+" hosts "+serverName);
+        String databaseType = databaseName.matches("admin") ? "admin" : "gtfs";
+        configuration.configure("hibernate/"+databaseType+"/hibernate.cfg.xml");
+//        System.err.println("doing a session for db "+databaseName+" hosts "+serverName);
          configuration.setProperty("hibernate.connection.url", "jdbc:mysql://"+serverName+"/"+ databaseName+"?autoReconnect=true");
 /*         System.err.println(" USERNAME="+
         	        configuration.getProperty("hibernate.connection.username")+

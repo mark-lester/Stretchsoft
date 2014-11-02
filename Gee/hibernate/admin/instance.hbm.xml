@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC 
  "-//Hibernate/Hibernate Mapping DTD//EN"
- "file://localhost/home/Gee/dtd/hibernate-mapping-3.0.dtd"> 
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
    <class name="admin.Instance" table="instance">
@@ -13,6 +13,7 @@
       </id>
       <property name="databaseName" column="database_name" type="string"/>
       <property name="description" column="description" type="string"/>
+      <property name="gitHubName" column="github_name" type="string"/>
       <property name="ownerUserId" column="owner_user_id" type="string"/>
       <property name="publicRead" column="public_read" type="integer"/>
       <property name="publicWrite" column="public_write" type="integer"/>

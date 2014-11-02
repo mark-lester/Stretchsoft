@@ -41,9 +41,9 @@
 <property name="hibernate.c3p0.validate">true</property>
    
    <!-- List of XML mapping files -->
-   <mapping resource="instance.hbm.xml"/>
-   <mapping resource="users.hbm.xml"/>
-   <mapping resource="access.hbm.xml"/>
-   <mapping resource="invite.hbm.xml"/>
+   <mapping resource="hibernate/admin/instance.hbm.xml"/>
+   <mapping resource="hibernate/admin/users.hbm.xml"/>
+   <mapping resource="hibernate/admin/access.hbm.xml"/>
+   <mapping resource="hibernate/admin/invite.hbm.xml"/>
 </session-factory>
 </hibernate-configuration>

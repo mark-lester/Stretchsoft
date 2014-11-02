@@ -51,13 +51,15 @@ public class Rest extends HttpServlet {
     
     @Override
     public void init() throws ServletException {
+System.err.println("DOING INIT FOR REST");
     	GITHUB_SECRET = getServletContext().getInitParameter("GITHUB_SECRET");
     	GEE_SECRET = getServletContext().getInitParameter("GEE_SECRET");
     	GEE_DATABASE_SERVER = getServletContext().getInitParameter("GEE_DATABASE_SERVER");
     	if (GEE_DATABASE_SERVER == null || GEE_DATABASE_SERVER.matches("")) GEE_DATABASE_SERVER = "localhost";
 //    	FACEBOOK_SECRET = getInitParameter("FACEBOOK_SECRET");
+	    System.err.println("got database server name "+GEE_DATABASE_SERVER);
         if (admin == null){
-        	admin = new Admin("hibernate/admin/","admin","dummy-user",GEE_DATABASE_SERVER);
+        	admin = new Admin("/home/mcl/git/Stretchsoft/Gee/build/classes/hibernate/admin/","admin","dummy-user",GEE_DATABASE_SERVER);
         }
     }
 
