@@ -75,6 +75,7 @@ System.err.println("DOING INIT FOR REST");
 	
 	public String getUserId(HttpServletRequest request, HttpServletResponse response){
 		Cookie[] cookies = request.getCookies();
+		String api_databaseName = request.getParameter("databaseName");
 		String secure_token = null;
 		byte[] payload=null;
 		String sig = null;
@@ -101,6 +102,12 @@ System.err.println("DOING INIT FOR REST");
 	        	databaseName = new String(cookie.getValue());
 	        }
 		}
+		// allow &dabaseName=whatever.  Thus opening up the api though you'd
+		// need to handle validation for non publicly accessible databases.
+		// the security should handle unauthorised access irrespective of what the
+		// user might haverequest.getParameter("post") hacked their gee_databasename cookie to,
+		if (api_databaseName != null && !api_databaseName.matches("")) this.databaseName=api_databaseName;
+		
 		if (gee_user == null || secure_token == null){
 			userId="guest";
 			gee_user="guest";
