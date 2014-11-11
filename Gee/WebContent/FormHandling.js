@@ -43,7 +43,22 @@ Eric.prototype.initInputForm = function (formId){
     				$(target).val($(this).val());
     		});
     	}    
-    });	
+    });
+	$('#'+formId+" select").each(function() {
+		// want timezones but way too many to stick in the HTML, so allow  <select json="name.of.json"> 
+		// TODO, could extend to enable option values and display values
+    	if ($(this).attr('json')){
+    		select=this;
+    		select_list_array=$.getJSON($(this).attr('json'),function (data){
+        		var i;
+        		for (i=0;i<data.length;i++){
+        			$(select).append("<option>"+data[i]+"</option>");
+        		}   			
+    		});
+    		
+    	}
+    });
+
 };
 
 //RUN TIME FORM HANDLING, THIS STUFF GETS RUN EVERY TIME YOU CLICK EDIT
