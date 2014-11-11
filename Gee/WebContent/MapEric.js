@@ -67,14 +67,26 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 	    var marker = e.target;  // you could also simply access the marker through the closure
 	    var coords = marker.getLatLng();  // but using the passed event is cleaner
 	    var values = eric.parent.getrecord(eric.objectToValue[L.stamp(e.target)]);
+	    // so we can put it back if the decline
+	    stop_saved_lat=values.stopLat;
+	    stop_saved_lon=values.stopLon;
+	    stop_saved_marker=marker;
+	    
 		values['stopLat']=coords['lat'];
 		values['stopLon']=coords['lng'];
 		values['action']="update";
 		values['entity']='Stops';
-		
-		$KingEric.get("Stops").request("create_or_update_entity",values,function(){
-			$KingEric.get("StopTimes").request("Load",true);
-		});
+
+		// nasty global to pass to the dialog
+	    move_stop_values=values;
+	    
+	    $( "#dialog-move_stop" ).dialog( "open" );
+		if (0==1){  // this code moved to the move_stop dialog
+			console.log("moving stop already ");
+			$KingEric.get("Stops").request("create_or_update_entity",values,function(){
+				$KingEric.get("StopTimes").request("Load",true);
+			});			
+		}
 	});
 
 	mapobject.on("click", function(e){

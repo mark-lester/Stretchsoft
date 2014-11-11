@@ -254,6 +254,34 @@ function SetupMenu(){
 		}
 	});
 
+	$("#dialog-move_stop" ).dialog({ 
+		open : function (event,ui){
+			$("#dialog-move_stop-form #move" ).val(0);
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+		buttons : {
+			// TODO **IMPORTANT** 
+			// this will leave all the children to this record orphaned. right now you have to manually delete 
+			// the children first else you wont even be able to see them after the parent is gone
+			// so we need a recursive delete children function.
+			Move: function() {
+				$KingEric.get("Stops").request("create_or_update_entity",move_stop_values,function(){
+					$KingEric.get("StopTimes").request("Load",true);
+				});			
+				 $( this ).dialog( "close" );				
+			},
+			Cancel: function() {
+				stop_saved_marker.setLatLng(new L.LatLng(stop_saved_lat,stop_saved_lon));
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
+
+
 }
 
 function export_gtfs(){

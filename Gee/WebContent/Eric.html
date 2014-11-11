@@ -133,8 +133,8 @@ hr { color: #7FA423;
       </div>
         <ul  class="nav navbar-nav">
      	 <li class="active">
-          <form action="/Gee/Help.html">
-        	<button class="btn btn-default navbar-btn btn-xs" name="help" id="help">Help</button>
+          <form action="/docs/">
+        	<button class="btn btn-default navbar-btn btn-xs" name="help" id="help">Documentation</button>
     	  </form>
         </li>
       </ul>
@@ -924,9 +924,18 @@ Route, Origin, Destination, Contains
  
 <div id="dialog-zap_gtfs" title="Clear GTFS" class="edit-dialog">
 <form id="dialog-zap_gtfs-form">
-  You Damn Sure You Wanna Do This Buddy ?
+  Are You Sure You Want To Clear This GTFS ?
  </form>
  </div>
+
+<div id="dialog-move_stop" title="Relocate Stop" class="edit-dialog">
+<form id="dialog-move_stop-form">
+  Are You Sure You Want To Move This Stop ?
+  <input type=hidden id="move">
+ </form>
+ </div>
+ 
+ 
  
 <div id="dialog-login" title="Login Using GitHub" class="edit-dialog">
  <center><h1 style="color:red">WARNING</h1>
