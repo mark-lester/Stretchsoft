@@ -67,7 +67,7 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 	    var marker = e.target;  // you could also simply access the marker through the closure
 	    var coords = marker.getLatLng();  // but using the passed event is cleaner
 	    var values = eric.parent.getrecord(eric.objectToValue[L.stamp(e.target)]);
-	    // so we can put it back if the decline
+	    // so we can put it back if they decline
 	    stop_saved_lat=values.stopLat;
 	    stop_saved_lon=values.stopLon;
 	    stop_saved_marker=marker;

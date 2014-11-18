@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.List;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import sax.TableMap;
 
@@ -80,6 +81,11 @@ public class GitHub extends Security {
 		r.put("userId", userId);
 		Instance in = admin.getInstanceO(r);
 		String github_name = in.getgitHubName();
+		String json = request.getParameter("values");
+		ObjectMapper mapper = new ObjectMapper();
+		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
+
+		String comment=record.get("comment");
 		String query=null;
 		System.err.println("github_name="+github_name);
 		if (!checkWikiTimetable(github_name)){
@@ -96,7 +102,7 @@ public class GitHub extends Security {
             String tableName=tableMap.tableName;
 
     		String fileName=tableName+".txt";
-    		changed = changed || commit_file(userId,github_name,resourceFile,fileName);
+    		changed = changed || commit_file(userId,github_name,resourceFile,fileName,comment);
         }
         if (!changed){
 			throw new Exception("Nothing changed so nothing to do for "+github_name);
@@ -173,7 +179,7 @@ protected boolean createWikiTimetable(String github_name) throws Exception{
          String tableName=tableMap.tableName;
 
  		String fileName=tableName+".txt";
- 		if (!commit_file("WikiTimetable",github_name,resourceFile,fileName)){
+ 		if (!commit_file("WikiTimetable",github_name,resourceFile,fileName,"")){
  			return false;
  		}
      }
@@ -210,7 +216,7 @@ protected boolean createUserRepository(String userId, String github_name) throws
 
 //PUT /repos/:owner/:repo/contents/:path
 // will create a file if it doesnt exist
-   protected boolean commit_file(String userId,String github_name,String resourceFile,String fileName) throws Exception {	    
+   protected boolean commit_file(String userId,String github_name,String resourceFile,String fileName, String comment) throws Exception {	    
 	    String url=domain+"/repos/"+userId+"/"+github_name+"/contents/"+fileName;
 	    String github_response = executeGet(url);
 	    System.err.println("got content "+github_response);
@@ -249,7 +255,7 @@ protected boolean createUserRepository(String userId, String github_name) throws
                 
     //    Hashtable <String,String> rec = new Hashtable <String,String>();
         rec.put("path",fileName);
-        rec.put("message","Auto Gee "+ (sha != null ? "Commit" : "Create"));
+        rec.put("message", comment != null ? comment : "Auto Gee "+ (sha != null ? "Commit" : "Create") );
         if (sha != null) rec.put("sha",sha);
         
         Gson gson = new Gson();
@@ -344,7 +350,7 @@ protected boolean createUserRepository(String userId, String github_name) throws
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		doGet(request,response);
 	}
 
 }

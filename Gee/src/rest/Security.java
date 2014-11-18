@@ -107,7 +107,7 @@ public class Security extends Rest {
 	    response.addCookie(cookie1); 
 	    response.addCookie(cookie2); 
 	    response.addCookie(cookie3); 
-	    response.sendRedirect(response.encodeRedirectURL("../Gee/Eric.html") ); 
+	    response.sendRedirect(response.encodeRedirectURL("http://wikitimetable.com/Gee/Eric.html") ); 
    }
 	
 	

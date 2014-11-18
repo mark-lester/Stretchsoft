@@ -108,9 +108,7 @@ function SetupMenu(){
 	        		setCookie("gee_databasename",databaseName);
 				}
 				values={};
-//				values['url']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 				values['file']=window.btoa(GTFS_Upload_file);
-//				values['file']=$('#dialog-import_gtfs :input[id=upload_file]').val();
 				values['action']='import';
 			    var datastring = JSON.stringify(values);
 				console.log("zip file length="+GTFS_Upload_file.length+" encoded length="+values['file'].length+" datalength="+datastring.length+"\n");
@@ -161,39 +159,55 @@ function SetupMenu(){
 		width : 600,
 		resizable : true,
 		dragable : true,
-		buttons : {
-			"Publish": function() {
+		buttons : [
+		    { 
+		      text:"Publish",
+		      id : "publish_publish",
+		      click : function() {
+					$("#publish_publish" ).hide();
 			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
 			    // this horrid global nested hash was the only way I could map 
 			    // from tableName + gtfs-id value to hibernateId
 				$("#dialog-publish_gtfs-loading" ).show();
 				$("#dialog-publish_gtfs-done" ).hide();
+				
+				
 				$url= "/Gee/GitHub";
 				
+				values={};
+				values['comment']=$("#dialog-publish_gtfs-form #comment").val();
+				values['action']='push';
+			    var datastring = JSON.stringify(values);
+
 				xhr=$.ajax({
-					method:"GET",
+					method:"POST",
 					dataType: 'text',
+					data:  {values : datastring},
 					url: $url,
 					success: function(data,textStatus,xhr){
 						$("#dialog-publish_gtfs-loading" ).hide();
 						$("#dialog-publish_gtfs-done" ).show();
 						obj = JSON.parse(xhr.responseText);
 						$("#dialog-publish_gtfs-done-text" ).html("<pre>"+obj.message+"</pre>");
+						$("#publish_cancel" ).html("Close");
 						},
 					error: function(xhr, ajaxOptions, thrownError){
 						$("#dialog-publish_gtfs-loading" ).hide();
 						$("#dialog-publish_gtfs-done" ).show();
 						$("#dialog-publish_gtfs-done-text" ).html("<pre>"+xhr.responseText+"</pre>");
 						}
-				});	
-				
-			    
-			},
-			Cancel: function() {
-				downcount();
-				 $( this ).dialog( "close" );
-			}
-		}
+				  });	  
+			    }
+		      },
+			  {
+		     	text :	"Cancel",
+			    id : "publish_cancel",
+     			click : function() {
+				     downcount();
+				    $( this ).dialog( "close" );
+			    }
+			  }
+		]
 	});
 	
 	$("#dialog-login" ).dialog({ 
