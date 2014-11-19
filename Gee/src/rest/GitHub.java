@@ -219,7 +219,7 @@ protected boolean createUserRepository(String userId, String github_name) throws
    protected boolean commit_file(String userId,String github_name,String resourceFile,String fileName, String comment) throws Exception {	    
 	    String url=domain+"/repos/"+userId+"/"+github_name+"/contents/"+fileName;
 	    String github_response = executeGet(url);
-	    System.err.println("got content "+github_response);
+	//    System.err.println("got content "+github_response);
 
 	    String sha=null;
 	    JSONObject obj=null;
@@ -330,7 +330,8 @@ protected boolean createUserRepository(String userId, String github_name) throws
             while ((line = in.readLine()) != null) {  
                 System.err.println("PWD="+line);  
             }  
-            p = Runtime.getRuntime().exec("qsub -q batch /home/mcl/otp/run_"+databaseName+".pbs");  
+            System.err.println("about to run PBS");
+            p = Runtime.getRuntime().exec("/var/lib/otp/batch_"+databaseName+".sh");  
             in = new BufferedReader(  
                                 new InputStreamReader(p.getInputStream()));  
             line = null;  

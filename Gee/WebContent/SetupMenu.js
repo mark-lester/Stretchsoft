@@ -152,6 +152,9 @@ function SetupMenu(){
 		open : function (event,ui){
 			$("#dialog-publish_gtfs-loading" ).hide();
 			$("#dialog-publish_gtfs-done" ).hide();
+			$("#publish_publish" ).show();
+			$("#publish_cancel" ).html("Cancel");
+
 			$(".ui-dialog-titlebar").css("background-color", "purple");
 		},
 		autoOpen: false, 
@@ -164,12 +167,12 @@ function SetupMenu(){
 		      text:"Publish",
 		      id : "publish_publish",
 		      click : function() {
-					$("#publish_publish" ).hide();
 			    // only the GTFS id (e.g agencyId) is stored as the value in the select list
 			    // this horrid global nested hash was the only way I could map 
 			    // from tableName + gtfs-id value to hibernateId
-				$("#dialog-publish_gtfs-loading" ).show();
+				$("#dialog-publish_gtfs-loading" ).hide();
 				$("#dialog-publish_gtfs-done" ).hide();
+				$("#publish_publish" ).hide();
 				
 				
 				$url= "/Gee/GitHub";
