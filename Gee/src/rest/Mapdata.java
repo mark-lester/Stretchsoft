@@ -179,6 +179,33 @@ public class Mapdata extends Rest {
 			}
 			
 			break;
+
+			//  List of trips servicing a given stop
+		case "trips":
+			String stopId=request.getParameter("stopId");
+			
+			query="from tables.StopTimes t1,tables.Trips t2" +
+					" where t1.stopId ='"+stopId+"' "+
+			        " and t2.tripId=t1.tripId"+
+					" order by t1.arrivalTime";
+			System.err.print("Mapdata Want query for "+query+"\n"); 
+
+			session = gtfs.factory.openSession();
+			Object tripIds[] = session.createQuery(query).list().toArray();
+			
+			try {
+				PrintWriter out = response.getWriter();
+				out.println(mapper.writeValueAsString(tripIds));
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();	 
+			}
+			
+			break;
+			
 		}
 	}
 

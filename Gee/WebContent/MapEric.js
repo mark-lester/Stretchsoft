@@ -103,11 +103,21 @@ MapEric.prototype.stop_event_handlers = function (mapobject,stopName){
 	mapobject.on('mouseover', function(e) {
 		this.openPopup();
 		});
+
+	mapobject.on('contextmenu', function(e) {
+		eric.tripsDialog(eric.objectToValue[L.stamp(e.target)]);
+		});
 };
 
 MapEric.prototype.Hide = function (){
 	this.Clear();
 	this.draw_flag=false;
+};
+
+MapEric.prototype.tripsDialog = function (stopId){
+    $( "#dialog-trips_table" ).data( "stopId",stopId );
+    $( "#dialog-trips_table" ).data( "eric",this );
+    $( "#dialog-trips_table" ).dialog( "open" );
 };
 
 MapEric.prototype.Clear = function (){

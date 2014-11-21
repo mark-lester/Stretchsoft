@@ -298,6 +298,43 @@ function SetupMenu(){
 		}
 	});
 
+	$("#dialog-trips_table" ).dialog({ 
+		open : function (event,ui){
+			url="/Gee/Mapdata?action=trips&stopId="+$( "#dialog-trips_table" ).data( "stopId" );
+			eric=$( "#dialog-trips_table" ).data( "eric" )
+			$("#dialog-trips_table #table").empty();
+
+			$.getJSON(url, 
+					function( data ) {
+						var outdata=[];
+						$.each( data, function( key, values ) {
+							values=$.extend(values[1], values[0]);
+							var table_row=$("#trips_table-row").clone();
+							table_row.attr('count',row);
+							$(table_row).find(":input").each(function(){
+								$(this).val(values[this.id]);
+							});
+							$(this).click(function(){
+								alert("want to set the trip id to "+values['tripId']);
+							});
+
+							$(table_row).appendTo("#dialog-trips_table #table");	
+						});
+				     }
+				);
+		},
+		autoOpen: false, 
+		modal :true,
+		width : 600,
+		resizable : true,
+		dragable : true,
+		buttons : {
+			Close: function() {
+				 $( this ).dialog( "close" );
+			}
+		}
+	});
+
 
 }
 
