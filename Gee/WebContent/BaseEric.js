@@ -386,7 +386,7 @@ Eric.prototype.Draw = function(force) {
 		this.value(save_select_value);
 		no_change=true;
 	} 
-	this.PopulateTabular();
+//	this.PopulateTabular();
 	if (force || !no_change || this.seed != null) { // only do this if we've changed or were seeded
 		this.request("Changed",force);		
 	}

@@ -40,6 +40,8 @@
     <input id="departureTime" name="departureTime" type=text picker=time required greaterthan="arrivalTime">
    </div>
  */
+var MAX_TABULAR_ROWS=200;
+
 Eric.prototype.MakeTabularTemplate = function (){
 	var elem = document.createElement( "div" );
 	$(elem).attr('id',"tabular-"+this.name)
@@ -50,6 +52,11 @@ Eric.prototype.MakeTabularTemplate = function (){
 
 Eric.prototype.PopulateTabular = function (){
 	var eric=this;
+	if (this.data.length > MAX_TABULAR_ROWS){
+		alert("Sorry, we can only handle "+MAX_TABULAR_ROWS+
+				" in tabulare editing, you will have to edit them indivudually");
+		return false;
+	}
 	$("#tabular-"+this.name+" #parent").empty();
 	this.edit_flag=true;
 	if(this.parent){
@@ -81,6 +88,7 @@ Eric.prototype.PopulateTabular = function (){
 	$(table_footer).appendTo("#tabular-"+this.name+" #table");	
 
 	this.initInputForm("tabular-"+this.name);
+	return true;
 };
 
 

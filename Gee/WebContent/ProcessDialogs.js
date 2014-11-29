@@ -91,6 +91,10 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 	dialogs['tabular']=$("#tabular-"+this.name).dialog({ 
 		open : function (event,ui){
 			$(".ui-dialog-titlebar").css("background-color", "green");
+			if (!eric.PopulateTabular()){
+				 $( this ).dialog( "close" );
+				return;
+			}
 			$("#tabular-"+eric.name+" form").validate().form();
 		},
 		autoOpen: false, 
