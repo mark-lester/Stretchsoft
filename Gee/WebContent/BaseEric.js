@@ -1,3 +1,4 @@
+var MAX_STOPS_TO_VIEW=300;
 function Eric (ED) {
 	this.ED=ED; // jquery element for the entire block of Eric Declaration
     this.UIobject; // jquery element for the  the select list, which will by where the place holder is 
@@ -10,8 +11,8 @@ function Eric (ED) {
     this.relations={}; // all the stuff we need to work out how to cook up a REST url
     this.dialogs={}; // array of dialogs, edit and delete, to attach to the blue,red,green buttons
     this.RESTUrlBase = "/Gee/";
-    this.hid_lookup = [];
-    this.record_lookup = [];
+    this.hid_lookup = {};
+    this.record_lookup = {};
     this.relations={};
     this.edit_flag=false; // used to re-use the edit dialog for create
     this.seed=null;
@@ -30,6 +31,7 @@ function Eric (ED) {
         callback: function( request_struct ) {
         	var queue=this;
         	eric.current_request=request_struct.request;
+        	if (DEBUG)console.log("executing request="+eric.current_request+" on "+eric.name+" with "+request_struct.data);
         		
         	$.when(this.eric[request_struct.request](request_struct.data)).done(function (){
               	eric.current_request=null;      			
@@ -58,32 +60,37 @@ function Eric (ED) {
 			display 			: $(ED).find('#edit input[display]').attr('name'),
 			parentKey 			: $(ED).find('#edit input[id=parentKey]').attr('value'),
 			parentTable 		: $(ED).find('#edit input[id=parentTable]').attr('value'),
+			extendKey 			: $(ED).find('#edit input[id=extendKey]').attr('name'),
+			extendTable 		: $(ED).find('#edit input[id=extendTable]').attr('name'),
 			secondParentKey 	: $(ED).find('#edit input[id=secondParentKey]').attr('value'),
 			secondParentTable 	: $(ED).find('#edit input[id=secondParentTable]').attr('value'),
 			display				: []
 	};
-	var relations=this.relations;
+//	$(ED).find('#edit input[id=extendKey]').attr('value');
+	
 	$(this.ED).find('#edit :input[display]').each(function (){
-		relations.display.push($(this).attr('name'));			
+		eric.relations.display.push($(this).attr('name'));			
 	});
-	eric=this;
+	if (!this.relations.display.length){
+		this.relations.display.push(this.relations.key);		
+	}
+	if (this.relations.order == undefined){
+		this.relations.order=this.relations.display[0];
+	}
 if(DEBUG)console.log("CONFIG "+this.name+" = "+JSON.stringify(this.relations));
     this.type_specific();
 }
 
 Eric.prototype.request = function(request,data,callback,priority) {
 	if(DEBUG)console.log("Asking for  "+request+
-				" on "+this.name+
+			" on "+this.name+
+			" with "+data+
 				" length "+this.queue.size()+
 				" current request ="+this.current_request
 				);
 		switch (request){
 		case "Load":
 			this.queue.clear();  //  Load invalidates anything else on the queue
-			switch (this.name){
-			case 'Instance':  //if we are changing db, then take the opportunity to turn the bloody spinner thing off
-				zerocount(); 
-			}
 		case 'open_edit_dialog':
 		case 'open_tabular_dialog':
 			priority=true;
@@ -168,16 +175,95 @@ Eric.prototype.getrecord = function(key) {
 	return this.record_lookup[key];
 };
 
-Eric.prototype.RESTUrl = function() {
+Eric.prototype.Chain = function(chain) {
+	$KingEric.get(chain.queue).request(chain.func);
+};
+
+// this is just called by stops, perhaps can be abstracted to object specific classes
+Eric.prototype.getMapDims = function() {
+	var bounds;
+	
+	try{
+		bounds=GeeMap.getBounds();
+		var minll=bounds.getSouthWest();
+		var maxll=bounds.getNorthEast();
+		this.min_lat = minll.lat;
+		this.min_lon = minll.lng;
+		this.max_lat = maxll.lat;
+		this.max_lon = maxll.lng;
+		
+	} catch (err) {
+		// map not set up yet, so fetch the lot 
+		this.min_lat = -90;
+		this.min_lon = -180;
+		this.max_lat = 90;
+		this.max_lon = 180;
+	}
+};
+	
+Eric.prototype.stopsCount = function() {
+	var eric=this;
+	    this.getMapDims();
+		var select_set_size_url="/Gee/Mapdata"+
+					"?action=select_set_size"+
+					"&entity="+this.name+
+					"&lat_name=stopLat"+
+					"&lon_name=stopLon"+
+					"&lat_min="+this.min_lat+
+					"&lon_min="+this.min_lon+
+					"&lat_max="+this.max_lat+
+					"&lon_max="+this.max_lon;
+		
+		var $dfd = $.getJSON(select_set_size_url, 
+				function( data ) {
+					eric.select_set_size=data[0];
+					if (DEBUG)console.log("got a select size of "+eric.select_set_size);
+		});
+		return $dfd;
+};
+
+Eric.prototype.ConditionalFetch = function(force) {
+	if (this.select_set_size == undefined || this.select_set_size > MAX_STOPS_TO_VIEW) return;
+	
+	this.url="/Gee/Entity?entity=Stops"+
+			"&bounds=1"+
+			"&lat_name=stopLat"+
+			"&lon_name=stopLon"+
+			"&lat_min="+this.min_lat+
+			"&lon_min="+this.min_lon+
+			"&lat_max="+this.max_lat+
+			"&lon_max="+this.max_lon;
+	this.Flush();
+	this.request("Fetch");
+	this.request("Draw");
+	this.request("LoadChildren",force); 
+};
+
+
+Eric.prototype.loadStopsForBounds = function() {
+	this.request("stopsCount");
+	this.request("ConditionalFetch");
+};
+
+
+Eric.prototype.Prepare = function() {
 	var relations=this.relations;
 	var url=this.RESTUrlBase + relations.method+"?entity="+this.name;
 	
-	if (relations.parentTable){
+    if (relations.parentTable){
 		if (relations.joinkey == undefined){
 			url+="&field="+relations.parentKey+"&value="+this.parent.value();			
 		} else {
 			url+="&parent_field="+relations.parentKey+"&value="+this.parent.value()+	
 				"&join_key="+relations.joinkey+"&join_table="+relations.parentTable;
+		}
+	}
+    
+    if (relations.extendTable){
+		if (relations.extendKey == undefined){
+			url+="&extend_table="+relations.extendTable+"&extend_key="+this.relations.joinkey;			
+		} else {
+			url+="&extend_table="+relations.extendTable+"&extend_key="+this.relations.extendKey;			
 		}
 	}
 	
@@ -186,29 +272,88 @@ Eric.prototype.RESTUrl = function() {
 	} else if (relations.display[0] != undefined){
 		url+="&order="+relations.display[0];
 	}
-	return url;
+	this.url=url;
+	// stops can do something else as well ...
 };
 
 
 //  here are the requests (WARNING, you could request "request", and it would explode)
+Eric.prototype.Flush = function(force) {
+	this.data=[];
+	this.hid_lookup=[];
+	this.record_lookup=[];	
+	for (var child in this.children){
+		this.children[child].Flush();
+	}
+};
+
+
 Eric.prototype.Load = function(force) {
+	switch (this.name){
+	case "Instance": 
+		initial_map_focus=false;
+		zerocount(); 
+		this.Flush();  // wipe everything out, especially the stops
+		
+	default:
+		// normally clear everything out, but we let the stops build up
+		this.data=[];
+		this.hid_lookup=[];
+		this.record_lookup=[];
+		
+		this.request("Prepare");
+		this.request("Fetch");
+		this.request("Draw",true); 
+		this.request("LoadChildren",force); 
+		break;
+		
+	case "Stops":		
+		this.request("loadStopsForBounds");
+	}
+};
+
+Eric.prototype.Fetch = function(chain) {
 	var eric=this;
-//	this.queue.clear();
-	var $dfd = $.getJSON(this.RESTUrl(), 
+	var $dfd=new $.Deferred();
+	var keys=[];
+	if (DEBUG)console.log("calling fetch on"+this.url);
+	$.getJSON(this.url, 
 		function( data ) {
-			var outdata=[];
 			$.each( data, function( key, values ) {
-				if (eric.relations.joinkey){
-					// flatten out composite tuple records from hibernate
-					values=$.extend(values[1], values[0]); 
+				if (Array.isArray(values)){ // flatten out arrays of joined recs
+					var tvalues=[];
+					while (values.length){
+						tvalues=$.extend(tvalues, values[0]); 
+						values.shift();
+					}
+					values=tvalues;
 				} 
 				// save these for use by the edit and delete dialogs
 				eric.hid_lookup[values[eric.relations.key]]=values['hibernateId'];
 				eric.record_lookup[values[eric.relations.key]]=values;
-				outdata.push(values);
+				keys.push(values[eric.relations.key]);
 			});
-			eric.data=outdata;
-			eric.request("Draw",force); 
+			eric.data=[];
+			var tuples = [];
+
+			if (DEBUG) console.log("SORTING recs for "+eric.name+"using sort order "+eric.relations.order);
+			var key;
+			for (key in 
+					keys.sort(
+							function(a,b){
+								if (DEBUG)console.log("COMPARE "+eric.record_lookup[a][eric.relations.order]+
+										" with "+eric.record_lookup[b][eric.relations.order] );
+								return eric.record_lookup[a][eric.relations.order] > eric.record_lookup[b][eric.relations.order];
+							})){
+				if (DEBUG)console.log("PUSHING "+key);
+				eric.data.push(eric.record_lookup[keys[key]]);
+			}
+			if (chain != undefined) eric.request("Chain",chain);
+
+			$dfd.resolve();
+			
+//			eric.data=sort(eric.record_lookup);
+//			eric.request("Draw",true); 
 	     }
 	);
 	return $dfd;
@@ -258,6 +403,7 @@ Eric.prototype.Changed = function(force) {
 			.value(record[this.relations.secondParentKey]);
 		}
 	}
+	
 	// but either way we've changed, so got get the kids
 	this.request("LoadChildren",force);
 	return null;
@@ -287,7 +433,7 @@ Eric.prototype.create_or_update_entity = function(data) {
 		data['action']='update';
 	
 	var datastring = JSON.stringify(data);
-	console.log("trying to update "+datastring);
+	if (DEBUG)console.log("trying to update "+datastring);
 	var $url=this.RESTUrlBase+this.relations.method;
 
 	create_dfd = new $.Deferred();
@@ -415,7 +561,7 @@ Eric.prototype.replicate_entity = function (data){
 		
 		data[key]=""+val;
 	});
-	console.log("IN DO REPLICATE sourceTripId="+data.sourceTripId);
+	if (DEBUG)console.log("IN DO REPLICATE sourceTripId="+data.sourceTripId);
 	data['entity']= this.name; 
 	data['action']='replicate';
 	

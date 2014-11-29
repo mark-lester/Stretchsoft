@@ -83,6 +83,7 @@ public class Loader extends Rest {
 		}
 		
 		ObjectMapper mapper = new ObjectMapper();
+//		System.err.println("got json paremeter block "+json);
 		Hashtable<String,String> record = mapper.readValue(json, Hashtable.class);
 
 		response.setContentType("text/html");

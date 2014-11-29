@@ -70,6 +70,7 @@ Eric.prototype.init_edit_values = function (){
 		record=this.currentRecord();
 		if (record == null){
 			console.log("oh, no data");
+			record=[];
 		}
 	} else {
 		record=[];
@@ -130,7 +131,7 @@ Eric.prototype.init_edit_values_over_element = function (element,record){
        		    		$(this).attr("readonly",true);
            				var from = $KingEric.get($(this).attr("table"));
            				var from_record=from.getrecord(record[from.relations.key]);
-           				$(this).val(from_record[this.id]);
+           				if (from_record) $(this).val(from_record[this.id]);
            			} else {
            				if (record != null && record[this.id] != null )
            					$(this).val(record[this.id]);           				

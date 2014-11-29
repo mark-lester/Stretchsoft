@@ -153,6 +153,7 @@ function MapSetup_openlayers(king){
 
     GeeMap.addControl(new OpenLayers.Control.LayerSwitcher());
     GeeMap.addControl(new OpenLayers.Control.PanZoomBar());
+
 }
 
 function MapSetup_Leaflet(){
@@ -210,13 +211,20 @@ function MapSetup_Leaflet(){
 	var newControl = new L.Control.EasyButtons;
     GeeMap.addControl(newControl);
 	GeeMap.on('dblclick',function(e) {
-		console.log("got a double click event");
+		if (DEBUG)console.log("got a double click event");
 		var Stops=$KingEric.get("Stops");
 		Stops.dialogs.edit.data["stopLat"]=e.latlng.lat;
 		Stops.dialogs.edit.data["stopLon"]=e.latlng.lng;
 		Stops.request("open_edit_dialog",false);
 	});
+    GeeMap.on('zoomend', map_view_changed);
+    GeeMap.on('dragend', map_view_changed);
 
+}
+
+function map_view_changed(){
+	if (DEBUG)console.log("map view changed");
+	$KingEric.get("Stops").request("loadStopsForBounds");
 }
 
 function set_row_content(row_content,eric){

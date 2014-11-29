@@ -50,7 +50,7 @@ public class Entity extends Rest {
 		ObjectMapper mapper = new ObjectMapper();
 		String entity = request.getParameter("entity");
 		entity = entity == null ? "Stops" : entity;
-		String query="FROM "+entity+" as child_table";
+		String query="FROM "+entity+" as child_table ";
 		if (!admin.verifyReadAccess(databaseName,userId)){
 			Print404(response,"You do not have read permission for this database");
 			return;
@@ -64,34 +64,61 @@ public class Entity extends Rest {
 		if (request.getParameter("second_join_table") != null){
 			query += ","+request.getParameter("second_join_table")+" as grandparent_table";
 		}
-		if (request.getParameter("join_table") != null || request.getParameter("field") != null){
-			query+=" WHERE ";			
+		if (request.getParameter("extend_table") != null){
+			query += ","+request.getParameter("extend_table")+" as extend_table";
 		}
+
+		boolean query_started=false;
 		if (request.getParameter("join_table") != null){
+			if (!query_started) query+=" WHERE ";
+			if (query_started) query +=" AND ";
+			
 			query += "child_table."+request.getParameter("join_key")+"="+
 					"parent_table."+request.getParameter("join_key");
+			query_started=true;
 		}
 		if (request.getParameter("second_join_table") != null){
-			query += "AND parent_table."+request.getParameter("second_join_key")+"="+
+			if (!query_started) query+=" WHERE ";
+			if (query_started) query +=" AND ";
+			query += "parent_table."+request.getParameter("second_join_key")+"="+
 					"grandparent_table."+request.getParameter("second_join_key");
+			query_started=true;
+		}
+		if (request.getParameter("extend_table") != null){
+			if (!query_started) query+=" WHERE ";
+			if (query_started) query +=" AND ";
+			
+			query += "child_table."+request.getParameter("extend_key")+"="+
+					"extend_table."+request.getParameter("extend_key");
+			query_started=true;
 		}
 		
 		if (request.getParameter("field") != null){
-			if (request.getParameter("join_table")!=null){
-				query +=" AND child_table.";
-			} else {
-				query +=" child_table.";
-			}
-			query+=request.getParameter("field")+"='"+request.getParameter("value")+"'";
+			if (!query_started) query+=" WHERE ";
+			if (query_started) query +=" AND ";
+			query+=" child_table."+request.getParameter("field")+"='"+request.getParameter("value")+"'";
+			query_started=true;
 		}
+		
 		if (request.getParameter("parent_field") != null){
-			if (request.getParameter("join_table")!=null){
-				query +=" AND parent_table.";
-			} else {
-				query +=" parent_table.";
-			}
-			query+=request.getParameter("parent_field")+"='"+request.getParameter("value")+"'";
+			if (!query_started) query+=" WHERE ";
+			if (query_started) query +=" AND ";
+			query+=" parent_table."+request.getParameter("parent_field")+"='"+request.getParameter("value")+"' ";
+			query_started=true;
 		}
+		
+		if (request.getParameter("bounds") != null){
+			if (!query_started) query+=" WHERE ";
+			if (query_started) query +=" AND ";
+			query+=
+					"child_table."+request.getParameter("lat_name")+" >= \'"+request.getParameter("lat_min")+"\' AND "+
+					"child_table."+request.getParameter("lon_name")+" >= \'"+request.getParameter("lon_min")+"\' AND "+
+					"child_table."+request.getParameter("lat_name")+" <= \'"+request.getParameter("lat_max")+"\' AND "+
+					"child_table."+request.getParameter("lon_name")+" <= \'"+request.getParameter("lon_max")+"\' ";
+			query_started=true;
+		}
+		
+		
 		/*
 		if (request.getParameter("secondfield") != null){
 			query+=" AND "+request.getParameter("secondfield")+"='"+request.getParameter("secondvalue")+"'";
@@ -105,9 +132,7 @@ public class Entity extends Rest {
 		if (request.getParameter("order_parent") != null){
 			query+=" ORDER BY parent_table."+request.getParameter("order_parent");
 		}
-	
-		
-//		System.err.print("Want query for "+query+"\n"); 
+		System.err.print("Want query for "+query+"\n"); 
 		
 		Session session = gtfs.factory.openSession();
 		Object entities[] = session.createQuery(query).list().toArray();

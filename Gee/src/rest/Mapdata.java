@@ -66,7 +66,9 @@ public class Mapdata extends Rest {
 		if (action == null){
 			action="bounds";
 		}
-
+		String query=null;
+		Object entities[];
+		
 		switch (action){
 		case "heal":
 		case "add_shape_point_after":
@@ -124,17 +126,70 @@ public class Mapdata extends Rest {
 		break;
 		// end case "bounds"
 		
+		case "select_set_size":
+			query="select count(*) from tables."+request.getParameter("entity")+
+				" where "+
+				request.getParameter("lat_name")+" >= \'"+request.getParameter("lat_min")+"\' AND "+
+				request.getParameter("lon_name")+" >= \'"+request.getParameter("lon_min")+"\' AND "+
+				request.getParameter("lat_name")+" <= \'"+request.getParameter("lat_max")+"\' AND "+
+				request.getParameter("lon_name")+" <= \'"+request.getParameter("lon_max")+"\'";
+			System.err.print("Want mapdata query for "+query+"\n"); 
+
+			session = gtfs.factory.openSession();
+			entities = session.createQuery(query).list().toArray();
+			session.close();
+			try {
+				PrintWriter out = response.getWriter();
+				out.println(mapper.writeValueAsString(entities));
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();	 
+			}
+			
+		break;	
+		// select * from stops where stops.stop_name like '%q%' order by instr(stop_name,'q'),stop_name;
+		case "geocode":
+			String geo_name=request.getParameter("geo_name");
+			String geo_string=request.getParameter("geo_string");
+			
+			query="from tables."+request.getParameter("entity")+
+				" where "+
+				geo_name+" like \'%"+geo_string+"%\' "+
+				"order by instr("+geo_name+",'"+geo_string+"'),"+geo_name;
+			System.err.print("Want mapdata query for "+query+"\n"); 
+
+			session = gtfs.factory.openSession();
+			entities = session.createQuery(query).list().toArray();
+			session.close();
+			try {
+				PrintWriter out = response.getWriter();
+				out.println(mapper.writeValueAsString(entities));
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();	 
+			}
+			
+		break;	
+		// end case "set_size"
+			
+			
 		// this should definitely be a view of some kind
 		case "stops":
 			String tripId=request.getParameter("tripId");
-			String query="select t1.stopLat, t1.stopLon, t1.stopId, t2.arrivalTime, t2.departureTime"+
+			query="select t1.stopLat, t1.stopLon, t1.stopId, t2.arrivalTime, t2.departureTime"+
 					" from tables.Stops t1,tables.StopTimes t2"+
 					" where t1.stopId=t2.stopId and t2.tripId='"+tripId+"' "+
 					" order by t2.stopSequence";
 			System.err.print("Mapdata Want query for "+query+"\n"); 
 
 			session = gtfs.factory.openSession();
-			Object entities[] = session.createQuery(query).list().toArray();
+			entities = session.createQuery(query).list().toArray();
 			session.close();
 			try {
 				PrintWriter out = response.getWriter();

@@ -179,12 +179,12 @@ MapEric.prototype.Draw = function (){
 	});
 	
 	if (this.draw_flag && eric.parent.data.length)
-		if (first_call || !GeeMap.getBounds().contains(this.featureGroup.getBounds())){
+		if (!initial_map_focus){// || !GeeMap.getBounds().contains(this.featureGroup.getBounds())){
 			if (DEBUG) console.log("fitting to bounds");
 			GeeMap.fitBounds(this.featureGroup.getBounds());		
 		}		
    
-	first_call=false;
+	initial_map_focus=true;
 	// we are politely issuing a 'Changed' request incase we have further descendants
 	this.request("Changed");		
 };
@@ -197,6 +197,7 @@ MapEric.prototype.Changed = function(force) {
 	}
 	return null;
 };
+
 
 MapEric.prototype.Draw_openlayers = function (){
 	this.objectstore=[];

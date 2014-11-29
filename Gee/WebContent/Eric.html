@@ -265,49 +265,6 @@ hr { color: #7FA423;
 
 </div>
 
-<!--  Eric DECLARATION: Stops -->
-
-<div id="Stops" class="Eric" parent="Instance">
-<div id="select">
-<label>Stops</label>
-</div>
-
-<div id="edit" title="Add/Edit Stop" class="edit-dialog">
-<form id="edit">
-<fieldset>
-	<input id="hibernateId" type=hidden>
-	<label for="stopId">Stop ID (required)</label>
-    <input id="stopId" name="stopId" size=20 maxlength=20 required key><br>
-	<label for="stopCode">Code (required)</label>
-    <input id="stopCode" name="stopCode" size=30 maxlength=30 required><br>
-	<label for="stopName">Name (required)</label>
-    <input id="stopName" name="stopName" size=30 maxlength=30 required display><br>
-	<label for="stopDesc">Description</label>
-    <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
-	<label for="stopUrl">URL</label>
-    <input id="stopUrl" name="stopUrl" size=30 maxlength=100><br>
-	<label for="stopLat">Latitude (required)</label>
-    <input id="stopLat" name="stopLat" size=30 maxlength=100 required><br>
-	<label for="stopLon">Longitude (required)</label>
-    <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
-</fieldset>
- </form>
-</div>
-
-<div id="delete" title="Delete Stops">
-<form id="delete">
-     Are you sure you want to delete  Stop <input readonly name="display" size=20 maxlength=20><br>
-     You will lose any Stop times from any trips that use them if you do.
-</form>
-</div>
-<div id="table-row" class=table-row>
-    <input id="stopId" name="stopId" size=10 maxlength=20 required key>
-    <input id="stopName" name="stopName" size=20 maxlength=50 required display>
-    <input id="stopLat" name="stopLat" size=10 maxlength=20 required>
-    <input id="stopLon" name="stopLon" size=10 maxlength=20 required>
-</div>
-
-</div>
 
 <!--  Eric DECLARATION: Transfers -->
 
@@ -680,9 +637,9 @@ you will lose all the routes, trips and stoptimes if you do
 	<input id="hibernateId" type=hidden>
 	<input id="parentTable" value="Trips" type=hidden>
 	<input id="parentKey" value="tripId" type=hidden>
-	<input id="secondParentTable" value="Stops" type=hidden>
-	<input id="secondParentKey" value="stopId" type=hidden>
 	<input id="shapeDistTraveled" value="0" type=hidden>
+	<input id="extendTable" name="Stops" type=hidden>
+	<input id="extendKey" name="stopId" type=hidden>
 	
   	<label for="tripId">Trip ID</label>
     <input id="tripId" name="tripId" size=10 maxlength=10 required><br>
@@ -847,6 +804,50 @@ Route, Origin, Destination, Contains
     <input id="destinationId" name="destinationId" size=10 maxlength=10><br>
     <input id="containsId" name="containsId" size=10 maxlength=10><br>
 </div>
+</div>
+<!--  Eric DECLARATION: Stops -->
+
+<div id="Stops" class="Eric" parent="Instance">
+<div id="select">
+<label>Stops</label>
+</div>
+
+<div id="edit" title="Add/Edit Stop" class="edit-dialog">
+<form id="edit">
+<fieldset>
+
+	<input id="hibernateId" type=hidden>
+	<label for="stopId">Stop ID (required)</label>
+    <input id="stopId" name="stopId" size=20 maxlength=20 required key><br>
+	<label for="stopCode">Code (required)</label>
+    <input id="stopCode" name="stopCode" size=30 maxlength=30 required><br>
+	<label for="stopName">Name (required)</label>
+    <input id="stopName" name="stopName" size=30 maxlength=30 required display><br>
+	<label for="stopDesc">Description</label>
+    <input id="stopDesc" name="stopDesc" size=30 maxlength=30><br>
+	<label for="stopUrl">URL</label>
+    <input id="stopUrl" name="stopUrl" size=30 maxlength=100><br>
+	<label for="stopLat">Latitude (required)</label>
+    <input id="stopLat" name="stopLat" size=30 maxlength=100 required><br>
+	<label for="stopLon">Longitude (required)</label>
+    <input id="stopLon" name="stopLon" size=30 maxlength=100 required><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="delete" title="Delete Stops">
+<form id="delete">
+     Are you sure you want to delete  Stop <input readonly name="display" size=20 maxlength=20><br>
+     You will lose any Stop times from any trips that use them if you do.
+</form>
+</div>
+<div id="table-row" class=table-row>
+    <input id="stopId" name="stopId" size=10 maxlength=20 required key>
+    <input id="stopName" name="stopName" size=20 maxlength=50 required display>
+    <input id="stopLat" name="stopLat" size=10 maxlength=20 required>
+    <input id="stopLon" name="stopLon" size=10 maxlength=20 required>
+</div>
+
 </div>
 
 <div id="Map_Stops" class="Eric" parent="Stops" type="MapEric" title="All Stops">

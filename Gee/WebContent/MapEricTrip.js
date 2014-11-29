@@ -10,19 +10,17 @@ MapEricTrip.prototype.Draw = function (){
 	this.initDraw();
 
 	var eric=this;
-    var data = eric.parent.data;
-	var stops_eric=$KingEric.get("Stops");
+    var data = $KingEric.get("StopTimes").data;
 	var latlngs = Array();
 	//Get latlng from first marker
 	if (data.length < 1){
 		return null; // dont try any leaflet stuff with nothing
 	}
 	$.each( data, function( key, val ) {
-		var StopRecord = stops_eric.getrecord(val['stopId']); 
-		var mapobject=L.marker([StopRecord['stopLat'],StopRecord['stopLon']], {icon: boldTrainIcon, draggable: true});
+		var mapobject=L.marker([val['stopLat'],val['stopLon']], {icon: boldTrainIcon, draggable: true});
 		eric.objectstore.push(mapobject);
 		latlngs.push(mapobject.getLatLng());
-		eric.stop_event_handlers(mapobject,StopRecord.stopName + "<br> A:"+val.arrivalTime+" D:"+val.departureTime);
+		eric.stop_event_handlers(mapobject,val.stopName + "<br> A:"+val.arrivalTime+" D:"+val.departureTime);
 		eric.objectToValue[L.stamp(mapobject)]=val['stopId'];
 		eric.featureGroup.addLayer(mapobject);
 		if (eric.draw_flag) mapobject.addTo(GeeMap);
