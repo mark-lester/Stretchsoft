@@ -10,13 +10,13 @@ import java.text.ParseException;
 public class CalendarDates extends GtfsBase {
 
 String serviceId="";
-Date date;
+String date;
 int exceptionType;
 public CalendarDates(){}
 
 public CalendarDates(
 		String serviceId,
-		Date date,
+		String date,
 		int exceptionType
 		){
 		this.serviceId=serviceId;
@@ -31,20 +31,8 @@ public CalendarDates(Hashtable <String,String> record){
 public void update(Hashtable <String,String> record){
 boolean parse_failed=false;
 	this.serviceId=record.get("serviceId");
-	try {
-		this.date=new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).parse(record.get("date"));
-	} catch (ParseException ex){
-		parse_failed=true;
-	}
+	this.date=record.get("date");
 	
-	if (parse_failed == true){ // could be input data from a GTFS.zip, so try yyyyMMdd
-		try {
-			this.date=new SimpleDateFormat("yyyyMMdd",Locale.getDefault()).parse(record.get("date"));
-		} catch (ParseException ex){
-			parse_failed=true;
-		}		
-	}
-
 	try {
 		this.exceptionType=Integer.parseInt(record.get("exceptionType"));
 	} catch (NumberFormatException ex){
@@ -59,7 +47,7 @@ public Hashtable <String,String> hash(){
 	this.serviceId=record.put("serviceId",this.serviceId);
     SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");  
     if (this.date != null)
-    	record.put("date",df.format(this.date));
+    	record.put("date",this.date);
 	record.put("exceptionType",Integer.toString(this.exceptionType));
 	return record;
 }
@@ -71,11 +59,11 @@ public void setserviceId(String serviceId){
 public String getserviceId(){
 		return this.serviceId;
 	}
-public void setdate(Date date){
+public void setdate(String date){
 		this.date = date;
 	}
 
-public Date getdate(){
+public String getdate(){
 		return this.date;
 	}
 public void setexceptionType(int exceptionType){

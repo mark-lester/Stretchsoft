@@ -5,6 +5,10 @@ import java.io.PrintWriter;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Iterator;
 
@@ -22,6 +26,8 @@ import DBinterface.*;
 import tables.*;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+
+import antlr.collections.List;
 
 
 /**
@@ -213,10 +219,22 @@ public class Mapdata extends Rest {
 
 			session = gtfs.factory.openSession();
 			Object stoptimes[] = session.createQuery(query).list().toArray();
+			
 			int stopSequence=1;
+			Arrays.sort(stoptimes, 
+					(Comparator<Object>) new CustomComparator());
+			
 			for (Object record :stoptimes){
 				StopTimes rec = (StopTimes)record;
 				Transaction tx = session.beginTransaction();
+				// this is the signal to say insert after this sequence
+				// the sorting should have put it after the same one of that sequence number
+				if (rec.getarrivalTime().matches("00:00:00")){
+					rec.setarrivalTime("");
+				}
+				if (rec.getdepartureTime().matches("00:00:00")){
+					rec.setdepartureTime("");
+				}
 				rec.setstopSequence(stopSequence++);
 			    tx.commit();
 			}

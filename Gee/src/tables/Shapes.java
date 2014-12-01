@@ -35,7 +35,6 @@ public Shapes(Hashtable <String,String> record){
 }
 
 public void update(Hashtable <String,String> record){
-	System.err.println("in update for Shapes");
 		this.shapeId=record.get("shapeId");
 		this.shapePtLat=Double.parseDouble(record.get("shapePtLat"));
 		this.shapePtLon=Double.parseDouble(record.get("shapePtLon"));
@@ -44,7 +43,6 @@ public void update(Hashtable <String,String> record){
 				!record.get("shapeDistTraveled").isEmpty()){
 			this.shapeDistTraveled=Double.parseDouble(record.get("shapeDistTraveled"));			
 		}
-		System.err.println("done update for Shapes");
 	}
 
 public Hashtable <String,String> hash(){

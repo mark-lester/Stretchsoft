@@ -60,7 +60,7 @@ public void update(Hashtable <String,String> record) throws ParseException{
 				!record.get("departureTime").isEmpty()){
 			record.put("arrivalTime", record.get("departureTime"));
 		} else {
-			record.put("arrivalTime", "00:00:00");			
+			record.put("arrivalTime", "");			
 		}
 	}
 	
@@ -71,8 +71,8 @@ public void update(Hashtable <String,String> record) throws ParseException{
 	}
 			
 		this.tripId=record.get("tripId");
-			this.arrivalTime=record.get("arrivalTime");
-			this.departureTime=record.get("departureTime");
+		this.arrivalTime=record.get("arrivalTime");
+		this.departureTime=record.get("departureTime");
 		this.stopId=record.get("stopId");
 		try {
 			this.stopSequence=Integer.parseInt(record.get("stopSequence"));

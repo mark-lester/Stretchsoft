@@ -15,9 +15,9 @@
       <property name="fareId" column="fare_id" type="string"  unique="true"/>
       <property name="pricE" column="price" type="string"/>
       <property name="currencyType" column="currency_type" type="string"/>
-      <property name="paymentMethod" column="payment_method" type="boolean"/>
-      <property name="transferS" column="transfers" type="integer"/>
-      <property name="transferDuration" column="transfer_duration" type="integer"/>
+      <property name="paymentMethod" column="payment_method" type="integer"/>
+      <property name="transferS" column="transfers" type="string"/>
+      <property name="transferDuration" column="transfer_duration" type="string"/>
    </class>
 </hibernate-mapping>
 

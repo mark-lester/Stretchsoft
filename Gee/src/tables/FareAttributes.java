@@ -13,18 +13,18 @@ public class FareAttributes extends GtfsBase {
 String fareId="";
 String pricE="";
 String currencyType="";
-boolean paymentMethod=false;
-int transferS=0;
-int transferDuration=0;
+int paymentMethod=0;
+String transferS="";
+String transferDuration="";
 public FareAttributes(){}
 
 public FareAttributes(
 		String fareId,
 		String pricE,
 		String currencyType,
-		boolean paymentMethod,
-		int transferS,
-		int transferDuration
+		int paymentMethod,
+		String transferS,
+		String transferDuration
 		){
 		this.fareId=fareId;
 		this.pricE=pricE;
@@ -41,24 +41,20 @@ public FareAttributes(Hashtable <String,String> record){
 public void update(Hashtable <String,String> record){
 		this.fareId=record.get("fareId");
 		this.pricE=record.get("pricE");
+		this.paymentMethod=Integer.parseInt(record.get("paymentMethod"));
 		this.currencyType=record.get("currencyType");
-		this.transferS=Integer.parseInt(record.get("transferS"));
-
-		try {
-			this.transferDuration=Integer.parseInt(record.get("transferDuration"));
-		} catch (NumberFormatException ex){
-//			System.err.println(ex);		
-			this.transferDuration=0;
-		}
+		this.transferS=record.get("transferS");
+		this.transferDuration=record.get("transferDuration");
 	}
 
 public Hashtable <String,String> hash(){
 	Hashtable <String,String> record=new Hashtable<String,String> ();
 	record.put("fareId",this.fareId);
 	record.put("pricE",this.pricE);
-	record.put("currencyType",this.currencyType);
-	record.put("transferS",Integer.toString(this.transferS));
-	record.put("transferDuration",Integer.toString(this.transferDuration));
+	record.put("pricE",this.pricE);
+	record.put("paymentMethod",Integer.toString(this.paymentMethod));
+	record.put("transferS",this.transferS);
+	record.put("transferDuration",this.transferDuration);
 
 	return record;
 }
@@ -85,25 +81,25 @@ public void setcurrencyType(String currencyType){
 public String getcurrencyType(){
 		return this.currencyType;
 	}
-public void setpaymentMethod(boolean paymentMethod){
+public void setpaymentMethod(int paymentMethod){
 		this.paymentMethod = paymentMethod;
 	}
 
-public boolean getpaymentMethod(){
+public int getpaymentMethod(){
 		return this.paymentMethod;
 	}
-public void settransferS(int transferS){
+public void settransferS(String transferS){
 		this.transferS = transferS;
 	}
 
-public int gettransferS(){
+public String gettransferS(){
 		return this.transferS;
 	}
-public void settransferDuration(int transferDuration){
+public void settransferDuration(String transferDuration){
 		this.transferDuration = transferDuration;
 	}
 
-public int gettransferDuration(){
+public String gettransferDuration(){
 		return this.transferDuration;
 	}
 }
