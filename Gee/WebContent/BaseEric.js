@@ -331,8 +331,10 @@ Eric.prototype.Fetch = function(chain) {
 				// save these for use by the edit and delete dialogs
 				eric.hid_lookup[values[eric.relations.key]]=values['hibernateId'];
 				eric.record_lookup[values[eric.relations.key]]=values;
+				eric.data.push(values);
 				keys.push(values[eric.relations.key]);
 			});
+			/*
 			eric.data=[];
 			var tuples = [];
 
@@ -348,6 +350,7 @@ Eric.prototype.Fetch = function(chain) {
 				if (DEBUG)console.log("PUSHING "+key);
 				eric.data.push(eric.record_lookup[keys[key]]);
 			}
+			*/
 			if (chain != undefined) eric.request("Chain",chain);
 
 			$dfd.resolve();
