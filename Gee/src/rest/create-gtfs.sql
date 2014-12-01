@@ -169,8 +169,8 @@ CREATE TABLE fare_attributes (
 	price VARCHAR(255) NOT NULL,
 	currency_type VARCHAR(255) NOT NULL,
 	payment_method INTEGER,
-	transfers INTEGER,
-	transfer_duration MEDIUMINT UNSIGNED
+	transfers VARCHAR(255),
+	transfer_duration VARCHAR(255) 
 );
 
 /*==========================================*/
@@ -219,8 +219,8 @@ CREATE TABLE transfers (
 	hibernate_id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY (hibernate_id),
 	from_stop_id VARCHAR(255) NOT NULL,
 	to_stop_id VARCHAR(255) NOT NULL,
-	transfer_type INTEGER,
-	min_transfer_time MEDIUMINT NOT NULL,
+	transfer_type VARCHAR(255),
+	min_transfer_time VARCHAR(255),
 	FOREIGN KEY (from_stop_id) references stops(stop_id) on delete cascade on update cascade,
 	FOREIGN KEY (to_stop_id) references stops(stop_id) on delete cascade on update cascade
 );
