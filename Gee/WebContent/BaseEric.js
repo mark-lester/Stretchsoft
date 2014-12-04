@@ -280,8 +280,8 @@ Eric.prototype.Prepare = function() {
 //  here are the requests (WARNING, you could request "request", and it would explode)
 Eric.prototype.Flush = function(force) {
 	this.data=[];
-	this.hid_lookup=[];
-	this.record_lookup=[];	
+	this.hid_lookup={};
+	this.record_lookup={};	
 	for (var child in this.children){
 		this.children[child].Flush();
 	}
@@ -298,8 +298,8 @@ Eric.prototype.Load = function(force) {
 	default:
 		// normally clear everything out, but we let the stops build up
 		this.data=[];
-		this.hid_lookup=[];
-		this.record_lookup=[];
+		this.hid_lookup={};
+		this.record_lookup={};
 		
 		this.request("Prepare");
 		this.request("Fetch");
@@ -321,36 +321,23 @@ Eric.prototype.Fetch = function(chain) {
 		function( data ) {
 			$.each( data, function( key, values ) {
 				if (Array.isArray(values)){ // flatten out arrays of joined recs
-					var tvalues=[];
+					var tvalues={};
+					// save the hibernate id which should be in the first record
+					var hibernateId=values[0].hibernateId;
 					while (values.length){
 						tvalues=$.extend(tvalues, values[0]); 
 						values.shift();
 					}
+
 					values=tvalues;
+					values.hibernateId=hibernateId;
+					var datastring = JSON.stringify(values);
 				} 
 				// save these for use by the edit and delete dialogs
 				eric.hid_lookup[values[eric.relations.key]]=values['hibernateId'];
 				eric.record_lookup[values[eric.relations.key]]=values;
 				eric.data.push(values);
-				keys.push(values[eric.relations.key]);
 			});
-			/*
-			eric.data=[];
-			var tuples = [];
-
-			if (DEBUG) console.log("SORTING recs for "+eric.name+"using sort order "+eric.relations.order);
-			var key;
-			for (key in 
-					keys.sort(
-							function(a,b){
-								if (DEBUG)console.log("COMPARE "+eric.record_lookup[a][eric.relations.order]+
-										" with "+eric.record_lookup[b][eric.relations.order] );
-								return eric.record_lookup[a][eric.relations.order] > eric.record_lookup[b][eric.relations.order];
-							})){
-				if (DEBUG)console.log("PUSHING "+key);
-				eric.data.push(eric.record_lookup[keys[key]]);
-			}
-			*/
 			if (chain != undefined) eric.request("Chain",chain);
 
 			$dfd.resolve();

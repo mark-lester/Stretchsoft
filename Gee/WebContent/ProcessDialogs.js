@@ -35,6 +35,7 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 				var $inputs = $('#edit-'+eric.name+' input');
 			    var values = {};
 			    // work through the form to get the values
+			    console.log("UPDATE processing "+this.id+" to value "+$(this).val());
 			    $inputs.each(function() {
 			    	switch ($(this).attr('type')){
 		    		case 'checkbox':
@@ -125,7 +126,7 @@ if(DEBUG)    console.log("Processing dialogs for "+this.name);
 			$(".ui-dialog-titlebar").css("background-color", "red");
 			// there should only by one "do you wanna delete this field
 			// set it to whatever the select text is
-			if (DEBUG) console.log("I wanna delete a "+eric.name +" of value "+eric.value());
+			if (DEBUG||1) console.log("I wanna delete a "+eric.name +" of value "+eric.value());
 			$("#delete-"+eric.name +" :input" ).val(eric.value());		
 		},
 		autoOpen: false, 

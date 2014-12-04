@@ -218,14 +218,12 @@ public class Mapdata extends Rest {
 			System.err.print("Mapdata Want query for "+query+"\n"); 
 
 			session = gtfs.factory.openSession();
-			Object stoptimes[] = session.createQuery(query).list().toArray();
-			
+			Object objects[] = session.createQuery(query).list().toArray();
+			StopTimes[] stoptimes = Arrays.copyOf(objects, objects.length, StopTimes[].class);
 			int stopSequence=1;
-			Arrays.sort(stoptimes, 
-					(Comparator<Object>) new CustomComparator());
-			
-			for (Object record :stoptimes){
-				StopTimes rec = (StopTimes)record;
+			Arrays.sort(stoptimes);
+
+			for (StopTimes rec :stoptimes){
 				Transaction tx = session.beginTransaction();
 				// this is the signal to say insert after this sequence
 				// the sorting should have put it after the same one of that sequence number

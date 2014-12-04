@@ -1,8 +1,9 @@
 package rest;
 
 import tables.StopTimes;
+import java.util.Comparator;
 
-public class CustomComparator {
+public class CustomComparator  implements Comparator{
 
     public int compare(Object a, Object b) {
 		   StopTimes ar = (StopTimes)a;
