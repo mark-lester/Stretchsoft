@@ -938,6 +938,7 @@ Route, Origin, Destination, Contains
  </form>
  </div>
  
+ 
  <div id="trips_table-row">
  <tr>
  <td><input id=routeId size=10 readonly></td>
@@ -946,15 +947,20 @@ Route, Origin, Destination, Contains
  <td><input id=tripHeadsign size=20 readonly></td>
  </tr>
  </div>
+ <div id="trips_table-header">
+<tr>
+ <td>Route</td>
+ <td>Trip</td>
+ <td>arrival</td>
+ <td>destination</td>
+ </tr>
+ </div>
+
+ 
  <div id="dialog-trips_table" title="Show Trips for this Stop" class="edit-dialog">
  <small>
-<table> <tr>
- <th>Route</th>
- <th>Trip</th>
- <th>arrival</th>
- <th>destination</th>
- </tr>
- <div id="table"></div>
+ <table> 
+ <div id="table-content"></div>
 </table>
  </small>
  </div>

@@ -302,7 +302,13 @@ function SetupMenu(){
 		open : function (event,ui){
 			url="/Gee/Mapdata?action=trips&stopId="+$( "#dialog-trips_table" ).data( "stopId" );
 			eric=$( "#dialog-trips_table" ).data( "eric" )
-			$("#dialog-trips_table #table").empty();
+			$("#dialog-trips_table #table-content").empty();
+			var table_header=$("#trips_table-row").clone();
+			 $(table_header).find("#routeId").val("Route");
+			 $(table_header).find("#tripId").val("Trip");
+			 $(table_header).find("#arrivalTime").val("Arrival");
+			 $(table_header).find("#tripHeadsign").val("destination");
+			$(table_header).appendTo("#dialog-trips_table #table-content");	
 
 			$.getJSON(url, 
 					function( data ) {
@@ -310,7 +316,7 @@ function SetupMenu(){
 						$.each( data, function( key, values ) {
 							values=$.extend(values[1], values[0]);
 							var table_row=$("#trips_table-row").clone();
-							table_row.attr('count',row);
+//							table_row.attr('count',row);
 							$(table_row).find(":input").each(function(){
 								$(this).val(values[this.id]);
 							});
@@ -318,7 +324,7 @@ function SetupMenu(){
 								alert("want to set the trip id to "+values['tripId']);
 							});
 
-							$(table_row).appendTo("#dialog-trips_table #table");	
+							$(table_row).appendTo("#dialog-trips_table #table-content");	
 						});
 				     }
 				);

@@ -555,6 +555,7 @@ Eric.prototype.replicate_entity = function (data){
 	data['entity']= this.name; 
 	data['action']='replicate';
 	
+	
 	if (!data['shiftMinutes']) data['shiftMinutes']= "0";
 	
 	if (data['newStartTime']){
