@@ -30,12 +30,17 @@ function Eric (ED) {
         eric :  this,
         callback: function( request_struct ) {
         	var queue=this;
+        	// immediately remove it from the list of currently queued requests, allowing for a 
+        	// reissue of a a request in execution
+    		queue.current_requests[request_struct.request]=undefined;
+        	queue.active=true;
         	eric.current_request=request_struct.request;
         	if (DEBUG)console.log("executing request="+eric.current_request+" on "+eric.name+" with "+request_struct.data);
         		
         	$.when(this.eric[request_struct.request](request_struct.data)).done(function (){
               	eric.current_request=null;      			
    if(DEBUG)console.log("I finished "+request_struct.request+" on "+eric.name);
+   				queue.active=false;
         		if (request_struct.callback != undefined){
         			request_struct.callback(request_struct);
         		}
@@ -48,6 +53,7 @@ function Eric (ED) {
         }
     });
     this.queue.eric = this;
+    this.queue.current_requests={};
     this.name = $(ED).attr('id');
     this.title = $(ED).attr('title') || $(ED).find("#select label").text();
 	this.parent_name = $(ED).attr('parent') || $(ED).find('#edit input[id=parentTable]').val();
@@ -82,6 +88,10 @@ if(DEBUG)console.log("CONFIG "+this.name+" = "+JSON.stringify(this.relations));
 }
 
 Eric.prototype.request = function(request,data,callback,priority) {
+	if (this.queue.current_requests[request]){
+		if(DEBUG)console.log("not issuing currently queued request "+request+" with data "+data);
+		return;
+	}
 	if(DEBUG)console.log("Asking for  "+request+
 			" on "+this.name+
 			" with "+data+
@@ -90,11 +100,12 @@ Eric.prototype.request = function(request,data,callback,priority) {
 				);
 		switch (request){
 		case "Load":
-			this.queue.clear();  //  Load invalidates anything else on the queue
+//			this.queue.clear();  //  Load invalidates anything else on the queue
 		case 'open_edit_dialog':
 		case 'open_tabular_dialog':
 			priority=true;
 		}
+		this.queue.current_requests[request]=true;
 		this.queue.add({request : request, data : data, callback:callback},priority);
 	};
 
@@ -293,13 +304,13 @@ Eric.prototype.Load = function(force) {
 	case "Instance": 
 		initial_map_focus=false;
 		zerocount(); 
-		this.Flush();  // wipe everything out, especially the stops
+//		this.Flush();  // wipe everything out, especially the stops
 		
 	default:
 		// normally clear everything out, but we let the stops build up
-		this.data=[];
-		this.hid_lookup={};
-		this.record_lookup={};
+//		this.data=[];
+//		this.hid_lookup={};
+//		this.record_lookup={};
 		
 		this.request("Prepare");
 		this.request("Fetch");
@@ -316,6 +327,10 @@ Eric.prototype.Fetch = function(chain) {
 	var eric=this;
 	var $dfd=new $.Deferred();
 	var keys=[];
+	this.data=[];
+	this.hid_lookup={};
+	this.record_lookup={};
+
 	if (DEBUG)console.log("calling fetch on"+this.url);
 	$.getJSON(this.url, 
 		function( data ) {
@@ -352,7 +367,7 @@ Eric.prototype.Fetch = function(chain) {
 //force flag to ensure propagation down the tree with the "Changed" request
 //it will originate from create_or_update_entity. 
 Eric.prototype.Draw = function(force) { 
-	this.hid_lookup={};
+	//this.hid_lookup={};
 	var save_select_value=this.value();
 	if (this.seed){
 		save_select_value=this.seed;
@@ -464,12 +479,11 @@ var edit_dfd;
 Eric.prototype.PostEdit = function(record) {
 	edit_dfd=null;
 	var eric=this;
+	edit_dfd=new $.Deferred();
 	switch(this.name){ //  on the next refactor I'll abstract this
 	case 'StopTimes':
 		url="/Gee/Mapdata?action=heal&tripId="+record['tripId'];
-		
-		edit_dfd=new $.Deferred();
-		
+				
 		$.ajax({
 			  url: url,
 			  dataType: 'json',
@@ -495,6 +509,7 @@ Eric.prototype.PostEdit = function(record) {
 		
 	default:
 		eric.request("Load",true);
+		edit_dfd.resolve();
 	}
 	return edit_dfd;
 };
