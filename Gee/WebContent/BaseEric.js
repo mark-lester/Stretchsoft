@@ -544,7 +544,7 @@ Eric.prototype.remove_entity = function(data) {
 			request_error_alert(xhr);
 		}
 	});
-	return remove_dfd;
+	return remoo	ve_dfd;
 };
 
 
