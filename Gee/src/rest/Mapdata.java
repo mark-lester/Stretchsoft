@@ -26,6 +26,11 @@ import DBinterface.*;
 import tables.*;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.google.gson.JsonObject;
+import com.restfb.json.JsonException;
 
 import antlr.collections.List;
 
@@ -133,23 +138,85 @@ public class Mapdata extends Rest {
 		// end case "bounds"
 		
 		case "select_set_size":
-			query="select count(*) from tables."+request.getParameter("entity")+
-				" where "+
-				request.getParameter("lat_name")+" >= \'"+request.getParameter("lat_min")+"\' AND "+
-				request.getParameter("lon_name")+" >= \'"+request.getParameter("lon_min")+"\' AND "+
-				request.getParameter("lat_name")+" <= \'"+request.getParameter("lat_max")+"\' AND "+
-				request.getParameter("lon_name")+" <= \'"+request.getParameter("lon_max")+"\'";
-			System.err.print("Want mapdata query for "+query+"\n"); 
-
+			int max_select_size=Integer.parseInt(request.getParameter("max_select_size"));
+			float lat_min=Float.parseFloat(request.getParameter("lat_min"));
+			float lat_max=Float.parseFloat(request.getParameter("lat_max"));
+			float lon_min=Float.parseFloat(request.getParameter("lon_min"));
+			float lon_max=Float.parseFloat(request.getParameter("lon_max"));
+			float bounds_lat_min=Float.parseFloat(request.getParameter("bounds_lat_min"));
+			float bounds_lat_max=Float.parseFloat(request.getParameter("bounds_lat_max"));
+			float bounds_lon_min=Float.parseFloat(request.getParameter("bounds_lon_min"));
+			float bounds_lon_max=Float.parseFloat(request.getParameter("bounds_lon_max"));
+			float cand_lat_min=lat_min;
+			float cand_lat_max=lat_max;
+			float cand_lon_min=lon_min;
+			float cand_lon_max=lon_max;
+			long cand_result=0;
+			long select_set_size=-1;
+			boolean full_set=false;
 			session = gtfs.factory.openSession();
-			entities = session.createQuery(query).list().toArray();
+			int loop_count=0;
+			while (loop_count++ < 10){ // defensive, shouldnt happen
+				query="select count(*) from tables."+request.getParameter("entity")+
+						" where "+
+						request.getParameter("lat_name")+" >= \'"+cand_lat_min+"\' AND "+
+						request.getParameter("lon_name")+" >= \'"+cand_lon_min+"\' AND "+
+						request.getParameter("lat_name")+" <= \'"+cand_lat_max+"\' AND "+
+						request.getParameter("lon_name")+" <= \'"+cand_lon_max+"\'";
+				//entities = session.createQuery(query).list().toArray();
+				cand_result=( (Long) session.createQuery(query).iterate().next() ).longValue();
+				if (cand_result > max_select_size){
+					if (select_set_size == -1){
+						// first time round and we still failed
+						// but set the select_set_size, the client will decide what to do
+						select_set_size=cand_result;
+					}
+					break;
+				}
+				// so all good, save these select values to return to the client
+				lat_min=cand_lat_min;
+				lat_max=cand_lat_max;
+				lon_min=cand_lon_min;
+				lon_max=cand_lon_max;
+				select_set_size=cand_result;
+				
+				if (
+						cand_lat_min <= bounds_lat_min &&
+						cand_lon_min <= bounds_lon_min &&
+						cand_lat_max >= bounds_lat_max &&
+						cand_lon_max >= bounds_lon_max){
+					//  we are already greater than the GTFS area, so quit now
+					full_set=true;
+					break;
+				}
+				// increase the select area by half again, and loop round
+				float lat_delta=(cand_lat_max-cand_lat_min)/4;
+				float lon_delta=(cand_lon_max-cand_lon_min)/4;
+				cand_lat_max+=lat_delta;
+				cand_lat_min-=lat_delta;
+				cand_lon_max+=lon_delta;
+				cand_lon_min-=lon_delta;				
+			}
 			session.close();
-			try {
+			// create a dataset
+			JSONObject dataset = new JSONObject();
+	        // return the dimennsions we ended up with
+	        // so we can perform a full query using those dimensions
+	        // and stil not break the limit (prob around 200)
+	        try {
+				dataset.put("lat_min", lat_min);
+				dataset.put("lat_max", lat_max);
+				dataset.put("lon_min", lon_min);
+				dataset.put("lon_max", lon_max);
+	        
+	        // select_set_size will be aty least the number in the current map view
+	        // that might be too much, but the client will decide what to do
+				dataset.put("select_set_size", select_set_size);
+	        // this will be true if we have all of them
+				dataset.put("full_set", full_set);
 				PrintWriter out = response.getWriter();
-				out.println(mapper.writeValueAsString(entities));
-			} catch (JsonGenerationException e) {
-				e.printStackTrace();
-			} catch (JsonMappingException e) {
+				out.print(dataset);
+			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();	 
@@ -388,6 +455,10 @@ public class Mapdata extends Rest {
 
 			break;
 		
+		case "create_shape_from_OTP":
+			gtfs.ShapeImport(record.get("tripId"));
+			break;
+			
 		case "create_shape_from_trip":
 			query="from Trips where tripId='"+record.get("tripId")+"'";
 			session = gtfs.factory.openSession();

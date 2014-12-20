@@ -48,6 +48,7 @@ function create_shape_from_trip(tripId){
 	var $url="/Gee/Mapdata";
 	values={};
 	values['action']='create_shape_from_trip';
+	values['action']='create_shape_from_OTP';
 	values['tripId']=tripId;
     var datastring = JSON.stringify(values);
 	return $.ajax({

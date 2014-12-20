@@ -1,4 +1,4 @@
-var DEBUG=false;
+var DEBUG=true;
 var layercontrol=false;
 var openlayers=false;
 var layercontroler=null;
@@ -224,7 +224,8 @@ function MapSetup_Leaflet(){
 
 function map_view_changed(){
 	if (DEBUG)console.log("map view changed");
-	$KingEric.get("Stops").request("loadStopsForBounds");
+	$KingEric.get("Stops").request("loadForBounds");
+	$KingEric.get("Shapes").request("loadForBounds");
 }
 
 function set_row_content(row_content,eric){

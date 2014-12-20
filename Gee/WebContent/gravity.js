@@ -1,64 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Gravity Thing</title>
-</head>
-<body>
-<table>
-
-<tr>
-<td>
-<canvas id="myCanvas" width="1200" height="600" style="border:1px solid #d3d3d3;">
-Your browser does not support the HTML5 canvas tag.</canvas>
-</td>
-<td valign=top>
-<small><b>
-Options<br>
-<hr>
-<form id="system_options">
-Force <select id=forceName>
-<option value="InverseCube">Inverse Cube</option>
-<option value="InverseSquare">Inverse Square</option>
-<option value="Inverse">Inverse</option>
-<option value="InverseSquareRoot">Inverse Sq. Root</option>
-<option value="Constant">Constant</option>
-<option value="Log">Log</option>
-<option value="SquareRoot">Square Root</option>
-<option value="Linear">Linear</option>
-<option value="Squared">Squared</option>
-<option svalue="Cubed">Cubed</option>
-<option value="Sine">Sine</option>
-<option value="SineDivX">Sine/X</option>
-</select>
-<br>
-<hr>
-Sun <input id=sun_flag type=checkbox> <i>include a sun</i><br>
-Sun Size <input id=sun_size size=5 ><br>
-Centrifugal <input id=centrifugal_flag type=checkbox> <i>get things to rotate about the sun, or the last planet</i><br>
-<hr>
-Random Positions <input id=random_position_flag type=checkbox> <i>unset to have a neat grid of planets</i><br>
-Random Mass <input id=random_radii_flag type=checkbox> <i>set to have variable masses. mass is denoted by radius</i><br>
-Random Colours <input id=random_colour_flag type=checkbox> <i>unset to display initial potential energy via colour</i><br>
-<hr>
-Number of Planets <input id=numberOfPlanets size=5 ><br>
-Energy per Planet <input id=averageEnergy size=5 > <i>decrease if stuff moves too fast, increase if too slow</i><br>
-<hr>
-Auto <input id=auto_flag type=checkbox> <i>unset to stop the force changing automatically</i><br> 
-Iterations <input id=iterations_per_auto_change size=5> <i>increase to stay longer</i><br><br>
-</form>
-
-
-<font style="font-size:xx-small"><nobr><b id="title">Gravity</b></nobr><br>Energy <b id="energy"></b></font>
-</small></b>
-</td>
-</tr>
-</table>
-
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
-<script src="/Gee/Colour.js"></script>
-
-<script>
 var CANVAS_WIDTH=1000;
 var CANVAS_HEIGHT=600;
 var forces=[
@@ -76,15 +15,6 @@ var forces=[
 
 var playback_config_index=-1;
 var playback_configs=[
-                      {
-                    	  sun_flag : false,
-                    	  centrifugal_flag : false,
-                    	  random_position_flag : false,
-                    	  random_radii_flag : false,
-                    	  random_colours_flag : false,
-             			  numberOfPlanets : 493,
-                    	  iterations_per_auto_change : 500
-                      },
                   {
                 	  sun_flag : true,
                 	  sun_size : 500000,
@@ -106,6 +36,12 @@ var playback_configs=[
                 	  random_colours_flag : false,
                 	  averageEnergy : 10000,
                 	  numberOfPlanets : 494
+                  },
+                  {
+                	  sun_flag : false,
+                	  centrifugal_flag : false,
+         			  numberOfPlanets : 493,
+                	  iterations_per_auto_change : 500
                   },
            ];
            
@@ -785,12 +721,3 @@ function getRandomColour() {
     }
     return colour;
 }
-
-
-
-
-   
-</script> 
-
-</body>
-</html>

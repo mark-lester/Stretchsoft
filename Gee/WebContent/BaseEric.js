@@ -18,7 +18,7 @@ function Eric (ED) {
     this.seed=null;
     this.current_request=null;
     this.follup_request=null; //hack to allow the create (or_edit) dialog to flip back to tabular editing
-    
+    this.full_set = true; // assume we've all of them, this may be set to false on fetching stops or shape points
     var eric=this;
     
     this.queue = jQuery.jqmq({    
@@ -35,7 +35,9 @@ function Eric (ED) {
     		queue.current_requests[request_struct.request]=undefined;
         	queue.active=true;
         	eric.current_request=request_struct.request;
-        	if (DEBUG)console.log("executing request="+eric.current_request+" on "+eric.name+" with "+request_struct.data);
+        	if (DEBUG)console.log("executing request="+eric.current_request+
+        			" on "+eric.name+" with "+request_struct.data+
+        			" ref = "+typeof(this.eric[request_struct.request]));
         		
         	$.when(this.eric[request_struct.request](request_struct.data)).done(function (){
               	eric.current_request=null;      			
@@ -85,11 +87,23 @@ function Eric (ED) {
 	}
 if(DEBUG)console.log("CONFIG "+this.name+" = "+JSON.stringify(this.relations));
     this.type_specific();
+    
+	
+	switch (this.name){
+	case "Shapes":
+		this.lat_name="shapePtLat";
+		this.lon_name="shapePtLon";
+		break;
+	case "Stops":
+		this.lat_name="stopLat";
+		this.lon_name="stopLon";
+		break;	
+	}
 }
 
 Eric.prototype.request = function(request,data,callback,priority) {
 	if (this.queue.current_requests[request]){
-		if(DEBUG)console.log("not issuing currently queued request "+request+" with data "+data);
+		if(DEBUG)console.log("not issuing currently queued request "+request+" on "+this.name+" with data "+data);
 		return;
 	}
 	if(DEBUG)console.log("Asking for  "+request+
@@ -157,6 +171,10 @@ Eric.prototype.addChild = function(child) {
     return this.children.push(child);
 };
 
+Eric.prototype.set_border_colour = function(colour) {
+	$(this.UIobject).find("#template-select-table").attr("style","border: 2px solid "+colour+";");
+};
+
 Eric.prototype.select_entity = function() {
 	return $(this.UIobject).find("select");
 };
@@ -190,7 +208,7 @@ Eric.prototype.Chain = function(chain) {
 	$KingEric.get(chain.queue).request(chain.func);
 };
 
-// this is just called by stops, perhaps can be abstracted to object specific classes
+// this is just called by stops and shapes, perhaps can be abstracted to object specific classes
 Eric.prototype.getMapDims = function() {
 	var bounds;
 	
@@ -198,61 +216,101 @@ Eric.prototype.getMapDims = function() {
 		bounds=GeeMap.getBounds();
 		var minll=bounds.getSouthWest();
 		var maxll=bounds.getNorthEast();
-		this.min_lat = minll.lat;
-		this.min_lon = minll.lng;
-		this.max_lat = maxll.lat;
-		this.max_lon = maxll.lng;
+		this.lat_min = minll.lat;
+		this.lon_min = minll.lng;
+		this.lat_max = maxll.lat;
+		this.lon_max = maxll.lng;
 		
 	} catch (err) {
 		// map not set up yet, so fetch the lot 
-		this.min_lat = -90;
-		this.min_lon = -180;
-		this.max_lat = 90;
-		this.max_lon = 180;
+		this.lat_min = -90;
+		this.lon_min = -180;
+		this.lat_max = 90;
+		this.lon_max = 180;
 	}
 };
 	
-Eric.prototype.stopsCount = function() {
+// called by Instance entity on load
+// needed by shapes and stops fetches to know how big the geoset actually is
+Eric.prototype.GetMapBounds = function() {
+	var eric=this;
+	var max_bounds_url="/Gee/Mapdata"+
+	"?action=bounds";
+	var $dfd = $.getJSON(max_bounds_url, 
+				function( data ) {
+					eric.bounds_lat_min=data.minLat; 
+					eric.bounds_lat_max=data.maxLat; 
+					eric.bounds_lon_min=data.minLon; 
+					eric.bounds_lon_max=data.maxLon; 
+		});
+		return $dfd;
+};
+
+Eric.prototype.entityCount = function() {
 	var eric=this;
 	    this.getMapDims();
+	    var instance=$KingEric.get("Instance");
 		var select_set_size_url="/Gee/Mapdata"+
 					"?action=select_set_size"+
 					"&entity="+this.name+
-					"&lat_name=stopLat"+
-					"&lon_name=stopLon"+
-					"&lat_min="+this.min_lat+
-					"&lon_min="+this.min_lon+
-					"&lat_max="+this.max_lat+
-					"&lon_max="+this.max_lon;
+					"&lat_name="+this.lat_name+
+					"&lon_name="+this.lon_name+
+					// the current map view dimensions
+					"&lat_min="+this.lat_min+
+					"&lon_min="+this.lon_min+
+					"&lat_max="+this.lat_max+
+					"&lon_max="+this.lon_max+
+					// the maxim scope of the geoset, so we know when to stop lookig for more
+					"&bounds_lat_min="+instance.bounds_lat_min+
+					"&bounds_lat_max="+instance.bounds_lat_max+
+					"&bounds_lon_min="+instance.bounds_lon_min+
+					"&bounds_lon_max="+instance.bounds_lon_max+					
+					"&max_select_size="+MAX_STOPS_TO_VIEW;
 		
 		var $dfd = $.getJSON(select_set_size_url, 
-				function( data ) {
-					eric.select_set_size=data[0];
+				function( data ) {		
+					eric.select_set_size=data.select_set_size; 
+					// the lats and lons may be bigger than just the current view
+					// you need this so they dont all disappear when you zoom in
+					// and also to fill the whole thing up if we can
+					eric.lat_min=data.lat_min; 
+					eric.lat_max=data.lat_max;
+					eric.lon_min=data.lon_min;
+					eric.lon_max=data.lon_max;
+					eric.full_set=data.full_set; // will be set to true if we have all of them
+					
 					if (DEBUG)console.log("got a select size of "+eric.select_set_size);
 		});
 		return $dfd;
 };
 
 Eric.prototype.ConditionalFetch = function(force) {
-	if (this.select_set_size == undefined || this.select_set_size > MAX_STOPS_TO_VIEW) return;
-	
-	this.url="/Gee/Entity?entity=Stops"+
-			"&bounds=1"+
-			"&lat_name=stopLat"+
-			"&lon_name=stopLon"+
-			"&lat_min="+this.min_lat+
-			"&lon_min="+this.min_lon+
-			"&lat_max="+this.max_lat+
-			"&lon_max="+this.max_lon;
-	this.Flush();
+	if (this.select_set_size == undefined || this.select_set_size > MAX_STOPS_TO_VIEW) {
+	    // select_set_size is at least how many on the current view
+		// if that is to big, then dont display anything, and highlight this entity
+	  	this.set_border_colour('red');
+		return;
+	}
+
+	if (this.full_set){
+		// we have all the stops
+		// or we have all the relevant shape points
+		this.set_border_colour('green');
+	} else {
+		// we dont have all of them, but we have at least all the ones in the
+		// current map view
+		this.set_border_colour('yellow');
+	}
+    this.bounds=1;
+	this.request("Prepare");
 	this.request("Fetch");
 	this.request("Draw");
 	this.request("LoadChildren",force); 
 };
 
 
-Eric.prototype.loadStopsForBounds = function() {
-	this.request("stopsCount");
+Eric.prototype.loadForBounds = function() {
+	this.request("entityCount");
 	this.request("ConditionalFetch");
 };
 
@@ -277,6 +335,16 @@ Eric.prototype.Prepare = function() {
 			url+="&extend_table="+relations.extendTable+"&extend_key="+this.relations.extendKey;			
 		}
 	}
+    
+    if (this.bounds){
+    	url+="&bounds=1"+
+    		"&lat_name="+this.lat_name+
+    		"&lon_name="+this.lon_name+
+    		"&lat_min="+this.lat_min+
+    		"&lon_min="+this.lon_min+
+    		"&lat_max="+this.lat_max+
+    		"&lon_max="+this.lon_max;	
+    }
 	
 	if (relations.order != undefined){
 		url+="&order="+relations.order;
@@ -304,6 +372,7 @@ Eric.prototype.Load = function(force) {
 	case "Instance": 
 		initial_map_focus=false;
 		zerocount(); 
+		this.request("GetMapBounds");
 //		this.Flush();  // wipe everything out, especially the stops
 		
 	default:
@@ -317,9 +386,11 @@ Eric.prototype.Load = function(force) {
 		this.request("Draw",true); 
 		this.request("LoadChildren",force); 
 		break;
-		
+
 	case "Stops":		
-		this.request("loadStopsForBounds");
+	case "Shapes":		
+		this.request("loadForBounds");
+		break;			
 	}
 };
 
@@ -544,7 +615,7 @@ Eric.prototype.remove_entity = function(data) {
 			request_error_alert(xhr);
 		}
 	});
-	return remoo	ve_dfd;
+	return remove_dfd;
 };
 
 

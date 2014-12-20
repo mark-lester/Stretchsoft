@@ -84,6 +84,10 @@ hr { color: #7FA423;
    whitespace: nowrap;
 }
 
+.select {
+   border: 2px solid blue
+}
+
 </style>
         
 <title>Gee - Open Access GTFS Editor</title>
@@ -226,7 +230,7 @@ hr { color: #7FA423;
 <div id="Instance" class="Eric" no_join method="User">
 
 <div id="select">
-<label>GTFS</label>
+<label>GeeTFS</label>
 </div>
 
 <div id="edit" title="Add/Edit GTFS" class="edit-dialog">
@@ -987,6 +991,8 @@ Route, Origin, Destination, Contains
 
 
  <div id="template-select">
+ <table id="template-select-table">
+ <tr><td>
  <form id="template-select-form">
  <label id="template-select-label"></label>
  <select id="template-select-list"></select>
@@ -998,6 +1004,7 @@ Route, Origin, Destination, Contains
  <button type="button" class="btn btn-warning btn-xs" id="template-opener-replicate"><span class="glyphicon glyphicon-repeat"></span></button> 
  </span>
  </form>
+ </td></tr></table>
  <hr>
  </div>
  

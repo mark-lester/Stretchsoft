@@ -50,7 +50,7 @@ import com.csvreader.CsvWriter;
 
 import sax.HibernateConfig;
 import sax.TableMap;
-import tables.ImportedStops;
+import tables.*;
 import DBinterface.StringOutputStream;
 
 public class DBinterface {
@@ -62,8 +62,8 @@ public class DBinterface {
 
     public String dataDirectory="/home/Gee/gtfs/";
     public String databaseName="gtfs";
-    public String serverName="localhost";
-    public String hibernateConfigDirectory="";//"/home/Gee/config/";
+    public String serverName="gee-2";
+    public String hibernateConfigDirectory="";
     public static final int ZIP_BUFFER_SIZE = 50;
     public SAXParserFactory spf;
     public SAXParser saxParser;
@@ -142,118 +142,7 @@ public class DBinterface {
         hibernateConfig = configStore.get(hibernateConfigDirectory);  
     }
     
-    public void runLoader(byte[] zipData, PrintWriter out) {
-    	 // this is where you start, with an InputStream containing the bytes from the zip file
-    	InputStream zipStream = new ByteArrayInputStream(zipData);
-        ZipInputStream zis = new ZipInputStream(zipStream);
-        ZipEntry entry;
-        Hashtable <String,Reader> zipHash = new Hashtable <String,Reader>();
-   
-        try {
-			while ((entry = zis.getNextEntry()) != null) {   
-			    String fileName = entry.getName();
-			    Pattern pattern = Pattern.compile("/(.*?)$");
-			    Matcher matcher = pattern.matcher(fileName);
-			    if (matcher.find())			    {
-			        fileName=matcher.group(1);
-			    }
-
-			    byte[] buffer=new byte[1024*32];
-			    int len;
-			    ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
-			    while ((len = zis.read(buffer,0,1024*32)) != -1){
-			    	unzipped.write(Arrays.copyOfRange(buffer, 0, len));
-			    }
-			    
-//		    	Reader thisReader = new StringReader(outString);
-		    	InputStream is = new ByteArrayInputStream(unzipped.toByteArray());
-		    	BOMInputStream bomIn = new BOMInputStream(is,
-		    			ByteOrderMark.UTF_8, 
-		    			ByteOrderMark.UTF_16BE, 
-		    			ByteOrderMark.UTF_16LE, 
-		    			ByteOrderMark.UTF_32BE, 
-		    			ByteOrderMark.UTF_32LE);
-		    	Reader thisReader = new InputStreamReader(bomIn);
-		    	zipHash.put(fileName,thisReader);
-		    	System.err.println("unzipped "+ fileName);
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-        for (String resourceFile : hibernateConfig.resources) {
-            // load the specific table
-            System.err.println("Loading "+ resourceFile+"...\n");       
-            out.println("Loading "+resourceFile+"...\n");
-            try {
-            	boolean success = LoadTable(resourceFile,zipHash,out);
-            	if (success) load_success.put(resourceFile,"DONE");
-            } catch (HibernateException|AssertionFailure e){
-            	out.println("aborting import from "+resourceFile);
-            }
-            System.err.println("Done "+resourceFile+"\n");       
-            out.println("Done "+resourceFile+"\n");       
-        }   
-    }
-
-    
-    public void runZapper() {
-        // get the tables out of the hibernate.cfg.xml.
-        // you can presumably do that via hibernate itself but I couldn't work out how to do that
-    	
-//    	List<String> reversed=
-
-    	// what kind of fucking language is this ?
-    	List<String> reverse = new ArrayList<String>(hibernateConfig.resources);
-    	Collections.reverse(reverse);
-        for (String resourceFile : reverse) {
-            // load the specific table
-            System.out.println("Loading "+resourceFile+"...\n");       
-            ZapTable(resourceFile);
-            System.out.println("Done "+resourceFile+"\n");       
-        }   
-    }
-
-    public byte[] runDumper() {
-        // get the tables out of the hibernate.cfg.xml.
-        // you can presumably do that via hibernate itself but I couldn't work out how to do that
-        Hashtable <String,String> files = new Hashtable <String,String>();
-        
-        for (String resourceFile : hibernateConfig.resources) {
-            // load the specific table
-            System.out.println("Dumping "+resourceFile+"...\n");       
-//            DumpTable(resourceFile,zipFile,csvWriter);
-            DumpTable(resourceFile,files,null);
-            System.out.println("Done "+resourceFile+"\n");       
-        } 
-        
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();  
-        ZipOutputStream zipfile = new ZipOutputStream(bos);  
-        Iterator i = files.keySet().iterator();  
-        String fileName = null;  
-        ZipEntry zipentry = null;  
-        while (i.hasNext()) {  
-            fileName = (String) i.next();  
-            zipentry = new ZipEntry(fileName);  
-            try {
-				zipfile.putNextEntry(zipentry);
-				zipfile.write(files.get(fileName).getBytes());
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}  
-        }  
-        try {
-			zipfile.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}  
-        return bos.toByteArray();  
-    }
-    
-    public SessionFactory configureSessionFactory() throws HibernateException { 	
+        public SessionFactory configureSessionFactory() throws HibernateException { 	
         configuration = new Configuration();   
         String databaseType = databaseName.matches("admin") ? "admin" : "gtfs";
         configuration.configure("hibernate/"+databaseType+"/hibernate.cfg.xml");

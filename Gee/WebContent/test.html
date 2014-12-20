@@ -1,0 +1,450 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="css/uniform.default.css" media="screen" />
+<!-- Latest compiled and minified JavaScript -->
+
+<link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="shortcut icon" href="img/favicon.ico">
+<!-- 
+<script src="js/jquery-1.10.2.js"></script> 
+<script src="js/jquery-ui.js"></script>
+ -->
+
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+<script src="js/bootstrap.min.js"></script> 
+<link rel="stylesheet" href="css/leaflet.css" />
+<!-- 
+<script src="js/leaflet.js"></script>
+ -->
+<script src='http://openlayers.org/api/OpenLayers.js'></script>
+<script src="js/jquery.uniform.js"></script>
+
+<!-- Bootstrap UI stuff -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="css/bootstrap-theme.min.css">
+
+<link rel="stylesheet" href="css/vader/jquery-ui-1.10.4.css">
+<script src="js/leaflet.js"></script>
+
+<script src="js/jquery.validate.js"></script>
+<link rel="stylesheet" href="css/jquery.timepicker.css">
+<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">  
+<script src='js/spectrum.js'></script>
+<link rel='stylesheet' href='css/spectrum.css' />
+<script src="js/jquery.timepicker.js"></script>
+<script src="js/jquery.validate.js"></script>
+
+
+<script src="ERIC.js"></script>
+<script src="js/jquery.ba-jqmq.js"></script>
+<script src="SetupMenu.js"></script>
+<script src="KingEric.js"></script>
+<script src="BaseEric.js"></script>
+<script src="MapEric.js"></script>
+<script src="MapEricTrip.js"></script>
+<script src="MapEricShape.js"></script>
+<script src="MapEricSingleTrip.js"></script>
+<script src="MapEricAllTrips.js"></script>          
+<script src="Tabular.js"></script>   
+<script src="MakeUIObject.js"></script>   
+<script src="ProcessDialogs.js"></script>   
+<script src="FormHandling.js"></script>          
+
+<style>
+.edit-dialog {
+    border: 1px solid rgb(74, 159, 63);
+    border-bottom: 0px;
+    color: #333;
+    font: 18px/120% Arial, Helvetica, sans-serif;
+    background-color: #FFFFFF //White
+ }   
+hr { color: #7FA423;
+  background-color: #7FA423;
+  height: 2px;
+  margin: 2px 0;
+} 
+
+.col1 {
+        height: 600px;
+        overflow: auto; }
+        
+.dialog-wrapper {
+   overflow: scroll;
+   height: 70%;
+   max-height: 500px
+}
+
+.table-row {
+   whitespace: nowrap;
+}
+
+</style>
+        
+<title>Gee - Open Access GTFS Editor</title>
+</head>
+<body>
+
+
+   
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container">
+    <!-- Brand and toggle ge
+	<label for="upload_file">Upload GTFS from local file system</label>
+    <input id="upload_file" name="upload_file" type=file><br>t grouped for better mobile display -->
+    </div>
+    <img class="navbar-brand" src="img/cow-icon.png" >
+    <a class="navbar-brand" href="#">Gee - Open Access GTFS Editor</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <div id="menu" name="menu">
+      <ul class="nav navbar-nav">
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn btn-xs" name="getstops" id="getstops">Get Stops From OSM</button>
+    	  </form>
+        </li>
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn btn-xs" name="import_gtfs" id="import_gtfs">Import</button>
+    	  </form>
+        </li>
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn btn-xs" name="export_gtfs" id="export_gtfs">Export</button>
+    	  </form>
+        </li>
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn btn-xs" name="publish_gtfs" id="publish_gtfs">Publish</button>
+    	  </form>
+        </li>
+     	 <li class="active">
+          <form action="#">
+        	<button class="btn btn-default navbar-btn btn-xs" name="zap_gtfs" id="zap_gtfs">Clear</button>
+    	  </form>
+        </li>
+        </ul>
+      </div>
+        <ul  class="nav navbar-nav">
+     	 <li class="active">
+          <form action="/docs/">
+        	<button class="btn btn-default navbar-btn btn-xs" name="help" id="help">Documentation</button>
+    	  </form>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav">
+      	 <li class="active" style="vertical-align: middle;">
+      	 <div id="loading">
+      	 <img class="navbar-brand" src="img/ajax-loader.gif" >
+      	 </div>
+     	 </li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+      	 <li class="active" style="vertical-align: middle;">
+      	 
+      	 <div id="logged_out">
+        	<button class="btn btn-default navbar-btn btn-xs" name="login_button" id="logged_out">Login</button>
+      	 </div>
+      	 
+      	 <div id="logged_in">
+      	 <div id="logged_in_text"></div>
+      	  <form action="/Gee/Security?sign_out=1" method="GET">
+        	<button type="submit" class="btn btn-default navbar-btn btn-xs">Logout</button>
+    	  </form>  	
+      	 </div>
+     	 </li>
+      </ul>
+      
+  </div>
+ </nav>  
+
+<div id="welcome" name="welcome">
+<center>
+
+   <img src="img/cow-icon.png" >
+ 
+</center>
+</div>
+<div id="interface" name="interface">
+
+<div class="row">
+<div class="col-md-3">
+<div class="col1"> 
+
+<div id="Instance" class="Eric_Place_Holder">
+</div>
+
+<div id="Stops" class="Eric_Place_Holder">
+</div>
+
+<div id="Transfers" class="Eric_Place_Holder">
+</div>
+
+<div id="Calendar" class="Eric_Place_Holder">
+</div>
+<div id="CalendarDates" class="Eric_Place_Holder" >
+</div>
+<div id="Agency" class="Eric_Place_Holder" >
+</div>
+<div id="Routes" class="Eric_Place_Holder" >
+</div>
+<div id="Trips" class="Eric_Place_Holder">
+</div>
+<div id="StopTimes" class="Eric_Place_Holder">
+</div>
+<div id="Frequencies" class="Eric_Place_Holder">
+</div>
+
+<div id="Shapes" class="Eric_Place_Holder">
+</div>
+<hr>
+<div id="FareAttributes" class="Eric_Place_Holder">
+</div>
+<div id="FareRules" class="Eric_Place_Holder">
+</div>
+
+</div> <!--  end of scroll -->
+</div> <!--  end of first col -->
+<div class="col-md-9">
+<div id="map" style="width: 100%; height: 600px"></div>
+
+</div> <!-- end 9 col -->
+</div> <!--  end row  -->
+</div> <!--  end interface -->
+
+<div id=Eric_Declarations>
+
+<!--  Eric DECLARATION: Instance -->
+
+<div id="Instance" class="Eric" no_join method="User">
+
+<div id="select">
+<label>GTFS</label>
+</div>
+
+<div id="edit" title="Add/Edit GTFS" class="edit-dialog">
+<form id="edit">
+<fieldset>
+	<input id="hibernateId" type=hidden>
+	<label for="databaseName">GTFS Name</label>
+    <input id="databaseName" name="databaseName" size=20 maxlength=20 nospace required key><br>
+	<label for="description">Description </label>
+    <input id="description" name="description" size=30 maxlength=100 required display><br>
+	<label for="gitHubName">GitHub Name </label>
+    <input id="gitHubName" name="gitHubName" size=30 maxlength=100 required><br>
+	<label for="publicRead">Public Read</label>
+    <input id="publicRead" name="publicRead" type=checkbox><br>
+	<label for="publicWrite">Public Write</label>
+    <input id="publicWrite" name="publicWrite" type=checkbox><br>
+</fieldset>
+ </form>
+ </div>
+
+<div id="delete" title="Delete GTFS">
+<form id="delete">
+     Are you sure you want to delete GTFS <input readonly name="display" size=20 maxlength=20><br>
+     You will lose all data if you do.
+</form>
+</div>	
+
+<div id="table-row" class=table-row>
+    <input id="databaseName" name="databaseName" size=20 maxlength=20 nospace required key readonly>
+    <input id="description" name="description" size=30 maxlength=100 required display>
+	<label for="publicRead">R</label>
+    <input id="publicRead" name="publicRead" type=checkbox>
+	<label for="publicWrite">W</label>
+    <input id="publicWrite" name="publicWrite" type=checkbox>
+</div>
+
+</div>
+
+
+
+<div id="dialogs"> 
+
+<div id="dialog-getstops" title="Get Stops From OSM" class="edit-dialog">
+<form id="dialog-getstops-form">
+<fieldset>
+	<label for="stop_type">Type</label>
+    <input id="stop_type" name="stop_type" size=10 maxlength=10 required><br>
+</fieldset>
+ </form>
+</div>
+
+<div id="dialog-import_gtfs" title="Import GTFS" class="edit-dialog">
+<form id="dialog-import_gtfs-form">
+<fieldset>
+	<label for="upload_file">Upload GTFS from local file system</label>
+    <input id="upload_file" name="upload_file" type=file><br>
+	<label for="create_db">Create a new DB for this upload (say yes unless you want to overlay the current GTFS with your upload)</label>
+    <input id="create_db" name="create_db" type=checkbox checked><br>
+    
+</fieldset>
+
+<div id="dialog-import_gtfs-loading">
+<center>
+<h3> Loading....</h3>
+<img src="img/ajax-loader.gif">
+</center>
+</div>
+
+<div id="dialog-import_gtfs-done">
+<h3>Loading Complete, here's what the database said</h3>
+<div id="dialog-import_gtfs-done-text">
+</div>
+</div>
+
+ </form>
+</div>
+
+<div id="dialog-publish_gtfs" title="Publish GTFS" class="edit-dialog">
+<form id="dialog-publish_gtfs-form">
+<fieldset>
+	<label for="comment">Tell us about your changes </label>  
+      <textarea cols="50" rows="4" id ="comment" name="comment"></textarea>
+<br>
+	</fieldset>
+
+<div id="dialog-publish_gtfs-loading">
+<center>
+<h3> Publishing to GitHub ....</h3>
+<img src="img/ajax-loader.gif">
+</center>
+</div>
+
+<div id="dialog-publish_gtfs-done">
+<h3>Publishing Complete, here's what GitHub said</h3>
+<div id="dialog-publish_gtfs-done-text">
+</div>
+</div>
+
+ </form>
+</div>
+
+ 
+<div id="dialog-zap_gtfs" title="Clear GTFS" class="edit-dialog">
+<form id="dialog-zap_gtfs-form">
+  Are You Sure You Want To Clear This GTFS ?
+ </form>
+ </div>
+
+<div id="dialog-move_stop" title="Relocate Stop" class="edit-dialog">
+<form id="dialog-move_stop-form">
+  Are You Sure You Want To Move This Stop ?
+  <input type=hidden id="move">
+ </form>
+ </div>
+ 
+ 
+ <div id="trips_table-row">
+ <tr>
+ <td><input id=routeId size=10 readonly></td>
+ <td><input id=tripId size=10 readonly></td>
+ <td><input id=arrivalTime size=10 readonly></td>
+ <td><input id=tripHeadsign size=20 readonly></td>
+ </tr>
+ </div>
+ <div id="trips_table-header">
+<tr>
+ <td>Route</td>
+ <td>Trip</td>
+ <td>arrival</td>
+ <td>destination</td>
+ </tr>
+ </div>
+
+ 
+ <div id="dialog-trips_table" title="Show Trips for this Stop" class="edit-dialog">
+ <small>
+ <table> 
+ <div id="table-content"></div>
+</table>
+ </small>
+ </div>
+ 
+ 
+<div id="dialog-login" title="Login Using GitHub" class="edit-dialog">
+ <center><h1 style="color:red">WARNING</h1>
+ You are about to Login to Gee using GitHub. If you don't already have an account on GitHub, then 
+ the process wil take you through opening one. 
+ You will then be asked to grant Gee access to your repositories. This is so that Gee can create a version of the 
+ GTFS you are editing in your own account. Gee can then submit your edits to your copy, and then request them
+ to be merged into the WikiTimetable public edition. <br>
+ If you dont want to grant Gee this access, perhaps
+ because you already have an account on Github, then you can still publish to WikiTimetable, but you
+ will have to fork and make pull requests "manually". Just grant Gee the minimal access so we at least know who
+ you are.
+       	  <form action="https://github.com/login/oauth/authorize" method="GET" >
+    	<input name="scope" type=hidden value="repo">
+    	<input name="client_id" type=hidden value="d20b14968463e2b9634c">
+        	<button type="submit" class="btn btn-default navbar-btn btn-xs">Login with GitHub</button>
+    	  </form>
+    	  </center>
+ </div>
+
+
+ <div id="template-select">
+ <form id="template-select-form">
+ <label id="template-select-label"></label>
+ <select id="template-select-list"></select>
+ <span style="white-space:nowrap;">
+ <button type="button" class="btn btn-primary btn-xs" id="template-opener-add"><span class="glyphicon glyphicon-plus-sign"></span></button>
+ <button type="button" class="btn btn-success btn-xs" id="template-opener-edit"><span class="glyphicon glyphicon-edit"></span></button>
+ <button type="button" class="btn btn-danger btn-xs" id="template-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
+ <button type="button" class="btn btn-info btn-xs" id="template-opener-tabulate"><span class="glyphicon glyphicon-th-large"></span></button>
+ <button type="button" class="btn btn-warning btn-xs" id="template-opener-replicate"><span class="glyphicon glyphicon-repeat"></span></button> 
+ </span>
+ </form>
+ <hr>
+ </div>
+ 
+ <div id="tabular-template">
+ <form>
+ <div id="parent">
+ 
+ </div>
+ <hr>
+ <div class="dialog-wrapper">
+ <div id="table">
+ </div>
+ </div>
+ </form>
+ </div>
+ <div id="tabular-row-delete-button">
+ <button type="button" class="btn btn-danger btn-xs" id="tabular-opener-delete"><span class="glyphicon glyphicon-remove-circle"></span></button>
+ </div>
+ 
+ <div id="mapbutton_container">
+ </div>
+
+ <div id="mapbutton_rowcontent">
+ <label></label>    <input id="checkbox" name="toggle_layer" type=checkbox checked><br>
+ </div>
+ 
+ </div> <!--  end dialogs -->
+
+</body>
+
+<script>
+$("#logged_in").hide();
+
+$( document ).ready(function() {
+	$("#welcome").show();
+	$("#Eric_Declarations").hide();
+	$("#loading").hide();
+	$("#interface").hide();
+	$("#dialogs").hide();
+	
+	SetUp();	
+});
+
+</script>
+
+</html>

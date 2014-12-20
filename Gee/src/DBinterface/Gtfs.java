@@ -1,6 +1,16 @@
 package DBinterface;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Hashtable;
 import java.util.ArrayList; 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
 import tables.*;
 
 import java.io.*;
@@ -9,9 +19,13 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hibernate.AssertionFailure;
 import org.hibernate.Session; 
 import org.hibernate.Transaction;
+import org.json.*;
 
 import javax.xml.parsers.*;
 import org.xml.sax.*;
@@ -31,6 +45,127 @@ public class Gtfs extends DBinterface {
 	public Gtfs(String hibernateConfigDirectory,String databaseName){
 		super(hibernateConfigDirectory,databaseName);
 	}
+	
+    public void runMakeShapes() throws IOException {
+        Session session = factory.openSession();
+    	Object entities[]=session.createQuery("from Trips").list().toArray();
+    	
+    	for (Object o : entities){
+			Trips t = (Trips)o;
+			this.ShapeImport(t.gettripId());
+    	}
+    }
+
+    public void runLoader(byte[] zipData, PrintWriter out) {
+   	 // this is where you start, with an InputStream containing the bytes from the zip file
+   	InputStream zipStream = new ByteArrayInputStream(zipData);
+       ZipInputStream zis = new ZipInputStream(zipStream);
+       ZipEntry entry;
+       Hashtable <String,Reader> zipHash = new Hashtable <String,Reader>();
+  
+       try {
+			while ((entry = zis.getNextEntry()) != null) {   
+			    String fileName = entry.getName();
+			    Pattern pattern = Pattern.compile("/(.*?)$");
+			    Matcher matcher = pattern.matcher(fileName);
+			    if (matcher.find())			    {
+			        fileName=matcher.group(1);
+			    }
+
+			    byte[] buffer=new byte[1024*32];
+			    int len;
+			    ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
+			    while ((len = zis.read(buffer,0,1024*32)) != -1){
+			    	unzipped.write(Arrays.copyOfRange(buffer, 0, len));
+			    }
+			    
+//		    	Reader thisReader = new StringReader(outString);
+		    	InputStream is = new ByteArrayInputStream(unzipped.toByteArray());
+		    	BOMInputStream bomIn = new BOMInputStream(is,
+		    			ByteOrderMark.UTF_8, 
+		    			ByteOrderMark.UTF_16BE, 
+		    			ByteOrderMark.UTF_16LE, 
+		    			ByteOrderMark.UTF_32BE, 
+		    			ByteOrderMark.UTF_32LE);
+		    	Reader thisReader = new InputStreamReader(bomIn);
+		    	zipHash.put(fileName,thisReader);
+		    	System.err.println("unzipped "+ fileName);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+       
+       for (String resourceFile : hibernateConfig.resources) {
+           // load the specific table
+           System.err.println("Loading "+ resourceFile+"...\n");       
+           out.println("Loading "+resourceFile+"...\n");
+           try {
+           	boolean success = LoadTable(resourceFile,zipHash,out);
+           	if (success) load_success.put(resourceFile,"DONE");
+           } catch (HibernateException|AssertionFailure e){
+           	out.println("aborting import from "+resourceFile);
+           }
+           System.err.println("Done "+resourceFile+"\n");       
+           out.println("Done "+resourceFile+"\n");       
+       }   
+   }
+   
+   
+   public void runZapper() {
+       // get the tables out of the hibernate.cfg.xml.
+       // you can presumably do that via hibernate itself but I couldn't work out how to do that
+   	
+   	List<String> reverse = new ArrayList<String>(hibernateConfig.resources);
+   	Collections.reverse(reverse);
+       for (String resourceFile : reverse) {
+           // load the specific table
+           System.out.println("Loading "+resourceFile+"...\n");       
+           ZapTable(resourceFile);
+           System.out.println("Done "+resourceFile+"\n");       
+       }   
+   }
+
+   public byte[] runDumper() {
+       // get the tables out of the hibernate.cfg.xml.
+       // you can presumably do that via hibernate itself but I couldn't work out how to do that
+       Hashtable <String,String> files = new Hashtable <String,String>();
+       
+       for (String resourceFile : hibernateConfig.resources) {
+           // load the specific table
+           System.out.println("Dumping "+resourceFile+"...\n");       
+//           DumpTable(resourceFile,zipFile,csvWriter);
+           DumpTable(resourceFile,files,null);
+           System.out.println("Done "+resourceFile+"\n");       
+       } 
+       
+       ByteArrayOutputStream bos = new ByteArrayOutputStream();  
+       ZipOutputStream zipfile = new ZipOutputStream(bos);  
+       Iterator i = files.keySet().iterator();  
+       String fileName = null;  
+       ZipEntry zipentry = null;  
+       while (i.hasNext()) {  
+           fileName = (String) i.next();  
+           zipentry = new ZipEntry(fileName);  
+           try {
+				zipfile.putNextEntry(zipentry);
+				zipfile.write(files.get(fileName).getBytes());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}  
+       }  
+       try {
+			zipfile.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  
+       return bos.toByteArray();  
+   }
+   
+
+
 	
 	public void ReplicateTrip(String sourceTripId,String targetTripId,String shiftMinutes,String invertFlag){
 	    System.err.println("doing a replication of "+sourceTripId+ " to "+targetTripId+ " mins "+shiftMinutes);
@@ -129,7 +264,255 @@ public class Gtfs extends DBinterface {
 		return (to_hours * 60 + to_minutes) - (from_hours * 60 + from_minutes);
 	}
 	
-	public void StopsImport(String north, String south, String east, String west, String stop_type) {
+	// zap any existing shape points
+	// fetch stops in stop sequence order
+	// do query for each splice
+	// unpack geopoints
+	// if no query results or geopoints, use the input start and end point, i.e. gen from stops
+	// insert shape, careful with end points (dont put the first point in returned list unless first splice)
+	
+
+	public String ApproriateShape(String tripId){
+		Trips target_trip=getTrip(tripId);
+		ArrayList<String> targetV=GetSTVector(tripId);		
+		String query="FROM Trips WHERE tripId!='"+tripId+"'"+
+				" AND shapeId != ''" +
+				" AND routeId='"+target_trip.getrouteId()+"'"+
+				"  ORDER BY tripId";
+		Session session = factory.openSession();
+		Object entities[]=session.createQuery(query).list().toArray();
+		session.close();
+		System.err.println("Find match Query="+query+" returned"+entities.length);
+		 for (Object record : entities) {
+			 ArrayList<String> candidateV=GetSTVector(((Trips)record).gettripId() );
+			 if (candidateV==null) continue;
+			 if (targetV.size() != candidateV.size()) continue;
+			 System.err.println("t[]="+targetV.size()+" c[]="+candidateV.size());
+			 boolean fail=false;
+			 for (int i = 0; i < targetV.size(); i++) {
+				 if (!targetV.get(i).equals(candidateV.get(i))){
+					 fail=true;
+					 break;
+				 }
+		     }
+			 if (!fail){
+					query="FROM Shapes WHERE shapeId='"+((Trips)record).getshapeId()+"'";
+					session = factory.openSession();
+					entities=session.createQuery(query).list().toArray();
+					session.close();
+					if (entities.length<1){
+						this.SetTripShapeId(((Trips)record).getshapeId(), "");
+					} else {
+						 return ((Trips)record).getshapeId();						
+					}
+			 }
+		 }
+	    
+		return null;
+	}
+	
+	public ArrayList<String> GetSTVector(String tripId){
+		ArrayList<String> vector = new ArrayList<String>();
+	String query="FROM StopTimes WHERE tripId='"+tripId+"' ORDER BY stopSequence";
+	Session session = factory.openSession();
+	Object entities[]=session.createQuery(query).list().toArray();
+	session.close();
+	 for (Object record : entities) {
+		 vector.add( ((StopTimes)record).getstopId());
+	 }
+	return vector;
+	}
+	
+	
+	public Trips getTrip(String tripId){
+		Trips t=null;
+	    String query="FROM Trips WHERE tripId='"+tripId+"'"; 
+		Session session = factory.openSession();
+	    
+		Object entities[]=session.createQuery(query).list().toArray();
+		session.close();
+		if (entities.length < 1){
+			return null;
+		}
+		return (Trips)entities[0];
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void ShapeImport(String tripId) throws IOException {
+	    String shapeId=null;
+		System.err.println("Importaing Shape for "+tripId);
+
+	    if ((shapeId = ApproriateShape(tripId)) != null){
+			System.err.println("Matching one  "+shapeId);
+		    SetTripShapeId(tripId,shapeId);
+		    return;
+	    }
+		Session session = factory.openSession();
+	    Transaction tx = null;
+	    shapeId=tripId;
+	    // zap any existing shape points
+	    // the shape id for a trips shape is === trip Id
+	    String query="FROM Shapes WHERE shapeId='"+shapeId+"'"; 
+	    
+		 tx = session.beginTransaction();
+	   	 try {
+			 Object entities[]=session.createQuery(query).list().toArray();
+			 for (Object record : entities) {
+				 session.delete(record);
+			}
+	     } catch (SecurityException e) {
+	             // TODO Auto-generated catch block
+	         e.printStackTrace();
+	     }
+		 tx.commit();
+
+			query="FROM StopTimes as t1,Stops as t2 "+
+						" WHERE t1.tripId='"+tripId+"'"+
+						" AND t1.stopId = t2.stopId"+
+						" ORDER BY t1.stopSequence";
+			Iterator StopsAndTimes = session.createQuery(query)
+		            .list()
+		            .iterator();
+
+		float lastLat=-1;
+		float lastLon=-1;
+		float lastShapeLat=-1;
+		float lastShapeLon=-1;
+		int shapePtSequence=0;
+
+	    while ( StopsAndTimes.hasNext() ) {
+		    Object[] tuple = (Object[]) StopsAndTimes.next();
+
+		    Hashtable<String,String> record = new Hashtable<String,String>();
+
+		    Stops stop = (Stops) tuple[1];
+			System.err.println(" Stop on trip Lat="+Float.toString(stop.getstopLat())+" for station="+stop.getstopName());
+			if (lastLat == -1){  // first one, add it as the first shape point.  we might not get anything back from OTP
+				record.put("shapePtLat",Float.toString(stop.getstopLat()));
+	    		record.put("shapePtLon",Float.toString(stop.getstopLon()));
+	    		record.put("shapeId",tripId); // shapeId == tripId
+	    		record.put("shapePtSequence",Integer.toString(shapePtSequence++));
+				this.createRecord("tables.Shapes",record);
+	            lastShapeLat=stop.getstopLat();
+	            lastShapeLon=stop.getstopLon();	            
+			}
+			
+			if (lastLat != -1){
+		        String url = "http://wikitimetable.com/";
+
+		        url="http://www.wikitimetable.com/laos/otp/routers/default/plan?"+
+		        		"fromPlace="+Float.toString(lastLat)+
+		        		"%2C"+Float.toString(lastLon)+
+		        		"&toPlace="+Float.toString(stop.getstopLat())+
+		        		"%2C"+Float.toString(stop.getstopLon())+
+		        		"&mode=CAR&maxWalkDistance=2000&arriveBy=false&wheelchair=false"+
+		        		"&showIntermediateStops=false";
+		        System.err.println("OTP URL="+url);
+		        	
+		        URL obj=null;
+		        try {
+		            obj = new URL(url);
+		        } catch (MalformedURLException e) {
+		            // TODO Auto-generated catch block
+		            e.printStackTrace();
+		        }
+
+		        HttpURLConnection con=null;
+		        try {
+		            con = (HttpURLConnection) obj.openConnection();
+		        } catch (IOException e1) {
+		            // TODO Auto-generated catch block
+		            e1.printStackTrace();
+		        }
+		        //add request header
+		        try {
+		            con.setRequestMethod("GET");
+		        } catch (ProtocolException e) {
+		            // TODO Auto-generated catch block
+		            e.printStackTrace();
+		        }
+		        con.setRequestProperty("User-Agent", "Mozilla/5.0");
+		        con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+		        con.setDoOutput(true);
+		        String content="";
+		        DataInputStream dis = new DataInputStream(con.getInputStream());
+		            String inputLine;
+
+		            while ((inputLine = dis.readLine()) != null) {
+		            	content += inputLine;
+		            }
+		        JSONObject otpData;
+		        String points_data=null;
+				try {
+					otpData = new JSONObject(content);
+			        points_data= otpData
+			        		.getJSONObject("plan")
+			        		.getJSONArray("itineraries")
+			        		.getJSONObject(0)
+			        		.getJSONArray("legs")
+			        		.getJSONObject(0)
+			        		.getJSONObject("legGeometry")
+			        		.getString("points");
+		        	;
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		        List<GeoPoint> points=null;
+		        if (points_data != null){
+		        	points=GeoPoint.decodePolyline(points_data);
+		        }
+				
+		        tx = session.beginTransaction();
+		        if (points != null && !points.isEmpty()){  // we didnt get anything back from OTP, stick the end point in
+			        for (GeoPoint point : points){
+			        	if (point.Lat != lastShapeLat && point.Lon != lastShapeLon){
+			        	    record = new Hashtable<String,String>();
+			        		record.put("shapePtLat",Float.toString(point.Lat));
+			        		record.put("shapePtLon",Float.toString(point.Lon));
+			        		record.put("shapeId",tripId); // shapeId == tripId
+			        		record.put("shapePtSequence",Integer.toString(shapePtSequence++));
+							this.createRecordInner(session,tx,"tables.Shapes",record);
+			        	}
+			            lastShapeLat=point.Lat;
+			            lastShapeLon=point.Lon;	            
+			        }
+		        }
+		        tx.commit();
+				record.put("shapePtLat",Float.toString(stop.getstopLat()));
+	    		record.put("shapePtLon",Float.toString(stop.getstopLon()));
+	    		record.put("shapeId",tripId); // shapeId == tripId
+	    		record.put("shapePtSequence",Integer.toString(shapePtSequence++));
+				this.createRecord("tables.Shapes",record);	
+	            lastShapeLat=stop.getstopLat();
+	            lastShapeLon=stop.getstopLon();	            
+			}
+			lastLat=stop.getstopLat();
+			lastLon=stop.getstopLon();			
+		}		
+	    session.close();
+	    SetTripShapeId(tripId,shapeId);
+}
+
+	void SetTripShapeId(String tripId,String shapeId){
+		Session session = factory.openSession();
+	    Transaction tx = null;
+
+		String query="FROM Trips where tripId='"+tripId+"'";
+		Object trips[] = session.createQuery(query)
+	            .list()
+	            .toArray();
+	      
+		if (trips.length > 0){
+	        tx = session.beginTransaction();
+		    Trips trip = (Trips) trips[0];
+		    trip.setshapeId(shapeId);
+		    tx.commit();
+	    }
+		session.close();
+	}
+	
+public void StopsImport(String north, String south, String east, String west, String stop_type) {
         String url = "http://overpass-api.de/api/interpreter";
         URL obj=null;
         try {
@@ -145,7 +528,7 @@ public class Gtfs extends DBinterface {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        //add reuqest header
+        //add request header
         try {
             con.setRequestMethod("POST");
         } catch (ProtocolException e) {
@@ -210,6 +593,7 @@ public class Gtfs extends DBinterface {
             UpdateImportedStop(record);
         }
     }
+	
    
     public boolean UpdateImportedStop(Hashtable <String,String> osmRecord){
         // should be called UpdateOrCreate..

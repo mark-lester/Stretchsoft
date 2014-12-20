@@ -175,19 +175,38 @@ MapEric.prototype.Draw = function (){
 		eric.valueToObject[val[eric.parent.relations.key]]=mapobject;
 		eric.stop_event_handlers(mapobject,val['stopName']);
 		eric.featureGroup.addLayer(mapobject);
-		if (eric.draw_flag)	mapobject.addTo(GeeMap);			
+		if (eric.draw_flag)	{
+			mapobject.addTo(GeeMap);			
+		}
 	});
 	
 	if (this.draw_flag && eric.parent.data.length)
 		if (!initial_map_focus){// || !GeeMap.getBounds().contains(this.featureGroup.getBounds())){
 			if (DEBUG) console.log("fitting to bounds");
-			GeeMap.fitBounds(this.featureGroup.getBounds());		
+			// only refocus if we are currently not showing any of the object
+			if (!this.intersect(GeeMap.getBounds(),this.featureGroup.getBounds())){
+				GeeMap.fitBounds(this.featureGroup.getBounds());						
+			}
 		}		
    
 	initial_map_focus=true;
 	// we are politely issuing a 'Changed' request incase we have further descendants
 	this.request("Changed");		
 };
+
+MapEric.prototype.intersect = function (boundary,object){
+	if (
+			boundary.getBounds().contains(object.getSouthWest()) ||
+			boundary.getBounds().contains(object.getSouthEast()) ||
+			boundary.getBounds().contains(object.getNorthWest()) ||
+			boundary.getBounds().contains(object.getNorthEast())){
+		console.log("In bounds for "+this.name);
+		return true;
+	} else {
+		console.log("In bounds for "+this.name);
+		return true;		
+	}
+}
 
 MapEric.prototype.Changed = function(force) {
 	var object=null;
