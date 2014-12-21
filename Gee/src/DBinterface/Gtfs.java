@@ -300,8 +300,12 @@ public class Gtfs extends DBinterface {
 					session = factory.openSession();
 					entities=session.createQuery(query).list().toArray();
 					session.close();
-					if (entities.length<1){
+					if (entities.length<2){
 						this.SetTripShapeId(((Trips)record).getshapeId(), "");
+						// if there's only one point, remove it, 1 point shape files cause problems
+						if (entities.length == 1){
+							session.delete(((Shapes)entities[0]));							
+						}
 					} else {
 						 return ((Trips)record).getshapeId();						
 					}

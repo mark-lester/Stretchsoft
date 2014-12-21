@@ -182,9 +182,10 @@ MapEric.prototype.Draw = function (){
 	
 	if (this.draw_flag && eric.parent.data.length)
 		if (!initial_map_focus){// || !GeeMap.getBounds().contains(this.featureGroup.getBounds())){
-			if (DEBUG) console.log("fitting to bounds");
-			// only refocus if we are currently not showing any of the object
-			if (!this.intersect(GeeMap.getBounds(),this.featureGroup.getBounds())){
+			// only refocus if we are currently not showing any of the target object bounds
+			// and dont do for shapes, only trips
+			if (this.name == 'Stops' && !this.intersect(GeeMap.getBounds(),this.featureGroup.getBounds())){
+				if (DEBUG) console.log("fitting to bounds entity="+eric.name);
 				GeeMap.fitBounds(this.featureGroup.getBounds());						
 			}
 		}		
@@ -200,10 +201,10 @@ MapEric.prototype.intersect = function (boundary,object){
 			boundary.getBounds().contains(object.getSouthEast()) ||
 			boundary.getBounds().contains(object.getNorthWest()) ||
 			boundary.getBounds().contains(object.getNorthEast())){
-		console.log("In bounds for "+this.name);
+		if (DEBUG) console.log("In bounds for "+this.name);
 		return true;
 	} else {
-		console.log("In bounds for "+this.name);
+		if (DEBUG) console.log("In bounds for "+this.name);
 		return true;		
 	}
 }
@@ -219,6 +220,7 @@ MapEric.prototype.Changed = function(force) {
 
 
 MapEric.prototype.Draw_openlayers = function (){
+	this.initDraw();
 	this.objectstore=[];
 	var eric=this;
     var data = eric.parent.data;
@@ -245,4 +247,9 @@ MapEric.prototype.Draw_openlayers = function (){
 	});
 	GeeMap.zoomToExtent(this.layer.getDataExtent());
 };
+
+MapEric.prototype.Flush = function(force) {
+	this.initDraw();
+};
+
 

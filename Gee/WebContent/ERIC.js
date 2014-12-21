@@ -1,9 +1,10 @@
-var DEBUG=true;
+var DEBUG=false;
 var layercontrol=false;
 var openlayers=false;
 var layercontroler=null;
 var databaseName="gtfs";
 var $KingEric=null;
+var MAX_STOPS_TO_VIEW=5000;
 
 function SetUp(){
 	$.ajaxSetup({
@@ -224,8 +225,8 @@ function MapSetup_Leaflet(){
 
 function map_view_changed(){
 	if (DEBUG)console.log("map view changed");
-	$KingEric.get("Stops").request("loadForBounds");
-	$KingEric.get("Shapes").request("loadForBounds");
+	$KingEric.get("Stops").request("Load");
+	$KingEric.get("Shapes").request("Load");
 }
 
 function set_row_content(row_content,eric){

@@ -1,4 +1,4 @@
-var MAX_STOPS_TO_VIEW=300;
+
 function Eric (ED) {
 	this.ED=ED; // jquery element for the entire block of Eric Declaration
     this.UIobject; // jquery element for the  the select list, which will by where the place holder is 
@@ -17,9 +17,7 @@ function Eric (ED) {
     this.edit_flag=false; // used to re-use the edit dialog for create
     this.seed=null;
     this.current_request=null;
-    this.follup_request=null; //hack to allow the create (or_edit) dialog to flip back to tabular editing
-    this.full_set = true; // assume we've all of them, this may be set to false on fetching stops or shape points
-    var eric=this;
+    this.full_set = false; // 
     
     this.queue = jQuery.jqmq({    
         // Next item will be processed only when queue.next() is called in callback.
@@ -75,7 +73,7 @@ function Eric (ED) {
 			display				: []
 	};
 //	$(ED).find('#edit input[id=extendKey]').attr('value');
-	
+	var eric=this;
 	$(this.ED).find('#edit :input[display]').each(function (){
 		eric.relations.display.push($(this).attr('name'));			
 	});
@@ -356,11 +354,12 @@ Eric.prototype.Prepare = function() {
 };
 
 
-//  here are the requests (WARNING, you could request "request", and it would explode)
+// TODO Flush should be called Clear
 Eric.prototype.Flush = function(force) {
 	this.data=[];
 	this.hid_lookup={};
-	this.record_lookup={};	
+	this.record_lookup={};
+	this.full_set=false;
 	for (var child in this.children){
 		this.children[child].Flush();
 	}
@@ -373,14 +372,10 @@ Eric.prototype.Load = function(force) {
 		initial_map_focus=false;
 		zerocount(); 
 		this.request("GetMapBounds");
-//		this.Flush();  // wipe everything out, especially the stops
 		
 	default:
-		// normally clear everything out, but we let the stops build up
-//		this.data=[];
-//		this.hid_lookup={};
-//		this.record_lookup={};
-		
+	//	this.Flush();  // wipe everything out, especially the stops
+		this.full_set=true;  // by default we fetch everything
 		this.request("Prepare");
 		this.request("Fetch");
 		this.request("Draw",true); 
@@ -388,8 +383,11 @@ Eric.prototype.Load = function(force) {
 		break;
 
 	case "Stops":		
-	case "Shapes":		
-		this.request("loadForBounds");
+	case "Shapes":	
+		if (!this.full_set || force){ 
+			this.Flush();
+			this.request("loadForBounds");			
+		}
 		break;			
 	}
 };

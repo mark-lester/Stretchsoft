@@ -40,7 +40,7 @@ MapEricShape.prototype.Draw = function (){
 		previous=val;
 	});
 	
-	if (this.draw_flag)GeeMap.fitBounds(this.featureGroup.getBounds());
+	//if (this.draw_flag)GeeMap.fitBounds(this.featureGroup.getBounds());
 	// we are politey issuing a 'Changed' request incase we have further descendants
 	this.request("Changed");
 	return null;
