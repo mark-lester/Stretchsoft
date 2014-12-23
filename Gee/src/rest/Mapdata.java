@@ -23,11 +23,15 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
 import DBinterface.*;
+import sax.GeoPoint;
 import tables.*;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.vividsolutions.jts.geom.Coordinate;
 
 import com.google.gson.JsonObject;
 import com.restfb.json.JsonException;
@@ -70,7 +74,6 @@ public class Mapdata extends Rest {
 
 		response.setContentType("text/html");
 		ObjectMapper mapper = new ObjectMapper();
-		response.setContentType("text/html");
 		MapCoords mapCoords = new MapCoords();
 		Criteria criteria;
 		String action=request.getParameter("action");
@@ -343,7 +346,116 @@ public class Mapdata extends Rest {
 			}
 			
 			break;
-			
+		/*	
+			{ "type": "Feature",
+		        "geometry": {
+		          "type": "LineString",
+		          "coordinates": [
+		            [Shape.shapePtLat, Shape.shapePtLat], ...
+		            ]
+		          },
+		        "properties": {
+		          "name": routeName,
+		          "tripIds": [ [tripId,...]]
+		          }
+		        },
+		        
+			   create GeoJson object
+		foreach unique shapeId
+		       foreach Trip for this shapeId
+		       	  add to properties-tripIds
+		       foreach point in shape
+		       	  add to geometry-coordinates
+		       	   
+		  */     
+		case "routemap":
+			int rindex=0;
+			response.setContentType("application/json");
+			query="Select shapeId from Shapes" +
+					" group by shapeId";
+			session = gtfs.factory.openSession();
+			Object shapeIds[] = session.createQuery(query).list().toArray();
+			try {
+				JSONArray features=new JSONArray();
+				for (Object s : shapeIds){
+					String shapeId = (String)s;
+					query="FROM Shapes" +
+							" WHERE shapeId='"+shapeId+"' "+
+							" ORDER BY shapePtSequence";
+					Object shape_points[] = session.createQuery(query).list().toArray();
+					JSONArray coordinates=new JSONArray();
+					int input_index=0;
+					int output_index=0;
+		        	int modulus = shape_points.length /100; // we only want a max of about 100 per route
+		        	if (modulus == 0) modulus++;
+		        	double dlat=0;
+		        	double dlon=0;
+		        	double total_distance=0;
+		        	Object first_point = shape_points[0];
+		        	Object last_point = shape_points[shape_points.length-1];
+		        	dlat = ((Shapes)first_point).getshapePtLat() - ((Shapes)last_point).getshapePtLat(); 
+		        	dlon = ((Shapes)first_point).getshapePtLon() - ((Shapes)last_point).getshapePtLon(); 
+		        	total_distance=Math.sqrt(dlat*dlat + dlon*dlon);
+		        	System.err.println("Total distance for this trip "+total_distance+ 
+		        			" count="+shape_points.length+
+		        			" modulus="+modulus);
+		        	double lastShapeLat = -1;
+		        	double lastShapeLon = -1;
+					for (Object sh : shape_points){
+		        		//  thin out to about 100 points 
+		        		if ((input_index++ % modulus) != 0){
+		        			continue;
+		        		}
+
+		        		if (lastShapeLat != -1){
+				        	dlat = lastShapeLat - ((Shapes)sh).getshapePtLat(); 
+				        	dlon = lastShapeLon - ((Shapes)sh).getshapePtLon();
+				        	double this_distance=Math.sqrt(dlat*dlat + dlon*dlon);
+				        	// if we've moved less than 0.1% of the total, skip and
+				        	// and don't even count as one of the 100 points
+				        	if (total_distance/this_distance < 1000){
+				        		continue;
+				        	}
+		        		}
+			        	
+						JSONArray point = new JSONArray();
+						// lon - lat, not lat-lng for geojson
+						point.put(1,((Shapes)sh).getshapePtLat());
+						point.put(0,((Shapes)sh).getshapePtLon());
+						coordinates.put(output_index++,point);
+					}			
+					JSONObject geometry=new JSONObject();
+					geometry.put("type","LineString");
+					geometry.put("coordinates",coordinates);
+
+					JSONObject properties=new JSONObject();
+					properties.put("name", databaseName);
+
+					JSONObject feature=new JSONObject();
+					feature.put("type", "Feature");
+					feature.put("properties", properties);
+					feature.put("geometry",geometry);
+
+					features.put(rindex++,feature);
+				}
+				JSONObject properties = new JSONObject();
+				properties.put("name","urn:ogc:def:crs:OGC:1.3:CRS84");
+				JSONObject crs = new JSONObject();
+				crs.put("type","name");
+				crs.put("properties",properties);
+				
+				JSONObject routemap=new JSONObject();				
+				routemap.put("type","FeatureCollection");
+				routemap.put("crs",crs);
+				routemap.put("features",features);
+				
+				PrintWriter out = response.getWriter();
+				out.print(routemap);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			session.close();
 		}
 	}
 

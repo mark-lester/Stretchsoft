@@ -48,10 +48,14 @@ public class Gtfs extends DBinterface {
 	
     public void runMakeShapes() throws IOException {
         Session session = factory.openSession();
-    	Object entities[]=session.createQuery("from Trips").list().toArray();
+        List<Object[]> rows=session.createQuery("from Trips t,Routes r "+
+    				" WHERE t.routeId=r.routeId "+"" +
+    						" AND r.routeType='3'").list();
+        
     	
-    	for (Object o : entities){
-			Trips t = (Trips)o;
+    	for (Object[] tu : rows){
+			Trips t = (Trips)tu[0];
+			System.err.println("want to import shape for "+t.gettripId());
 			this.ShapeImport(t.gettripId());
     	}
     }
@@ -404,7 +408,7 @@ public class Gtfs extends DBinterface {
 			if (lastLat != -1){
 		        String url = "http://wikitimetable.com/";
 
-		        url="http://www.wikitimetable.com/laos/otp/routers/default/plan?"+
+		        url="http://www.wikitimetable.com/"+databaseName+"/otp/routers/default/plan?"+
 		        		"fromPlace="+Float.toString(lastLat)+
 		        		"%2C"+Float.toString(lastLon)+
 		        		"&toPlace="+Float.toString(stop.getstopLat())+
@@ -468,8 +472,48 @@ public class Gtfs extends DBinterface {
 		        }
 				
 		        tx = session.beginTransaction();
+		        lastShapeLat = -1;
+		        lastShapeLon = -1;
 		        if (points != null && !points.isEmpty()){  // we didnt get anything back from OTP, stick the end point in
-			        for (GeoPoint point : points){
+		        	
+		        	/*
+		        	 * see below, this logic is now in routemap case in Mapdata.java
+		        	 * 
+		        	int modulus = points.size() /100; // we only want a max of about 100 per route
+		        	if (modulus == 0) modulus++;
+		        	int index=0;
+		        	double dlat=0;
+		        	double dlon=0;
+		        	double total_distance=0;
+		        	GeoPoint first_point = points.get(0);
+		        	GeoPoint last_point = points.get(points.size()-1);
+		        	dlat = first_point.Lat - last_point.Lat; 
+		        	dlon = first_point.Lon - last_point.Lon;
+		        	total_distance=Math.sqrt(dlat*dlat + dlon*dlon);
+		        	System.err.println("Total distance for this trip "+total_distance+ 
+		        			" count="+points.size()+
+		        			" modulus="+modulus);
+		        	*/
+		        	for (GeoPoint point : points){
+		        		/*
+		        		 * moved this logic to the routmap printer
+		        		 * for now we'll have everything OSM throws at us for shape files
+		        		if (lastShapeLat != -1){
+				        	dlat = lastShapeLat - point.Lat; 
+				        	dlon = lastShapeLon - point.Lon;
+				        	double this_distance=Math.sqrt(dlat*dlat + dlon*dlon);
+				        	// if we've moved less than 0.1% of the total, skip and
+				        	// and don't even count as one of the 100 points
+				        	if (total_distance/this_distance < 1000){
+				        		continue;
+				        	}
+		        		}
+			        	
+		        		//  thin out to about 100 points 
+		        		if ((index++ % modulus) != 0){
+		        			continue;
+		        		}
+		        		*/
 			        	if (point.Lat != lastShapeLat && point.Lon != lastShapeLon){
 			        	    record = new Hashtable<String,String>();
 			        		record.put("shapePtLat",Float.toString(point.Lat));

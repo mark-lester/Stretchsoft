@@ -4,7 +4,7 @@ var openlayers=false;
 var layercontroler=null;
 var databaseName="gtfs";
 var $KingEric=null;
-var MAX_STOPS_TO_VIEW=5000;
+var MAX_STOPS_TO_VIEW=500;
 
 function SetUp(){
 	$.ajaxSetup({

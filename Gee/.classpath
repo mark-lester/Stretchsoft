@@ -26,5 +26,6 @@
 	<classpathentry kind="lib" path="/home/mcl/jarstore/jboss-logging-3.1.1.GA.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/gson-2.2.2.jar"/>
 	<classpathentry kind="lib" path="/home/mcl/jarstore/pbs4java.jar"/>
+	<classpathentry kind="lib" path="/home/mcl/jarstore/jts-1.8.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
