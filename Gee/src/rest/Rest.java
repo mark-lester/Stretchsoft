@@ -85,6 +85,15 @@ System.err.println("DOING INIT FOR REST");
 		Base64 codec = new Base64();
 //		 System.err.println("IN GET USER ID\n");
 		int count=0;
+		if (true) {
+			userId="mark-lester";
+			databaseName="amtrak";
+			gtfs = getGtfs(databaseName,userId);
+			return userId;
+		}
+	
+
+		if (cookies != null)
 		for (Cookie cookie : cookies) {
 //			System.err.print("Cookie Name=" + cookie.getName()+" Val="+cookie.getValue()+"\n");
 	        if (cookie.getName().equals("gee_securetoken")){
@@ -106,7 +115,10 @@ System.err.println("DOING INIT FOR REST");
 		// need to handle validation for non publicly accessible databases.
 		// the security should handle unauthorised access irrespective of what the
 		// user might haverequest.getParameter("post") hacked their gee_databasename cookie to,
-		if (api_databaseName != null && !api_databaseName.matches("")) this.databaseName=api_databaseName;
+		if (api_databaseName != null && !api_databaseName.matches("")) {
+			databaseName=this.databaseName=api_databaseName;
+			System.err.println("SETTING DATABASENAME  "+databaseName);
+		}
 		
 		if (gee_user == null || secure_token == null){
 			userId="guest";

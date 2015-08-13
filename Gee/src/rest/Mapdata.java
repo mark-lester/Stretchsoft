@@ -7,10 +7,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Enumeration;
+
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -32,11 +35,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+import com.vividsolutions.jts.simplify.DouglasPeuckerSimplifier;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
+
+
 
 import com.google.gson.JsonObject;
 import com.restfb.json.JsonException;
 
-import antlr.collections.List;
+
 
 
 /**
@@ -65,6 +77,7 @@ public class Mapdata extends Rest {
    
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Session session = null;
+
 		String userId = getUserId(request,response);
 		if (userId == null){
 			System.err.print("Failed to get access in Mapdata\n"); 
@@ -371,65 +384,79 @@ public class Mapdata extends Rest {
 		case "routemap":
 			int rindex=0;
 			response.setContentType("application/json");
-			query="Select shapeId from Shapes" +
-					" group by shapeId";
+			query="Select tripId,shapeId from Trips where shapeId != null";
+			
+//					" group by shapeId";
 			session = gtfs.factory.openSession();
 			Object shapeIds[] = session.createQuery(query).list().toArray();
 			try {
 				JSONArray features=new JSONArray();
+				
 				for (Object s : shapeIds){
-					String shapeId = (String)s;
+					
+					//String shapeId = (String)s;
+					Object fields[]=(Object[])s;
+					String shapeId = (String)fields[1];
+					tripId= (String)fields[0];
+					System.err.println("shapeId="+shapeId+" tripId="+tripId);
 					query="FROM Shapes" +
 							" WHERE shapeId='"+shapeId+"' "+
 							" ORDER BY shapePtSequence";
 					Object shape_points[] = session.createQuery(query).list().toArray();
-					JSONArray coordinates=new JSONArray();
-					int input_index=0;
-					int output_index=0;
-		        	int modulus = shape_points.length /100; // we only want a max of about 100 per route
-		        	if (modulus == 0) modulus++;
-		        	double dlat=0;
-		        	double dlon=0;
-		        	double total_distance=0;
-		        	Object first_point = shape_points[0];
-		        	Object last_point = shape_points[shape_points.length-1];
-		        	dlat = ((Shapes)first_point).getshapePtLat() - ((Shapes)last_point).getshapePtLat(); 
-		        	dlon = ((Shapes)first_point).getshapePtLon() - ((Shapes)last_point).getshapePtLon(); 
-		        	total_distance=Math.sqrt(dlat*dlat + dlon*dlon);
-		        	System.err.println("Total distance for this trip "+total_distance+ 
-		        			" count="+shape_points.length+
-		        			" modulus="+modulus);
+	
 		        	double lastShapeLat = -1;
 		        	double lastShapeLon = -1;
+//		            Geometry[] points = new Geometry[shape_points.length];
+		            ArrayList<Geometry> points = new ArrayList <Geometry>();
+		             int i=0;
+	//	        	List<Coordinate> points = new ArrayList<Coordinate>();
+		            ArrayList <Coordinate> coords=new ArrayList <Coordinate>();
+					GeometryFactory gf= new GeometryFactory();
 					for (Object sh : shape_points){
-		        		//  thin out to about 100 points 
-		        		if ((input_index++ % modulus) != 0){
-		        			continue;
-		        		}
+						double thisShapeLat=((Shapes)sh).getshapePtLat();
+						double thisShapeLon=((Shapes)sh).getshapePtLon();
+						if (lastShapeLat == thisShapeLat && lastShapeLon == thisShapeLon) continue;
+						lastShapeLat = thisShapeLat;
+						lastShapeLon = thisShapeLon;
+						Coordinate coord= new Coordinate(thisShapeLon,thisShapeLat);
+//						System.err.println("added coord="+coord);
+						points.add(gf.createPoint(coord));
+						coords.add(coord);
+//						points.add(new Coordinate(thisShapeLon,thisShapeLat));
+					}
+					Coordinate list2[] = new Coordinate[coords.size()];
+					list2 = coords.toArray(list2);
+					CoordinateArraySequence cas=new CoordinateArraySequence(list2);
+					
+					LineString ls = new LineString(cas,gf);
 
-		        		if (lastShapeLat != -1){
-				        	dlat = lastShapeLat - ((Shapes)sh).getshapePtLat(); 
-				        	dlon = lastShapeLon - ((Shapes)sh).getshapePtLon();
-				        	double this_distance=Math.sqrt(dlat*dlat + dlon*dlon);
-				        	// if we've moved less than 0.1% of the total, skip and
-				        	// and don't even count as one of the 100 points
-				        	if (total_distance/this_distance < 1000){
-				        		continue;
-				        	}
-		        		}
-			        	
-						JSONArray point = new JSONArray();
-						// lon - lat, not lat-lng for geojson
-						point.put(1,((Shapes)sh).getshapePtLat());
-						point.put(0,((Shapes)sh).getshapePtLon());
-						coordinates.put(output_index++,point);
-					}			
+					Geometry[] points_ar = (Geometry [])points.toArray(new Geometry[points.size()]);
+					GeometryCollection geometries = new GeometryCollection(points_ar, gf);
+//					DouglasPeuckerSimplifier simplifier = new DouglasPeuckerSimplifier(geometries);
+//					simplifier.setDistanceTolerance(0.00001);
+//					simplifier.setDistanceTolerance(0.01);
+//					simplifier.simplify(geometries, 0.01);
+//					Geometry result=simplifier.getResultGeometry();
+//					Geometry result=DouglasPeuckerSimplifier.simplify(geometries,1);
+					Geometry result=DouglasPeuckerSimplifier.simplify(ls,0.001);
+					System.err.println("before="+shape_points.length+" after "+result.getCoordinates().length);
+					
+					
+					ArrayList <double[]> clist=new ArrayList<double[]>(result.getCoordinates().length); 
+					for (Coordinate g : result.getCoordinates()){
+						double[] cxy=new double[2];
+						cxy[0]=g.x;
+						cxy[1]=g.y;
+						clist.add(cxy);						
+					}
+					double[][] car=clist.toArray(new double[result.getCoordinates().length][]);
 					JSONObject geometry=new JSONObject();
 					geometry.put("type","LineString");
-					geometry.put("coordinates",coordinates);
+					geometry.put("coordinates",car);
 
 					JSONObject properties=new JSONObject();
 					properties.put("name", databaseName);
+					properties.put("tripId", tripId);
 
 					JSONObject feature=new JSONObject();
 					feature.put("type", "Feature");
@@ -448,6 +475,7 @@ public class Mapdata extends Rest {
 				routemap.put("type","FeatureCollection");
 				routemap.put("crs",crs);
 				routemap.put("features",features);
+//				routemap.put("features",merge(features));
 				
 				PrintWriter out = response.getWriter();
 				out.print(routemap);
@@ -457,6 +485,75 @@ public class Mapdata extends Rest {
 			}
 			session.close();
 		}
+	}
+	
+	public JSONArray merge(JSONArray input) throws JSONException{
+		// build up[ the store of connectors
+		int input_points=0;
+		int output_points=0;
+		System.err.println("input length = "+input.length());
+		System.err.println("building");
+		for (int i = 0; i < input.length(); i++) {
+			double[][] car=(double[][])input.getJSONObject(i).getJSONObject("geometry").get("coordinates");
+			String tripId=(String)input.getJSONObject(i).getJSONObject("properties").get("tripId");
+			input_points+=car.length;
+			for (int j=0;j < car.length -1;j++){
+				double Ax=car[j][0];
+				double Ay=car[j][1];
+				double Bx=car[j+1][0];
+				double By=car[j+1][1];
+				// this will create a new one if it doesnt exist
+				Connector con=Connector.get(Ax,Ay,Bx,By);
+				// add the tripId
+				con.addTrip(tripId);
+			}
+		}
+		int rindex=0;
+		JSONArray features=new JSONArray();
+		
+		Enumeration<String> enumKey = Connector.indexConnector.keys();
+
+		System.err.println("merging, section size="+Connector.sectionIndex);
+		
+		// for all the above connectors
+		while(enumKey.hasMoreElements()) {
+			String key = enumKey.nextElement();
+			Connector con=Connector.indexConnector.get(key);
+			
+			if (con.sectionId == 0){ // skip if already processed
+				// find the start of this chain
+//				System.err.println("starting");
+				Connector start=con.findStart(con,null);
+				// find all the matching ones (same set of tripIds) and set sectionId
+//				System.err.println("joining");
+				start.joinSame(start,null);
+				Connector.sectionIndex++;
+				JSONObject geometry=new JSONObject();
+				geometry.put("type","LineString");
+				ArrayList<double[]> coords=new ArrayList<double[]>();
+//				System.err.println("lining");
+				start.lineCoords(coords,null);
+				double coords_array[][] = new double[coords.size()][];
+				coords_array=coords.toArray(coords_array);
+				output_points+=coords_array.length;
+				geometry.put("coordinates",coords_array);
+
+				JSONObject properties=new JSONObject();
+				properties.put("name", databaseName);
+				properties.put("tripIds", new JSONArray(start.tripIds.values().toArray()));
+
+				JSONObject feature=new JSONObject();
+				feature.put("type", "Feature");
+				feature.put("properties", properties);
+				feature.put("geometry",geometry);
+
+				features.put(rindex++,feature);
+			}
+		}
+		System.err.println("output length = "+features.length()+ " section index"+Connector.sectionIndex+
+				" input points length="+input_points+ " output points length="+output_points);
+
+		return features;
 	}
 
 	/**

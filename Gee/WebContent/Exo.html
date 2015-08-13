@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="css/uniform.default.css" media="screen" />
+<!-- Latest compiled and minified JavaScript -->
+
+<link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="shortcut icon" href="img/favicon.ico">
+<link rel="stylesheet" href="css/leaflet.css" />
+
+
+
+
+<!-- Bootstrap UI stuff -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="css/bootstrap-theme.min.css">
+
+<link rel="stylesheet" href="css/vader/jquery-ui-1.10.4.css">
+<link rel="stylesheet" href="css/jquery.timepicker.css">
+<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">  
+<script data-main="wttlib/wtt/main" src="js/require.js"></script>
+
+<script id="Select_List" class=Exo type="x-tmpl-mustache">
+<select id={{name}} value={{cursor.value}}>
+{{#modules}}
+<option value={{key}}>{{_map.name}}</option>
+{{/collection}}
+</select>
+</script>
+
+<body>
+<div class=Exo type=Module id="Agency">
+
+<div class=Exo type=View id="Main">
+<div class=Exo type=Execute name="Select_List"></div>
+</div>
+
+
+<div class=Exo type=View id="Edit">
+<fieldset>
+	<input id="hibernateId" type=hidden><br>
+
+	<label for="agencyId">Agency ID</label>
+    <input id="agencyId" name="agencyId" size=10 maxlength=10 type="text" required key><br>
+	
+	<label for="agencyName">Name</label>
+    <input id="agencyName" name="agencyName" size=30 maxlength=30  type="text" required display><br>
+	
+	<label for="agencyUrl">URL</label>
+    <input id="agencyUrl" name="agencyUrl" size=30 maxlength=100><br>
+	
+	<label for="agencyTimezone">Timezone</label>
+	<select id="agencyTimezone" json="timezone.json">
+    </select>
+	<!-- 
+    <input id="agencyTimezone" name="agencyTimezone" size=20 maxlength=20><br>
+	 -->
+	
+	<label for="agencyLang">Language</label>
+    <input id="agencyLang" name="agencyLang" size=10 maxlength=10 ><br>
+	
+	<label for="agencyPhone">Phone</label>
+    <input id="agencyPhone" name="agencyPhone" size=20 maxlength=40>
+</fieldset>
+
+ </form>
+</div>
+
+</div> <!--  end module -->
+</body>
+
+
+</html>
