@@ -1,13 +1,13 @@
-var express = require('express');
-var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
-var routes = require('./routes/index');
-var users = require('./routes/users');
-
+var express = require('express')
+, routes = require('./routes')
+, user = require('./routes/user')
+, http = require('http')
+, path = require('path')
+, hike = require('./routes/hike')
 var app = express();
 
 // view engine setup
@@ -58,3 +58,8 @@ app.use(function(err, req, res, next) {
 
 
 module.exports = app;
+
+app.get('/', routes.index);
+app.get('/users', user.list);
+app.get('/hikes', hike.index);
+app.post('/add_hike', hike.add_hike);
