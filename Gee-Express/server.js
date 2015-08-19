@@ -4,28 +4,11 @@ var fs = require("fs");
 //wikitimetable.ck0qtom20qbe.eu-west-1.rds.amazonaws.com:3306
 var mysql = require('mysql');
 
-
 var connection = mysql.createConnection({
-	  host     : 'wikitimetable.ck0qtom20qbe.eu-west-1.rds.amazonaws.com',
-	  user     : 'wikiadmin',
-	  password : 'cantona1',
-	  database : 'wikitimetable',
-	  port     : '3306'
-	});
-/*
-var connection = mysql.createConnection({
-	  host     : 'localhost',
-	  user     : 'root',
-	  password : 'root',
-	  database : 'amtrak'
-	});
-*/
-connection.connect();
-
-connection.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
-  if (err){throw err;}
- 
-  console.log('The solution is: ', rows[0].solution);
+  host     : 'wikitimetable.ck0qtom20qbe.eu-west-1.rds.amazonaws.com;dbname=wikitimetable',
+  user     : 'wikiadmin',
+  password : 'cantona1',
+  port 	   : '3306'
 });
 
 var bodyParser = require('body-parser');
