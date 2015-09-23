@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<html>
+    <head>
+    </head>
+    <body>
+        <h1>Hello World Marionette</h1>
+        <div class="row">
+<div class="col-md-3">
+<div class="col1">
+<div id="instance"></div>   
+<div id="agency"></div>   
+<div id="stop"></div>   
+<div id="calendar"></div>   
+<div id="calendar_date"></div>   
+<div id="fare_attribute"></div>   
+<div id="fare_rule"></div>   
+<hr>
+<div id="route"></div>   
+<div id="trip"></div>   
+<div id="stop_time"></div>   
+<div id="shape"></div>   
+</div> <!-- end col1 -->
+<div class="col-md-9">
+<div id="map" style="width: 100%; height: 600px">Map goes here </div>
+</div> <!-- end 9 col -->
+</div> <!--  end row  -->
+        
+        <script data-main="app" src="requirejs/require.js"></script>
+        <script id="NavigationTemplate" type="text/x-handlebars-template">
+{{name}} {{collection.display}}={{$ collection.display}} 
+<form>
+<select id="{{select_id}}">
+{{#each items}}
+				<option value="{{this.id}}">
+{{#if ../collection.foreign}}
+  {{~SET "foreign" ../collection.foreign}}
+  {{~LOOKUP foreign.name foreign.show}}
+{{else}}
+  {{$ ../collection.display}}
+{{/if}}
+
+</option>
+{{/each}}
+</select>
+</form>
+	    </script>
+        
+    </body>
+</html>

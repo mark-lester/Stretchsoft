@@ -1,65 +1,21 @@
 var express = require('express');
 var app = express();
+var restful   = require('sequelize-restful-extended');
+
 var fs = require("fs");
-//wikitimetable.ck0qtom20qbe.eu-west-1.rds.amazonaws.com:3306
-var mysql = require('mysql');
-
-
-var connection = mysql.createConnection({
-	  host     : 'wikitimetable.ck0qtom20qbe.eu-west-1.rds.amazonaws.com',
-	  user     : 'wikiadmin',
-	  password : 'cantona1',
-	  database : 'wikitimetable',
-	  port     : '3306'
-	});
-/*
-var connection = mysql.createConnection({
-	  host     : 'localhost',
-	  user     : 'root',
-	  password : 'root',
-	  database : 'amtrak'
-	});
-*/
-connection.connect();
-
-connection.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
-  if (err){throw err;}
- 
-  console.log('The solution is: ', rows[0].solution);
-});
-
+var models = require("./models");
+var debug = require("debug");
 var bodyParser = require('body-parser');
-var multer  = require('multer');
+var routes = require('./routes');
 
-app.use(express.static('public'));
-app.use(bodyParser.urlencoded({ extended: false }));
-var upload = multer({ dest: '/tmp/' });
-//app.use(multer({ dest: '/tmp/'}));
+app.use(bodyParser());
+app.set('view engine', 'jade');
 
-app.get('/index.htm', function (req, res) {
-   res.sendFile( __dirname + "/" + "index.htm" );
-});
+app.get('/', routes.home);
+console.log("routing to users");
+app.use('/users', routes.user);
 
-app.post('/file_upload', upload.single('avatar'), function (req, res, next) {
-   console.log(req.file.name);
-   console.log(req.file.path);
-   console.log(req.file.type);
+//app.get('/user', routes.user);
+//app.use(restful(models.sequelize, { /* options */ }));
 
-   var file = __dirname + "/" + req.file.name;
-   fs.readFile( req.file.path, function (err, data) {
-        fs.writeFile(file, data, function (err) {
-        var response;
-         if( err ){
-              console.log( err );
-         }else{
-               response = {
-                   message:'File uploaded successfully',
-                   filename:req.file.name
-              };
-          }
-          console.log( response );
-          res.end( JSON.stringify( response ) );
-       });
-   });
-});
 module.exports = app;
